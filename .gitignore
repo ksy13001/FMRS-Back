@@ -37,3 +37,5 @@ application.properties
 ### VS Code ###
 .vscode/
 !/.gitignore
+
+!/src/querydsl/
