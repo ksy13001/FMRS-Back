@@ -16,7 +16,7 @@ public class Team {
     private String name;
 
 
-    @OneToMany(mappedBy = "player", fetch = FetchType.LAZY)
+    @OneToMany(mappedBy = "team", fetch = FetchType.LAZY)
     private List<Player> players = new ArrayList<>();
 
     @ManyToOne

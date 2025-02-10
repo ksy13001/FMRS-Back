@@ -16,6 +16,6 @@ public class Nation {
 
     private Long division;
 
-    @OneToMany(mappedBy = "league", fetch = FetchType.LAZY)
+    @OneToMany(mappedBy = "nation", fetch = FetchType.LAZY)
     private List<League> leagues = new ArrayList<>();
 }
