@@ -13,6 +13,8 @@ public class League {
 
     private String name;
 
+    private int division;
+
     @ManyToOne
     @JoinColumn(name = "nation_id")
     private Nation nation;

@@ -16,8 +16,6 @@ public class Nation {
 
     private String name;
 
-    private Long division;
-
     @OneToMany(mappedBy = "nation", fetch = FetchType.LAZY)
     private List<Player> players;
 
