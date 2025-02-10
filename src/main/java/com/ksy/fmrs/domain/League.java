@@ -1,7 +1,9 @@
 package com.ksy.fmrs.domain;
 
 import jakarta.persistence.*;
+import lombok.Getter;
 
+@Getter
 @Entity
 public class League {
 
