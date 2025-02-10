@@ -26,6 +26,8 @@ public class Player {
 
     private int weight;
 
+    private int marketValue;
+
     @Enumerated(EnumType.STRING)
     private Position position;
 
