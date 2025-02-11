@@ -2,8 +2,8 @@ package com.ksy.fmrs.repository;
 
 import com.ksy.fmrs.domain.Player;
 import com.ksy.fmrs.domain.QPlayer;
-import com.ksy.fmrs.domain.enums.Position;
-import com.ksy.fmrs.dto.PlayerSearchCondition;
+import com.ksy.fmrs.domain.enums.PositionEnum;
+import com.ksy.fmrs.dto.SearchPlayerCondition;
 import com.querydsl.core.types.dsl.BooleanExpression;
 import com.querydsl.jpa.impl.JPAQueryFactory;
 import lombok.RequiredArgsConstructor;
@@ -17,54 +17,61 @@ public class PlayerRepositoryCustomImpl implements PlayerRepositoryCustom {
 
     private final JPAQueryFactory jpaQueryFactory;
 
+    @Override
+    public List<Player> searchPlayerByName(String name) {
+        return jpaQueryFactory
+                .selectFrom(QPlayer.player)
+                .where(nameContains(name))
+                .fetch();
+    }
 
     @Override
-    public List<Player> searchPlayer(PlayerSearchCondition condition) {
+    public List<Player> searchPlayerByDetailCondition(SearchPlayerCondition condition) {
         return jpaQueryFactory
                 .selectFrom(QPlayer.player)
                 .where(
                         nameContains(condition.getName()),
                         age(condition.getAgeMin(), condition.getAgeMax()),
-                        position(condition.getPosition()),
-                        //technical
-                        corners(condition.getCornersMin(), condition.getCornersMax()),
-                        crossing(condition.getCrossingMin(), condition.getCrossingMax()),
-                        dribbling(condition.getDribblingMin(), condition.getDribblingMax()),
-                        finishing(condition.getFinishingMin(), condition.getFinishingMax()),
-                        firstTouch(condition.getFirstTouchMin(), condition.getFirstTouchMax()),
-                        freeKickTaking(condition.getFreeKickTakingMin(), condition.getFreeKickTakingMax()),
-                        heading(condition.getHeadingMin(), condition.getHeadingMax()),
-                        longShots(condition.getLongShotsMin(), condition.getLongShotsMax()),
-                        longThrows(condition.getLongThrowsMin(), condition.getLongThrowsMax()),
-                        marking(condition.getMarkingMin(), condition.getMarkingMax()),
-                        passing(condition.getPassingMin(), condition.getPassingMax()),
-                        penaltyTaking(condition.getPenaltyTakingMin(), condition.getPenaltyTakingMax()),
-                        tackling(condition.getTacklingMin(), condition.getTacklingMax()),
-                        technique(condition.getTechniqueMin(), condition.getTechniqueMax()),
-                        //mental
-                        aggression(condition.getAggressionMin(), condition.getAggressionMax()),
-                        anticipation(condition.getAnticipationMin(), condition.getAnticipationMax()),
-                        bravery(condition.getBraveryMin(), condition.getBraveryMax()),
-                        composure(condition.getComposureMin(), condition.getComposureMax()),
-                        concentration(condition.getConcentrationMin(), condition.getConcentrationMax()),
-                        decisions(condition.getDecisionsMin(), condition.getDecisionsMax()),
-                        determination(condition.getDeterminationMin(), condition.getDeterminationMax()),
-                        flair(condition.getFlairMin(), condition.getFlairMax()),
-                        leadership(condition.getLeadershipMin(), condition.getLeadershipMax()),
-                        offTheBall(condition.getOffTheBallMin(), condition.getOffTheBallMax()),
-                        positioning(condition.getPositioningMin(), condition.getPositioningMax()),
-                        teamwork(condition.getTeamworkMin(), condition.getTeamworkMax()),
-                        vision(condition.getVisionMin(), condition.getVisionMax()),
-                        workRate(condition.getWorkRateMin(), condition.getWorkRateMax()),
-                        //Physical
-                        acceleration(condition.getAccelerationMin(), condition.getAccelerationMax()),
-                        agility(condition.getAgilityMin(), condition.getAgilityMax()),
-                        balance(condition.getBalanceMin(), condition.getBalanceMax()),
-                        jumpingReach(condition.getJumpingReachMin(), condition.getJumpingReachMax()),
-                        naturalFitness(condition.getNaturalFitnessMin(), condition.getNaturalFitnessMax()),
-                        pace(condition.getPaceMin(), condition.getPaceMax()),
-                        stamina(condition.getStaminaMin(), condition.getStaminaMax()),
-                        strength(condition.getStrengthMin(), condition.getStrengthMax())
+                        position(condition.getPositionEnum()),
+                        // technical
+                        cornersMin(condition.getCorners()),
+                        crossingMin(condition.getCrossing()),
+                        dribblingMin(condition.getDribbling()),
+                        finishingMin(condition.getFinishing()),
+                        firstTouchMin(condition.getFirstTouch()),
+                        freeKickTakingMin(condition.getFreeKickTaking()),
+                        headingMin(condition.getHeading()),
+                        longShotsMin(condition.getLongShots()),
+                        longThrowsMin(condition.getLongThrows()),
+                        markingMin(condition.getMarking()),
+                        passingMin(condition.getPassing()),
+                        penaltyTakingMin(condition.getPenaltyTaking()),
+                        tacklingMin(condition.getTackling()),
+                        techniqueMin(condition.getTechnique()),
+                        // mental
+                        aggressionMin(condition.getAggression()),
+                        anticipationMin(condition.getAnticipation()),
+                        braveryMin(condition.getBravery()),
+                        composureMin(condition.getComposure()),
+                        concentrationMin(condition.getConcentration()),
+                        decisionsMin(condition.getDecisions()),
+                        determinationMin(condition.getDetermination()),
+                        flairMin(condition.getFlair()),
+                        leadershipMin(condition.getLeadership()),
+                        offTheBallMin(condition.getOffTheBall()),
+                        positioningMin(condition.getPositioning()),
+                        teamworkMin(condition.getTeamwork()),
+                        visionMin(condition.getVision()),
+                        workRateMin(condition.getWorkRate()),
+                        // physical
+                        accelerationMin(condition.getAcceleration()),
+                        agilityMin(condition.getAgility()),
+                        balanceMin(condition.getBalance()),
+                        jumpingReachMin(condition.getJumpingReach()),
+                        naturalFitnessMin(condition.getNaturalFitness()),
+                        paceMin(condition.getPace()),
+                        staminaMin(condition.getStamina()),
+                        strengthMin(condition.getStrength())
                 )
                 .fetch();
     }
@@ -74,7 +81,7 @@ public class PlayerRepositoryCustomImpl implements PlayerRepositoryCustom {
         if(name == null || name.isEmpty()){
             return null;
         }
-        return QPlayer.player.name.containsIgnoreCase(name);
+        return QPlayer.player.name.contains(name);
     }
 
     // 나이 초기값 14~99
@@ -86,265 +93,301 @@ public class PlayerRepositoryCustomImpl implements PlayerRepositoryCustom {
     }
 
     // 멀티포지션인 경우 고려해서 수정 필요
-    private BooleanExpression position(Position position){
-        if(position == null){
+    private BooleanExpression position(PositionEnum positionEnum){
+        if(positionEnum == null){
             return null;
         }
-        return QPlayer.player.position.eq(position);
+        return QPlayer.player.position.eq(positionEnum);
     }
 
-    private BooleanExpression corners(Integer cornersMin, Integer cornersMax) {
-        if (cornersMin == null || cornersMax == null || cornersMin > cornersMax) {
-            return null;
-        }
-        return QPlayer.player.corners.between(cornersMin, cornersMax);
-    }
+    // 능력치 조건
 
-    private BooleanExpression crossing(Integer crossingMin, Integer crossingMax) {
-        if (crossingMin == null || crossingMax == null || crossingMin > crossingMax) {
-            return null;
-        }
-        return QPlayer.player.crossing.between(crossingMin, crossingMax);
-    }
+    // crossing
 
-    private BooleanExpression dribbling(Integer dribblingMin, Integer dribblingMax) {
-        if (dribblingMin == null || dribblingMax == null || dribblingMin > dribblingMax) {
+    private BooleanExpression cornersMin(Integer corners) {
+        if (corners == null) {
             return null;
         }
-        return QPlayer.player.dribbling.between(dribblingMin, dribblingMax);
-    }
-
-    private BooleanExpression finishing(Integer finishingMin, Integer finishingMax) {
-        if (finishingMin == null || finishingMax == null || finishingMin > finishingMax) {
-            return null;
-        }
-        return QPlayer.player.finishing.between(finishingMin, finishingMax);
-    }
-
-    private BooleanExpression firstTouch(Integer firstTouchMin, Integer firstTouchMax) {
-        if (firstTouchMin == null || firstTouchMax == null || firstTouchMin > firstTouchMax) {
-            return null;
-        }
-        return QPlayer.player.firstTouch.between(firstTouchMin, firstTouchMax);
-    }
-
-    private BooleanExpression freeKickTaking(Integer freeKickTakingMin, Integer freeKickTakingMax) {
-        if (freeKickTakingMin == null || freeKickTakingMax == null || freeKickTakingMin > freeKickTakingMax) {
-            return null;
-        }
-        return QPlayer.player.freeKickTaking.between(freeKickTakingMin, freeKickTakingMax);
-    }
-
-    private BooleanExpression heading(Integer headingMin, Integer headingMax) {
-        if (headingMin == null || headingMax == null || headingMin > headingMax) {
-            return null;
-        }
-        return QPlayer.player.heading.between(headingMin, headingMax);
-    }
-
-    private BooleanExpression longShots(Integer longShotsMin, Integer longShotsMax) {
-        if (longShotsMin == null || longShotsMax == null || longShotsMin > longShotsMax) {
-            return null;
-        }
-        return QPlayer.player.longShots.between(longShotsMin, longShotsMax);
-    }
-
-    private BooleanExpression longThrows(Integer longThrowsMin, Integer longThrowsMax) {
-        if (longThrowsMin == null || longThrowsMax == null || longThrowsMin > longThrowsMax) {
-            return null;
-        }
-        return QPlayer.player.longThrows.between(longThrowsMin, longThrowsMax);
-    }
-
-    private BooleanExpression marking(Integer markingMin, Integer markingMax) {
-        if (markingMin == null || markingMax == null || markingMin > markingMax) {
-            return null;
-        }
-        return QPlayer.player.marking.between(markingMin, markingMax);
-    }
-
-    private BooleanExpression passing(Integer passingMin, Integer passingMax) {
-        if (passingMin == null || passingMax == null || passingMin > passingMax) {
-            return null;
-        }
-        return QPlayer.player.passing.between(passingMin, passingMax);
-    }
-
-    private BooleanExpression penaltyTaking(Integer penaltyTakingMin, Integer penaltyTakingMax) {
-        if (penaltyTakingMin == null || penaltyTakingMax == null || penaltyTakingMin > penaltyTakingMax) {
-            return null;
-        }
-        return QPlayer.player.penaltyTaking.between(penaltyTakingMin, penaltyTakingMax);
-    }
-
-    private BooleanExpression tackling(Integer tacklingMin, Integer tacklingMax) {
-        if (tacklingMin == null || tacklingMax == null || tacklingMin > tacklingMax) {
-            return null;
-        }
-        return QPlayer.player.tackling.between(tacklingMin, tacklingMax);
-    }
-
-    private BooleanExpression technique(Integer techniqueMin, Integer techniqueMax) {
-        if (techniqueMin == null || techniqueMax == null || techniqueMin > techniqueMax) {
-            return null;
-        }
-        return QPlayer.player.technique.between(techniqueMin, techniqueMax);
-    }
-
-    private BooleanExpression aggression(Integer aggressionMin, Integer aggressionMax) {
-        if (aggressionMin == null || aggressionMax == null || aggressionMin > aggressionMax) {
-            return null;
-        }
-        return QPlayer.player.aggression.between(aggressionMin, aggressionMax);
-    }
-
-    private BooleanExpression anticipation(Integer anticipationMin, Integer anticipationMax) {
-        if (anticipationMin == null || anticipationMax == null || anticipationMin > anticipationMax) {
-            return null;
-        }
-        return QPlayer.player.anticipation.between(anticipationMin, anticipationMax);
-    }
-
-    private BooleanExpression bravery(Integer braveryMin, Integer braveryMax) {
-        if (braveryMin == null || braveryMax == null || braveryMin > braveryMax) {
-            return null;
-        }
-        return QPlayer.player.bravery.between(braveryMin, braveryMax);
-    }
-
-    private BooleanExpression composure(Integer composureMin, Integer composureMax) {
-        if (composureMin == null || composureMax == null || composureMin > composureMax) {
-            return null;
-        }
-        return QPlayer.player.composure.between(composureMin, composureMax);
-    }
-
-    private BooleanExpression concentration(Integer concentrationMin, Integer concentrationMax) {
-        if (concentrationMin == null || concentrationMax == null || concentrationMin > concentrationMax) {
-            return null;
-        }
-        return QPlayer.player.concentration.between(concentrationMin, concentrationMax);
-    }
-
-    private BooleanExpression decisions(Integer decisionsMin, Integer decisionsMax) {
-        if (decisionsMin == null || decisionsMax == null || decisionsMin > decisionsMax) {
-            return null;
-        }
-        return QPlayer.player.decisions.between(decisionsMin, decisionsMax);
-    }
-
-    private BooleanExpression determination(Integer determinationMin, Integer determinationMax) {
-        if (determinationMin == null || determinationMax == null || determinationMin > determinationMax) {
-            return null;
-        }
-        return QPlayer.player.determination.between(determinationMin, determinationMax);
-    }
-
-    private BooleanExpression flair(Integer flairMin, Integer flairMax) {
-        if (flairMin == null || flairMax == null || flairMin > flairMax) {
-            return null;
-        }
-        return QPlayer.player.flair.between(flairMin, flairMax);
-    }
-
-    private BooleanExpression leadership(Integer leadershipMin, Integer leadershipMax) {
-        if (leadershipMin == null || leadershipMax == null || leadershipMin > leadershipMax) {
-            return null;
-        }
-        return QPlayer.player.leadership.between(leadershipMin, leadershipMax);
-    }
-
-    private BooleanExpression offTheBall(Integer offTheBallMin, Integer offTheBallMax) {
-        if (offTheBallMin == null || offTheBallMax == null || offTheBallMin > offTheBallMax) {
-            return null;
-        }
-        return QPlayer.player.offTheBall.between(offTheBallMin, offTheBallMax);
-    }
-
-    private BooleanExpression positioning(Integer positioningMin, Integer positioningMax) {
-        if (positioningMin == null || positioningMax == null || positioningMin > positioningMax) {
-            return null;
-        }
-        return QPlayer.player.positioning.between(positioningMin, positioningMax);
-    }
-
-    private BooleanExpression teamwork(Integer teamworkMin, Integer teamworkMax) {
-        if (teamworkMin == null || teamworkMax == null || teamworkMin > teamworkMax) {
-            return null;
-        }
-        return QPlayer.player.teamwork.between(teamworkMin, teamworkMax);
-    }
-
-    private BooleanExpression vision(Integer visionMin, Integer visionMax) {
-        if (visionMin == null || visionMax == null || visionMin > visionMax) {
-            return null;
-        }
-        return QPlayer.player.vision.between(visionMin, visionMax);
-    }
-
-    private BooleanExpression workRate(Integer workRateMin, Integer workRateMax) {
-        if (workRateMin == null || workRateMax == null || workRateMin > workRateMax) {
-            return null;
-        }
-        return QPlayer.player.workRate.between(workRateMin, workRateMax);
-    }
-
-    private BooleanExpression acceleration(Integer accelerationMin, Integer accelerationMax) {
-        if (accelerationMin == null || accelerationMax == null || accelerationMin > accelerationMax) {
-            return null;
-        }
-        return QPlayer.player.acceleration.between(accelerationMin, accelerationMax);
-    }
-
-    private BooleanExpression agility(Integer agilityMin, Integer agilityMax) {
-        if (agilityMin == null || agilityMax == null || agilityMin > agilityMax) {
-            return null;
-        }
-        return QPlayer.player.agility.between(agilityMin, agilityMax);
-    }
-
-    private BooleanExpression balance(Integer balanceMin, Integer balanceMax) {
-        if (balanceMin == null || balanceMax == null || balanceMin > balanceMax) {
-            return null;
-        }
-        return QPlayer.player.balance.between(balanceMin, balanceMax);
-    }
-
-    private BooleanExpression jumpingReach(Integer jumpingReachMin, Integer jumpingReachMax) {
-        if (jumpingReachMin == null || jumpingReachMax == null || jumpingReachMin > jumpingReachMax) {
-            return null;
-        }
-        return QPlayer.player.jumpingReach.between(jumpingReachMin, jumpingReachMax);
-    }
-
-    private BooleanExpression naturalFitness(Integer naturalFitnessMin, Integer naturalFitnessMax) {
-        if (naturalFitnessMin == null || naturalFitnessMax == null || naturalFitnessMin > naturalFitnessMax) {
-            return null;
-        }
-        return QPlayer.player.naturalFitness.between(naturalFitnessMin, naturalFitnessMax);
-    }
-
-    private BooleanExpression pace(Integer paceMin, Integer paceMax) {
-        if (paceMin == null || paceMax == null || paceMin > paceMax) {
-            return null;
-        }
-        return QPlayer.player.pace.between(paceMin, paceMax);
-    }
-
-    private BooleanExpression stamina(Integer staminaMin, Integer staminaMax) {
-        if (staminaMin == null || staminaMax == null || staminaMin > staminaMax) {
-            return null;
-        }
-        return QPlayer.player.stamina.between(staminaMin, staminaMax);
-    }
-
-    private BooleanExpression strength(Integer strengthMin, Integer strengthMax) {
-        if (strengthMin == null || strengthMax == null || strengthMin > strengthMax) {
-            return null;
-        }
-        return QPlayer.player.strength.between(strengthMin, strengthMax);
+        return QPlayer.player.corners.goe(corners);
     }
 
 
+    private BooleanExpression crossingMin(Integer crossingMin) {
+        if (crossingMin == null) {
+            return null;
+        }
+        return QPlayer.player.crossing.goe(crossingMin);
+    }
 
+    // dribbling
+    private BooleanExpression dribblingMin(Integer dribblingMin) {
+        if (dribblingMin == null) {
+            return null;
+        }
+        return QPlayer.player.dribbling.goe(dribblingMin);
+    }
+
+    // finishing
+    private BooleanExpression finishingMin(Integer finishingMin) {
+        if (finishingMin == null) {
+            return null;
+        }
+        return QPlayer.player.finishing.goe(finishingMin);
+    }
+
+    // firstTouch
+    private BooleanExpression firstTouchMin(Integer firstTouchMin) {
+        if (firstTouchMin == null) {
+            return null;
+        }
+        return QPlayer.player.firstTouch.goe(firstTouchMin);
+    }
+
+    // freeKickTaking
+    private BooleanExpression freeKickTakingMin(Integer freeKickTakingMin) {
+        if (freeKickTakingMin == null) {
+            return null;
+        }
+        return QPlayer.player.freeKickTaking.goe(freeKickTakingMin);
+    }
+
+    // heading
+    private BooleanExpression headingMin(Integer headingMin) {
+        if (headingMin == null) {
+            return null;
+        }
+        return QPlayer.player.heading.goe(headingMin);
+    }
+
+    // longShots
+    private BooleanExpression longShotsMin(Integer longShotsMin) {
+        if (longShotsMin == null) {
+            return null;
+        }
+        return QPlayer.player.longShots.goe(longShotsMin);
+    }
+
+    // longThrows
+    private BooleanExpression longThrowsMin(Integer longThrowsMin) {
+        if (longThrowsMin == null) {
+            return null;
+        }
+        return QPlayer.player.longThrows.goe(longThrowsMin);
+    }
+
+    // marking
+    private BooleanExpression markingMin(Integer markingMin) {
+        if (markingMin == null) {
+            return null;
+        }
+        return QPlayer.player.marking.goe(markingMin);
+    }
+
+    // passing
+    private BooleanExpression passingMin(Integer passingMin) {
+        if (passingMin == null) {
+            return null;
+        }
+        return QPlayer.player.passing.goe(passingMin);
+    }
+
+    // penaltyTaking
+    private BooleanExpression penaltyTakingMin(Integer penaltyTakingMin) {
+        if (penaltyTakingMin == null) {
+            return null;
+        }
+        return QPlayer.player.penaltyTaking.goe(penaltyTakingMin);
+    }
+
+    // tackling
+    private BooleanExpression tacklingMin(Integer tacklingMin) {
+        if (tacklingMin == null) {
+            return null;
+        }
+        return QPlayer.player.tackling.goe(tacklingMin);
+    }
+
+    // technique
+    private BooleanExpression techniqueMin(Integer techniqueMin) {
+        if (techniqueMin == null) {
+            return null;
+        }
+        return QPlayer.player.technique.goe(techniqueMin);
+    }
+
+    // aggression
+    private BooleanExpression aggressionMin(Integer aggressionMin) {
+        if (aggressionMin == null) {
+            return null;
+        }
+        return QPlayer.player.aggression.goe(aggressionMin);
+    }
+
+    // anticipation
+    private BooleanExpression anticipationMin(Integer anticipationMin) {
+        if (anticipationMin == null) {
+            return null;
+        }
+        return QPlayer.player.anticipation.goe(anticipationMin);
+    }
+
+    // bravery
+    private BooleanExpression braveryMin(Integer braveryMin) {
+        if (braveryMin == null) {
+            return null;
+        }
+        return QPlayer.player.bravery.goe(braveryMin);
+    }
+
+    // composure
+    private BooleanExpression composureMin(Integer composureMin) {
+        if (composureMin == null) {
+            return null;
+        }
+        return QPlayer.player.composure.goe(composureMin);
+    }
+
+    // concentration
+    private BooleanExpression concentrationMin(Integer concentrationMin) {
+        if (concentrationMin == null) {
+            return null;
+        }
+        return QPlayer.player.concentration.goe(concentrationMin);
+    }
+
+    // decisions
+    private BooleanExpression decisionsMin(Integer decisionsMin) {
+        if (decisionsMin == null) {
+            return null;
+        }
+        return QPlayer.player.decisions.goe(decisionsMin);
+    }
+
+    // determination
+    private BooleanExpression determinationMin(Integer determinationMin) {
+        if (determinationMin == null) {
+            return null;
+        }
+        return QPlayer.player.determination.goe(determinationMin);
+    }
+
+    // flair
+    private BooleanExpression flairMin(Integer flairMin) {
+        if (flairMin == null) {
+            return null;
+        }
+        return QPlayer.player.flair.goe(flairMin);
+    }
+
+    // leadership
+    private BooleanExpression leadershipMin(Integer leadershipMin) {
+        if (leadershipMin == null) {
+            return null;
+        }
+        return QPlayer.player.leadership.goe(leadershipMin);
+    }
+
+    // offTheBall
+    private BooleanExpression offTheBallMin(Integer offTheBallMin) {
+        if (offTheBallMin == null) {
+            return null;
+        }
+        return QPlayer.player.offTheBall.goe(offTheBallMin);
+    }
+
+    // positioning
+    private BooleanExpression positioningMin(Integer positioningMin) {
+        if (positioningMin == null) {
+            return null;
+        }
+        return QPlayer.player.positioning.goe(positioningMin);
+    }
+
+    // teamwork
+    private BooleanExpression teamworkMin(Integer teamworkMin) {
+        if (teamworkMin == null) {
+            return null;
+        }
+        return QPlayer.player.teamwork.goe(teamworkMin);
+    }
+
+    // vision
+    private BooleanExpression visionMin(Integer visionMin) {
+        if (visionMin == null) {
+            return null;
+        }
+        return QPlayer.player.vision.goe(visionMin);
+    }
+
+    // workRate
+    private BooleanExpression workRateMin(Integer workRateMin) {
+        if (workRateMin == null) {
+            return null;
+        }
+        return QPlayer.player.workRate.goe(workRateMin);
+    }
+
+    // acceleration
+    private BooleanExpression accelerationMin(Integer accelerationMin) {
+        if (accelerationMin == null) {
+            return null;
+        }
+        return QPlayer.player.acceleration.goe(accelerationMin);
+    }
+
+    // agility
+    private BooleanExpression agilityMin(Integer agilityMin) {
+        if (agilityMin == null) {
+            return null;
+        }
+        return QPlayer.player.agility.goe(agilityMin);
+    }
+
+    // balance
+    private BooleanExpression balanceMin(Integer balanceMin) {
+        if (balanceMin == null) {
+            return null;
+        }
+        return QPlayer.player.balance.goe(balanceMin);
+    }
+
+    // jumpingReach
+    private BooleanExpression jumpingReachMin(Integer jumpingReachMin) {
+        if (jumpingReachMin == null) {
+            return null;
+        }
+        return QPlayer.player.jumpingReach.goe(jumpingReachMin);
+    }
+
+    // naturalFitness
+    private BooleanExpression naturalFitnessMin(Integer naturalFitnessMin) {
+        if (naturalFitnessMin == null) {
+            return null;
+        }
+        return QPlayer.player.naturalFitness.goe(naturalFitnessMin);
+    }
+
+    // pace
+    private BooleanExpression paceMin(Integer paceMin) {
+        if (paceMin == null) {
+            return null;
+        }
+        return QPlayer.player.pace.goe(paceMin);
+    }
+
+    // stamina
+    private BooleanExpression staminaMin(Integer staminaMin) {
+        if (staminaMin == null) {
+            return null;
+        }
+        return QPlayer.player.stamina.goe(staminaMin);
+    }
+
+    // strength
+    private BooleanExpression strengthMin(Integer strengthMin) {
+        if (strengthMin == null) {
+            return null;
+        }
+        return QPlayer.player.strength.goe(strengthMin);
+    }
 }
