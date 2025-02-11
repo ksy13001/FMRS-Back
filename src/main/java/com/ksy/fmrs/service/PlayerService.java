@@ -1,5 +1,6 @@
 package com.ksy.fmrs.service;
 
+import com.ksy.fmrs.domain.Player;
 import com.ksy.fmrs.dto.PlayerDetailsResponseDto;
 import com.ksy.fmrs.dto.SearchPlayerCondition;
 import com.ksy.fmrs.dto.SearchPlayerResponseDto;
@@ -12,6 +13,12 @@ import org.springframework.stereotype.Service;
 @Service
 public class PlayerService {
     private final PlayerRepository playerRepository;
+
+    public PlayerDetailsResponseDto getPlayerDetails(Long playerId) {
+        return  playerRepository.findById(playerId)
+                .map(PlayerDetailsResponseDto::new)
+                .orElseThrow(()-> new IllegalArgumentException("Player not found : "+playerId));
+    }
 
     public TeamPlayersResponseDto getTeamPlayersByTeamId(Long teamId) {
         return new TeamPlayersResponseDto(playerRepository.getPlayersByTeamId(teamId)

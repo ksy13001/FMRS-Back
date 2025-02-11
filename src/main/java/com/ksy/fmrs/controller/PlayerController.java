@@ -1,5 +1,6 @@
 package com.ksy.fmrs.controller;
 
+import com.ksy.fmrs.dto.PlayerDetailsResponseDto;
 import com.ksy.fmrs.dto.SearchPlayerCondition;
 import com.ksy.fmrs.dto.SearchPlayerResponseDto;
 import com.ksy.fmrs.dto.TeamPlayersResponseDto;
@@ -12,6 +13,12 @@ import org.springframework.web.bind.annotation.*;
 public class PlayerController {
 
     private final PlayerService playerService;
+
+    @GetMapping("/api/players/{playerId}")
+    public PlayerDetailsResponseDto getPlayer(@PathVariable Long playerId) {
+        return playerService.getPlayerDetails(playerId);
+    }
+
 
     @GetMapping("/api/team/{teamId}/players")
     public TeamPlayersResponseDto getPlayers(@PathVariable Long teamId) {
