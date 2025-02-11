@@ -1,7 +1,9 @@
 package com.ksy.fmrs.repository;
 
 import com.ksy.fmrs.domain.Player;
+import com.ksy.fmrs.domain.QNation;
 import com.ksy.fmrs.domain.QPlayer;
+import com.ksy.fmrs.domain.QTeam;
 import com.ksy.fmrs.domain.enums.PositionEnum;
 import com.ksy.fmrs.dto.SearchPlayerCondition;
 import com.querydsl.core.types.dsl.BooleanExpression;
@@ -25,15 +27,22 @@ public class PlayerRepositoryCustomImpl implements PlayerRepositoryCustom {
                 .fetch();
     }
 
+    // 나이, 포지션, 능력치, 나라, 팀
     @Override
     public List<Player> searchPlayerByDetailCondition(SearchPlayerCondition condition) {
+        QPlayer player = QPlayer.player;
+        QTeam team = QTeam.team;
+        QNation nation = QNation.nation;
         return jpaQueryFactory
-                .selectFrom(QPlayer.player)
+                .selectFrom(player)
+                .leftJoin(player.team, team)    // 무소속인 선수들까지 가져오기 위해 leftJoin
+                .join(player.nation, nation)
                 .where(
-                        nameContains(condition.getName()),
                         age(condition.getAgeMin(), condition.getAgeMax()),
                         position(condition.getPositionEnum()),
-                        // technical
+                        team(team, condition.getTeamName()),
+                        nation(nation, condition.getNationName()),
+//                        // technical
                         cornersMin(condition.getCorners()),
                         crossingMin(condition.getCrossing()),
                         dribblingMin(condition.getDribbling()),
@@ -84,7 +93,7 @@ public class PlayerRepositoryCustomImpl implements PlayerRepositoryCustom {
         return QPlayer.player.name.contains(name);
     }
 
-    // 나이 초기값 14~99
+    // 나이(초기값 14~99)
     private BooleanExpression age(Integer ageMin, Integer ageMax){
         if(ageMin == null || ageMax == null || ageMin > ageMax){
             return null;
@@ -92,12 +101,28 @@ public class PlayerRepositoryCustomImpl implements PlayerRepositoryCustom {
         return QPlayer.player.age.between(ageMin, ageMax);
     }
 
-    // 멀티포지션인 경우 고려해서 수정 필요
+    // 포지션(멀티포지션인 경우 고려해서 수정 필요)
     private BooleanExpression position(PositionEnum positionEnum){
         if(positionEnum == null){
             return null;
         }
         return QPlayer.player.position.eq(positionEnum);
+    }
+
+    // 팀
+    private BooleanExpression team(QTeam team, String teamName){
+        if (teamName == null || teamName.isEmpty()){
+            return null;
+        }
+        return team.name.eq(teamName);
+    }
+
+    //나라
+    private BooleanExpression nation(QNation nation, String nationName){
+        if (nationName == null || nationName.isEmpty()){
+            return null;
+        }
+        return nation.name.eq(nationName);
     }
 
     // 능력치 조건
