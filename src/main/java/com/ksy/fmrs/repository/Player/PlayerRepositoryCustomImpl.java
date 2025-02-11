@@ -1,4 +1,4 @@
-package com.ksy.fmrs.repository;
+package com.ksy.fmrs.repository.Player;
 
 import com.ksy.fmrs.domain.Player;
 import com.ksy.fmrs.domain.QNation;
@@ -18,6 +18,15 @@ import java.util.List;
 public class PlayerRepositoryCustomImpl implements PlayerRepositoryCustom {
 
     private final JPAQueryFactory jpaQueryFactory;
+
+//    // 팀 소속 선수들 조회 기능
+//    @Override
+//    public List<Player> getPlayersByTeamId(Long teamId) {
+//        return jpaQueryFactory.selectFrom(QPlayer.player)
+//                .join(QTeam.team.players, QPlayer.player)
+//                .where(QPlayer.player.team.id.eq(teamId))
+//                .fetch();
+//    }
 
     @Override
     public List<Player> searchPlayerByName(String name) {

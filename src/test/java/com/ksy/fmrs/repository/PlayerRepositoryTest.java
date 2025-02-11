@@ -5,6 +5,8 @@ import com.ksy.fmrs.domain.QPlayer;
 import com.ksy.fmrs.domain.QTeam;
 import com.ksy.fmrs.domain.Team;
 import com.ksy.fmrs.dto.SearchPlayerCondition;
+import com.ksy.fmrs.repository.Player.PlayerRepository;
+import com.ksy.fmrs.repository.Team.TeamRepository;
 import com.querydsl.jpa.impl.JPAQueryFactory;
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.PersistenceContext;
