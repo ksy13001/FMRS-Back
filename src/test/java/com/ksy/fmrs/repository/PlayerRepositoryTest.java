@@ -5,6 +5,8 @@ import com.ksy.fmrs.domain.QPlayer;
 import com.ksy.fmrs.domain.QTeam;
 import com.ksy.fmrs.domain.Team;
 import com.ksy.fmrs.dto.SearchPlayerCondition;
+import com.ksy.fmrs.repository.Player.PlayerRepository;
+import com.ksy.fmrs.repository.Team.TeamRepository;
 import com.querydsl.jpa.impl.JPAQueryFactory;
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.PersistenceContext;
@@ -18,6 +20,7 @@ import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest;
 import org.springframework.boot.test.context.TestConfiguration;
 import org.springframework.context.annotation.Bean;
 
+import java.util.ArrayList;
 import java.util.List;
 
 @DataJpaTest
@@ -48,6 +51,36 @@ class PlayerRepositoryTest {
     }
 
     @Test
+    @DisplayName("팀id로 소속 선수들 조회")
+    void getPlayersByTeamId(){
+        // given
+        ArrayList<Player> players = new ArrayList<>();
+        Team team1 = createTeam("team1");
+        Team team2 = createTeam("team2");
+        teamRepository.save(team1);
+        teamRepository.save(team2);
+        for(int i = 0; i < 10; i++){
+            Player player = createPlayer("player"+i);
+            players.add(player);
+            player.updateTeam(team1);
+            playerRepository.save(player);
+        }
+        for(int i = 0; i < 5; i++){
+            Player player = createPlayer("not_player"+i);
+            players.add(player);
+            player.updateTeam(team2);
+            playerRepository.save(player);
+        }
+        // when
+        List<Player> actual = playerRepository.getPlayersByTeamId(team1.getId());
+        // then
+        actual.forEach(player -> {
+            Assertions.assertThat(player.getName()).startsWith("player");
+        });
+        Assertions.assertThat(actual).hasSize(10);
+    }
+
+    @Test
     @DisplayName("상세 검색 테스트 - 팀")
     void detail_search_test(){
         // given
@@ -57,7 +90,7 @@ class PlayerRepositoryTest {
         Player player = Player.builder().name("son").age(32).build();
         teamRepository.save(team);
         playerRepository.save(player);
-        player.updateTeam(player, team);
+        player.updateTeam(team);
 
         // when
         List<Player> result = playerRepository.searchPlayerByDetailCondition(condition);
@@ -72,5 +105,13 @@ class PlayerRepositoryTest {
         // then
         Assertions.assertThat(result.get(0).getName()).isEqualTo(expected.get(0).getName());
         Assertions.assertThat(result.size()).isEqualTo(1);
+    }
+
+    private Team createTeam(String name){
+        return Team.builder().name(name).build();
+    }
+
+    private Player createPlayer(String name) {
+        return Player.builder().name(name).build();
     }
 }

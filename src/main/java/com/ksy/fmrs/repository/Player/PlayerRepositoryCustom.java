@@ -1,4 +1,4 @@
-package com.ksy.fmrs.repository;
+package com.ksy.fmrs.repository.Player;
 
 import com.ksy.fmrs.domain.Player;
 import com.ksy.fmrs.dto.SearchPlayerCondition;
@@ -10,4 +10,5 @@ import java.util.List;
 public interface PlayerRepositoryCustom {
     List<Player> searchPlayerByName(String name);
     List<Player> searchPlayerByDetailCondition(SearchPlayerCondition condition);
+//    List<Player> getPlayersByTeamId(Long teamId);
 }

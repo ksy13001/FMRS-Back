@@ -2,18 +2,21 @@ package com.ksy.fmrs.controller;
 
 import com.ksy.fmrs.dto.SearchPlayerCondition;
 import com.ksy.fmrs.dto.SearchPlayerResponse;
+import com.ksy.fmrs.dto.TeamPlayersResponseDto;
 import com.ksy.fmrs.service.PlayerService;
 import lombok.RequiredArgsConstructor;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 @RequiredArgsConstructor
 @RestController
 public class PlayerController {
 
     private final PlayerService playerService;
+
+    @GetMapping("/api/team/{teamId}/players")
+    public TeamPlayersResponseDto getPlayers(@PathVariable Long teamId) {
+        return playerService.getTeamPlayersByTeamId(teamId);
+    }
 
     @GetMapping("/api/search/simple-players")
     public SearchPlayerResponse searchPlayerByName(@RequestParam String name) {
