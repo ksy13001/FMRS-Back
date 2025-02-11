@@ -1,6 +1,7 @@
 package com.ksy.fmrs.domain;
 
 import jakarta.persistence.*;
+import lombok.Builder;
 import lombok.Getter;
 
 import java.util.ArrayList;
@@ -21,4 +22,9 @@ public class Nation {
 
     @OneToMany(mappedBy = "nation", fetch = FetchType.LAZY)
     private List<League> leagues = new ArrayList<>();
+
+    @Builder
+    public Nation(String name) {
+        this.name = name;
+    }
 }

@@ -1,6 +1,7 @@
 package com.ksy.fmrs.domain;
 
 import jakarta.persistence.*;
+import lombok.Builder;
 import lombok.Getter;
 
 @Getter
@@ -18,4 +19,10 @@ public class League {
     @ManyToOne
     @JoinColumn(name = "nation_id")
     private Nation nation;
+
+    @Builder
+    public League(String name, int division) {
+        this.name = name;
+        this.division = division;
+    }
 }

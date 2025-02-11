@@ -1,13 +1,17 @@
 package com.ksy.fmrs.domain;
 
 import jakarta.persistence.*;
+import lombok.AccessLevel;
+import lombok.Builder;
 import lombok.Getter;
+import lombok.NoArgsConstructor;
 
 import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
 
 @Getter
+@NoArgsConstructor(access = AccessLevel.PROTECTED)
 @Entity
 public class Team {
 
@@ -23,4 +27,9 @@ public class Team {
 
     @ManyToOne
     private League league;
+
+    @Builder
+    public Team(String name) {
+        this.name = name;
+    }
 }
