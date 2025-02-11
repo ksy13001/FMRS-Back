@@ -59,7 +59,7 @@ class PlayerRepositoryTest {
         Player player = Player.builder().name("son").age(32).build();
         teamRepository.save(team);
         playerRepository.save(player);
-        player.updateTeam(player, team);
+        player.updateTeam(team);
 
         // when
         List<Player> result = playerRepository.searchPlayerByDetailCondition(condition);

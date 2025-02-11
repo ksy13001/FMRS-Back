@@ -189,8 +189,8 @@ public class Player {
     }
 
     // 연관관계 설정 메서드
-    public void updateTeam(Player player, Team team) {
-        player.team = team;
-        team.getPlayers().add(player);
+    public void updateTeam(Team team) {
+        this.team = team;
+        team.getPlayers().add(this);
     }
 }
