@@ -102,8 +102,6 @@ public class Player {
             int weight,
             int marketValue,
             PositionEnum positionEnum,
-            Nation nation,
-            Team team,
             int corners,
             int crossing,
             int dribbling,
@@ -149,8 +147,6 @@ public class Player {
         this.weight = weight;
         this.marketValue = marketValue;
         this.position = positionEnum;
-        this.nation = nation;
-        this.team = team;
 
         this.corners = corners;
         this.crossing = crossing;
@@ -190,5 +186,11 @@ public class Player {
         this.pace = pace;
         this.stamina = stamina;
         this.strength = strength;
+    }
+
+    // 연관관계 설정 메서드
+    public void updateTeam(Player player, Team team) {
+        player.team = team;
+        team.getPlayers().add(player);
     }
 }
