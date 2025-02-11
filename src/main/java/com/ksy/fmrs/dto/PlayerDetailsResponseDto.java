@@ -6,9 +6,9 @@ import lombok.Setter;
 
 @Getter
 @Setter
-public class PlayerDetailsResponse {
+public class PlayerDetailsResponseDto {
 
-    public PlayerDetailsResponse(Player player) {
+    public PlayerDetailsResponseDto(Player player) {
         this.name = player.getName();
     }
 

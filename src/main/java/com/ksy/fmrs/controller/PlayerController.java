@@ -1,7 +1,7 @@
 package com.ksy.fmrs.controller;
 
 import com.ksy.fmrs.dto.SearchPlayerCondition;
-import com.ksy.fmrs.dto.SearchPlayerResponse;
+import com.ksy.fmrs.dto.SearchPlayerResponseDto;
 import com.ksy.fmrs.dto.TeamPlayersResponseDto;
 import com.ksy.fmrs.service.PlayerService;
 import lombok.RequiredArgsConstructor;
@@ -19,12 +19,12 @@ public class PlayerController {
     }
 
     @GetMapping("/api/search/simple-players")
-    public SearchPlayerResponse searchPlayerByName(@RequestParam String name) {
+    public SearchPlayerResponseDto searchPlayerByName(@RequestParam String name) {
         return playerService.searchPlayerByName(name);
     }
 
     @GetMapping("/api/search/detail-players")
-    public SearchPlayerResponse searchPlayerByDetailCondition(@RequestBody SearchPlayerCondition condition) {
+    public SearchPlayerResponseDto searchPlayerByDetailCondition(@RequestBody SearchPlayerCondition condition) {
         return playerService.searchPlayerByDetailCondition(condition);
     }
 }
