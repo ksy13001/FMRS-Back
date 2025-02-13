@@ -122,9 +122,10 @@
 <div th:fragment="abilityInput(label, field)">
     <div>
         <label th:for="${field}" class="block text-gray-700 text-sm font-bold mb-2" th:text="${label}">Ability</label>
-        <input type="number" th:id="${field}" th:field="*{__${field}__}" min="1" max="20" class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline">
+        <input type="number" th:id="${field}" th:field="*{__${field}__}" min="0" max="20" class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline">
     </div>
 </div>
+
 </body>
 </html>
 
