@@ -51,7 +51,7 @@
                 </div>
                 <div class="flex items-center gap-2">
                     <i class="icon icon-dollar-sign text-gray-400"></i>
-                    <span class="text-sm">Market Value: €<span th:text="${#numbers.formatDecimal(player.marketValue / 1000000, 1, 'COMMA', 2, 'POINT') + ' million'}">50.00 million</span></span>
+                    <span class="text-sm">Market Value: €<span th:text="${#numbers.formatDecimal(player.marketValue / 1000000, 1, 'COMMA', 2, 'POINT') + ' m'}">50.00 million</span></span>
                 </div>
                 <div class="flex items-center gap-2">
                     <i class="icon icon-shirt text-gray-400"></i>
@@ -147,4 +147,3 @@
 </div>
 </body>
 </html>
-

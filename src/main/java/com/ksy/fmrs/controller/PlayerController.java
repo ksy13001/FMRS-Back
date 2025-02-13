@@ -23,7 +23,6 @@ public class PlayerController {
         return "player-detail";
     }
 
-
     @GetMapping("/api/team/{teamId}/players")
     public TeamPlayersResponseDto getPlayers(@PathVariable Long teamId) {
         return playerService.getTeamPlayersByTeamId(teamId);
@@ -34,9 +33,23 @@ public class PlayerController {
         return playerService.searchPlayerByName(name);
     }
 
-    @GetMapping("/api/search/detail-players")
-    public SearchPlayerResponseDto searchPlayerByDetailCondition(@RequestBody SearchPlayerCondition condition) {
-        return playerService.searchPlayerByDetailCondition(condition);
+    // 상세 검색창 반환 페이지
+//    @GetMapping("/api/players/detail-search")
+//    public String searchPlayerByDetailCondition(@ModelAttribute("searchPlayerCondition") SearchPlayerCondition searchPlayerCondition, Model model) {
+//        return "players-detail-search";
+//    }
+    @GetMapping("/api/players/detail-search")
+    public String searchPlayerByDetailCondition(Model model) {
+        SearchPlayerCondition searchPlayerCondition = new SearchPlayerCondition(); // 새로운 객체를 생성하여 모델에 추가
+        model.addAttribute("searchPlayerCondition", searchPlayerCondition); // 모델에 추가
+        return "players-detail-search";
+    }
+
+    // 상세 검색 결과 반환 페이지
+    @GetMapping("/api/players/detail-search/result")
+    public String searchPlayerByDetailConditionResult(@ModelAttribute("searchPlayerCondition") SearchPlayerCondition searchPlayerCondition, Model model) {
+        SearchPlayerResponseDto searchPlayerResponseDto = playerService.searchPlayerByDetailCondition(searchPlayerCondition);
+        model.addAttribute("players", searchPlayerResponseDto);
+        return "players-detail-search";
     }
 }
-
