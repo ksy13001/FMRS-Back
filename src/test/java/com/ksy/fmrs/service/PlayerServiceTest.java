@@ -2,7 +2,6 @@ package com.ksy.fmrs.service;
 
 import com.ksy.fmrs.domain.Player;
 import com.ksy.fmrs.domain.Team;
-import com.ksy.fmrs.dto.PlayerDetailsResponse;
 import com.ksy.fmrs.dto.TeamPlayersResponseDto;
 import com.ksy.fmrs.repository.Player.PlayerRepository;
 import org.assertj.core.api.Assertions;
@@ -15,7 +14,6 @@ import org.mockito.junit.jupiter.MockitoExtension;
 
 import java.util.ArrayList;
 
-import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)

@@ -5,6 +5,7 @@ import lombok.Data;
 import java.util.List;
 
 @Data
-public class TeamPlayersResponseDto {
+public class SearchPlayerResponseDto {
+
     private final List<PlayerDetailsResponseDto> players;
 }
