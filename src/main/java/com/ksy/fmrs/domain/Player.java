@@ -193,4 +193,8 @@ public class Player {
         this.team = team;
         team.getPlayers().add(this);
     }
+
+    public void updateMarketValue(int marketValue) {
+        this.marketValue = marketValue;
+    }
 }
