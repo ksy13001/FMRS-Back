@@ -32,10 +32,10 @@ public class PlayerService {
     public PlayerDetailsResponseDto getPlayerDetails(Long playerId) {
         Player player = playerRepository.findById(playerId)
                 .orElseThrow(() -> new IllegalArgumentException("Player not found: " + playerId));
-        return convertToPlayerDetailsResponseDto(player);
+        return convertPlayerToPlayerDetailsResponseDto(player);
     }
 
-    private PlayerDetailsResponseDto convertToPlayerDetailsResponseDto(Player player) {
+    private PlayerDetailsResponseDto convertPlayerToPlayerDetailsResponseDto(Player player) {
         String teamName = Optional.ofNullable(player.getTeam())
                 .map(Team::getName)
                 .orElse(null);
@@ -92,28 +92,28 @@ public class PlayerService {
     public TeamPlayersResponseDto getTeamPlayersByTeamId(Long teamId) {
         return new TeamPlayersResponseDto(playerRepository.findAllByTeamId(teamId)
                 .stream()
-                .map(this::convertToPlayerDetailsResponseDto)
+                .map(this::convertPlayerToPlayerDetailsResponseDto)
                 .toList());
     }
 
     public SearchPlayerResponseDto getPlayersByMarketValueDesc() {
         return new SearchPlayerResponseDto(playerRepository.findAllByOrderByMarketValueDesc()
                 .stream()
-                .map(this::convertToPlayerDetailsResponseDto)
+                .map(this::convertPlayerToPlayerDetailsResponseDto)
                 .toList());
     }
 
     public SearchPlayerResponseDto searchPlayerByName(String name) {
         return new SearchPlayerResponseDto(playerRepository.searchPlayerByName(name)
                 .stream()
-                .map(this::convertToPlayerDetailsResponseDto)
+                .map(this::convertPlayerToPlayerDetailsResponseDto)
                 .toList());
     }
 
     public SearchPlayerResponseDto searchPlayerByDetailCondition(SearchPlayerCondition condition) {
         return new SearchPlayerResponseDto(playerRepository.searchPlayerByDetailCondition(condition)
                 .stream()
-                .map(this::convertToPlayerDetailsResponseDto)
+                .map(this::convertPlayerToPlayerDetailsResponseDto)
                 .toList());
     }
 }
