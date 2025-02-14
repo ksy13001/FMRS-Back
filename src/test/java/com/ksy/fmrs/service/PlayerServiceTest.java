@@ -41,12 +41,12 @@ class PlayerServiceTest {
 //            player.updateTeam(team2);
 //        }
         // when
-        when(playerRepository.getPlayersByTeamId(teamId)).thenReturn(players);
+        when(playerRepository.findAllByTeamId(teamId)).thenReturn(players);
         TeamPlayersResponseDto actual = playerService.getTeamPlayersByTeamId(teamId);
 
         // then
         Assertions.assertThat(actual.getPlayers()).hasSize(10);
-        verify(playerRepository, times(1)).getPlayersByTeamId(teamId);
+        verify(playerRepository, times(1)).findAllByTeamId(teamId);
     }
 
     private Team createTeam(String name){
