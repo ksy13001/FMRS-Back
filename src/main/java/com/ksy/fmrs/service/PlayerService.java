@@ -9,6 +9,8 @@ import com.ksy.fmrs.repository.Player.PlayerRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
+import java.util.List;
+
 @RequiredArgsConstructor
 @Service
 public class PlayerService {
@@ -21,7 +23,14 @@ public class PlayerService {
     }
 
     public TeamPlayersResponseDto getTeamPlayersByTeamId(Long teamId) {
-        return new TeamPlayersResponseDto(playerRepository.getPlayersByTeamId(teamId)
+        return new TeamPlayersResponseDto(playerRepository.findAllByTeamId(teamId)
+                .stream()
+                .map(PlayerDetailsResponseDto::new)
+                .toList());
+    }
+
+    public SearchPlayerResponseDto getPlayersByMarketValueDesc() {
+        return new SearchPlayerResponseDto(playerRepository.findAllByOrderByMarketValueDesc()
                 .stream()
                 .map(PlayerDetailsResponseDto::new)
                 .toList());
