@@ -1,5 +1,6 @@
 package com.ksy.fmrs.service;
 
+import com.ksy.fmrs.domain.Nation;
 import com.ksy.fmrs.domain.Player;
 import com.ksy.fmrs.domain.Team;
 import com.ksy.fmrs.dto.*;
@@ -29,6 +30,9 @@ public class PlayerService {
     private final RestTemplate restTemplate;
     private final PlayerRepository playerRepository;
 
+    /**
+     * 선수 상세 정보 조회
+     * */
     public PlayerDetailsResponseDto getPlayerDetails(Long playerId) {
         Player player = playerRepository.findById(playerId)
                 .orElseThrow(() -> new IllegalArgumentException("Player not found: " + playerId));
@@ -36,12 +40,20 @@ public class PlayerService {
     }
 
     private PlayerDetailsResponseDto convertPlayerToPlayerDetailsResponseDto(Player player) {
-        String teamName = Optional.ofNullable(player.getTeam())
-                .map(Team::getName)
-                .orElse(null);
-        return new PlayerDetailsResponseDto(player, teamName);
+        return new PlayerDetailsResponseDto(player,  getTeamNameByPlayer(player), getNationNameByPlayer(player));
     }
 
+    private String getNationNameByPlayer(Player player) {
+        return Optional.ofNullable(player.getTeam())
+                .map(Team::getName)
+                .orElse(null);
+    }
+
+    private String getTeamNameByPlayer(Player player) {
+        return Optional.ofNullable(player.getNation())
+                .map(Nation::getName)
+                .orElse(null);
+    }
     /**
      * 1. playerDetailDto 에서 playerName, teamName 가져옴
      * 2. teamName 을 통해 api-football 에서 teamApiId 가져옴
@@ -70,7 +82,7 @@ public class PlayerService {
         return playerRealStatDto;
     }
 
-    public Integer getTeamApiIdByTeamName(String teamName){
+    private Integer getTeamApiIdByTeamName(String teamName){
         String url = TEAM_URL+NAME+teamName;
 
         ResponseEntity<TeamApiResponseDto> teamApiResponseDto = createAPIFootballRestClient()
@@ -82,13 +94,16 @@ public class PlayerService {
        return teamApiResponseDto.getBody().getResponse().get(0).getTeam().getId();
     }
 
-    public RestClient createAPIFootballRestClient(){
+    private RestClient createAPIFootballRestClient(){
         return RestClient.builder()
                 .defaultHeader("X-RapidAPI-Key", apiFootballKey)
                 .defaultHeader("X-RapidAPI-Host", apiFootballHost)
                 .build();
     }
 
+    /**
+     * 팀 소속 선수들 모두 조회
+     * */
     public TeamPlayersResponseDto getTeamPlayersByTeamId(Long teamId) {
         return new TeamPlayersResponseDto(playerRepository.findAllByTeamId(teamId)
                 .stream()
@@ -96,6 +111,9 @@ public class PlayerService {
                 .toList());
     }
 
+    /**
+     * 모든 선수 몸값순 조회
+     * */
     public SearchPlayerResponseDto getPlayersByMarketValueDesc() {
         return new SearchPlayerResponseDto(playerRepository.findAllByOrderByMarketValueDesc()
                 .stream()
@@ -103,6 +121,10 @@ public class PlayerService {
                 .toList());
     }
 
+
+    /**
+     * 선수 이름 검색
+     * */
     public SearchPlayerResponseDto searchPlayerByName(String name) {
         return new SearchPlayerResponseDto(playerRepository.searchPlayerByName(name)
                 .stream()
@@ -110,6 +132,9 @@ public class PlayerService {
                 .toList());
     }
 
+    /**
+     * 선수 상세 조회
+     * */
     public SearchPlayerResponseDto searchPlayerByDetailCondition(SearchPlayerCondition condition) {
         return new SearchPlayerResponseDto(playerRepository.searchPlayerByDetailCondition(condition)
                 .stream()
