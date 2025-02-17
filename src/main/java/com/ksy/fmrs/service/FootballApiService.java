@@ -22,6 +22,8 @@ public class FootballApiService {
     private static final String PLAYER_STAT_URL = "https://v3.football.api-sports.io/players?";
     private static final String NAME = "name=";
     private static final String TEAM_ID = "team=";
+    private static final String SEARCH = "search=";
+    private static final String SEASON = "season=2023";
     private static final String AND = "&";
 
     /**
@@ -30,7 +32,7 @@ public class FootballApiService {
      * 3. playerName + teamApiId 를 통해 api-football 에서 playerApi + playerRealStat 가져옴
      * */
     public PlayerRealFootballStatDto getPlayerRealStat(String playerName, String teamName) {
-        String url = PLAYER_STAT_URL + NAME + playerName + AND + TEAM_ID + getTeamApiIdByTeamName(teamName);
+        String url = PLAYER_STAT_URL + SEARCH + playerName + AND + TEAM_ID + getTeamApiIdByTeamName(teamName);
         ResponseEntity<PlayerStatisticsApiResponseDto> response = createAPIFootballRestClient()
                 .get()
                 .uri(url)
