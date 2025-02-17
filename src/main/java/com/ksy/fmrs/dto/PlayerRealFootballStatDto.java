@@ -9,4 +9,5 @@ public class PlayerRealFootballStatDto {
     private Integer pk;
     private Integer assist;
     private String rating;
+    private String imageUrl;
 }

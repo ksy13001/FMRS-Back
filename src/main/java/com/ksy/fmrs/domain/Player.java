@@ -40,6 +40,7 @@ public class Player {
     @JoinColumn(name = "team_id")
     private Team team;
 
+    private String imageUrl;
 
     // 기술(Technical) 능력치
     private int corners;
@@ -101,6 +102,7 @@ public class Player {
             int weight,
             int marketValue,
             PositionEnum positionEnum,
+            String imageUrl,
             int corners,
             int crossing,
             int dribbling,
@@ -146,6 +148,7 @@ public class Player {
         this.weight = weight;
         this.marketValue = marketValue;
         this.position = positionEnum;
+        this.imageUrl = imageUrl;
 
         this.corners = corners;
         this.crossing = crossing;
