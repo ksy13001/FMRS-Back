@@ -94,7 +94,6 @@ public class Player {
 
     @Builder
     public Player(
-            Long id,
             String name,
             LocalDate birth,
             int age,
