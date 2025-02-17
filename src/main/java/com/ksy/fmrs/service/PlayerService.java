@@ -6,11 +6,7 @@ import com.ksy.fmrs.domain.Team;
 import com.ksy.fmrs.dto.*;
 import com.ksy.fmrs.repository.Player.PlayerRepository;
 import lombok.RequiredArgsConstructor;
-import org.springframework.beans.factory.annotation.Value;
-import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
-import org.springframework.web.client.RestClient;
-import org.springframework.web.client.RestTemplate;
 
 import java.util.Optional;
 
