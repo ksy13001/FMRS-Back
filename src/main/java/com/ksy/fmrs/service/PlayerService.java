@@ -29,13 +29,13 @@ public class PlayerService {
         return new PlayerDetailsResponseDto(player,  getTeamNameByPlayer(player), getNationNameByPlayer(player));
     }
 
-    private String getNationNameByPlayer(Player player) {
+    private String getTeamNameByPlayer(Player player) {
         return Optional.ofNullable(player.getTeam())
                 .map(Team::getName)
                 .orElse(null);
     }
 
-    private String getTeamNameByPlayer(Player player) {
+    private String getNationNameByPlayer(Player player) {
         return Optional.ofNullable(player.getNation())
                 .map(Nation::getName)
                 .orElse(null);
