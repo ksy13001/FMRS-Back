@@ -22,7 +22,7 @@ public class PlayerController {
                 playerDetailsResponseDto.getName(), playerDetailsResponseDto.getTeamName()
         );
         model.addAttribute("player", playerDetailsResponseDto);
-        model.addAttribute("playerRealFootballStat", playerRealFootballStatDto);
+        model.addAttribute("realFootballStat", playerRealFootballStatDto);
         return "player-detail";
     }
 
@@ -54,5 +54,17 @@ public class PlayerController {
         SearchPlayerResponseDto searchPlayerResponseDto = playerService.searchPlayerByDetailCondition(searchPlayerCondition);
         model.addAttribute("players", searchPlayerResponseDto);
         return "players-detail-search";
+    }
+
+
+    // 실축스탯 테스트용 api
+    @ResponseBody
+    @GetMapping("/api/player/{playerId}")
+    public PlayerRealFootballStatDto getPlayerRealFootBallStatTest(@PathVariable Long playerId) {
+        PlayerDetailsResponseDto playerDetailsResponseDto = playerService.getPlayerDetails(playerId);
+        PlayerRealFootballStatDto playerRealFootballStatDto = footballApiService.getPlayerRealStat(
+                playerDetailsResponseDto.getName(), playerDetailsResponseDto.getTeamName()
+        );
+        return playerRealFootballStatDto;
     }
 }

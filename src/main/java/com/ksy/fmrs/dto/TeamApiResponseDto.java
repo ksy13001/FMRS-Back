@@ -2,12 +2,13 @@ package com.ksy.fmrs.dto;
 
 import lombok.Data;
 import java.util.List;
+import java.util.Map;
 
 @Data
 public class TeamApiResponseDto {
     private String get;
     private ParametersDto parameters;
-    private List<Object> errors;  // 오류 배열, 필요에 따라 타입 변경 가능
+    private List<Map<String, Object>> errors;  // 오류 배열, 필요에 따라 타입 변경 가능
     private int results;
     private PagingDto paging;
     private List<TeamWrapperDto> response;

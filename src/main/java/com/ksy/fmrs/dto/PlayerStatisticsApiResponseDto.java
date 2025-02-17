@@ -2,12 +2,13 @@ package com.ksy.fmrs.dto;
 
 import lombok.Data;
 import java.util.List;
+import java.util.Map;
 
 @Data
 public class PlayerStatisticsApiResponseDto {
     private String get;
     private ParametersDto parameters;
-    private List<Object> errors;
+    private List<Map<String, Object>> errors;
     private int results;
     private PagingDto paging;
     private List<PlayerWrapperDto> response;
@@ -82,7 +83,7 @@ public class PlayerStatisticsApiResponseDto {
             private String country;
             private String logo;
             private String flag;
-            private int season;
+            private String season;
         }
 
         @Data
