@@ -12,6 +12,7 @@ import java.time.LocalDate;
 public class PlayerDetailsResponseDto {
 
     public PlayerDetailsResponseDto(Player player, String teamName, String nationName) {
+        this.id = player.getId();
         this.name = player.getName();
         this.birth = player.getBirth();
         this.age = player.getAge();
@@ -21,6 +22,7 @@ public class PlayerDetailsResponseDto {
         this.position = player.getPosition();
         this.teamName = teamName;
         this.nationName = nationName;
+        this.imageUrl = player.getImageUrl();
 
         this.corners = player.getCorners();
         this.crossing = player.getCrossing();
@@ -61,7 +63,7 @@ public class PlayerDetailsResponseDto {
         this.stamina = player.getStamina();
         this.strength = player.getStrength();
     }
-
+    private Long id;
     private String name;
     private LocalDate birth;
     private int age;
@@ -71,6 +73,7 @@ public class PlayerDetailsResponseDto {
     private PositionEnum position;
     private String teamName;
     private String nationName;
+    private String imageUrl;
 
     private int corners;
     private int crossing;
