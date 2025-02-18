@@ -1,9 +1,7 @@
 package com.ksy.fmrs.controller;
 
-import com.ksy.fmrs.dto.PlayerDetailsResponseDto;
-import com.ksy.fmrs.dto.SearchPlayerCondition;
-import com.ksy.fmrs.dto.SearchPlayerResponseDto;
-import com.ksy.fmrs.dto.TeamPlayersResponseDto;
+import com.ksy.fmrs.dto.*;
+import com.ksy.fmrs.service.FootballApiService;
 import com.ksy.fmrs.service.PlayerService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Controller;
@@ -15,11 +13,16 @@ import org.springframework.web.bind.annotation.*;
 public class PlayerController {
 
     private final PlayerService playerService;
+    private final FootballApiService footballApiService;
 
     @GetMapping("/api/players/{playerId}")
     public String getPlayerProfile(@PathVariable Long playerId, Model model) {
-        PlayerDetailsResponseDto player = playerService.getPlayerDetails(playerId);
-        model.addAttribute("player", player);
+        PlayerDetailsResponseDto playerDetailsResponseDto = playerService.getPlayerDetails(playerId);
+        PlayerRealFootballStatDto playerRealFootballStatDto = footballApiService.getPlayerRealStat(
+                playerDetailsResponseDto.getName(), playerDetailsResponseDto.getTeamName()
+        );
+        model.addAttribute("player", playerDetailsResponseDto);
+        model.addAttribute("realFootballStat", playerRealFootballStatDto);
         return "player-detail";
     }
 
@@ -51,5 +54,17 @@ public class PlayerController {
         SearchPlayerResponseDto searchPlayerResponseDto = playerService.searchPlayerByDetailCondition(searchPlayerCondition);
         model.addAttribute("players", searchPlayerResponseDto);
         return "players-detail-search";
+    }
+
+
+    // 실축스탯 테스트용 api
+    @ResponseBody
+    @GetMapping("/api/player/{playerId}")
+    public PlayerRealFootballStatDto getPlayerRealFootBallStatTest(@PathVariable Long playerId) {
+        PlayerDetailsResponseDto playerDetailsResponseDto = playerService.getPlayerDetails(playerId);
+        PlayerRealFootballStatDto playerRealFootballStatDto = footballApiService.getPlayerRealStat(
+                playerDetailsResponseDto.getName(), playerDetailsResponseDto.getTeamName()
+        );
+        return playerRealFootballStatDto;
     }
 }

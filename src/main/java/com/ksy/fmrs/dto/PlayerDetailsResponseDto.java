@@ -2,7 +2,6 @@ package com.ksy.fmrs.dto;
 
 import com.ksy.fmrs.domain.Player;
 import com.ksy.fmrs.domain.enums.PositionEnum;
-import jakarta.persistence.Column;
 import lombok.Getter;
 import lombok.Setter;
 
@@ -12,7 +11,7 @@ import java.time.LocalDate;
 @Setter
 public class PlayerDetailsResponseDto {
 
-    public PlayerDetailsResponseDto(Player player) {
+    public PlayerDetailsResponseDto(Player player, String teamName, String nationName) {
         this.name = player.getName();
         this.birth = player.getBirth();
         this.age = player.getAge();
@@ -20,8 +19,8 @@ public class PlayerDetailsResponseDto {
         this.weight = player.getWeight();
         this.marketValue = player.getMarketValue();
         this.position = player.getPosition();
-        this.teamName = player.getTeam().getName();
-        this.nationName = player.getNation().getName();
+        this.teamName = teamName;
+        this.nationName = nationName;
 
         this.corners = player.getCorners();
         this.crossing = player.getCrossing();
