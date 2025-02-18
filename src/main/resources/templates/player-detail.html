@@ -3,134 +3,108 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Player Details</title>
+    <title th:text="${player.name + ' - Player Profile'}">Player Profile</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://cdn.jsdelivr.net/npm/lucide-static@0.321.0/font/lucide.min.css" rel="stylesheet">
     <style>
+        .hero-gradient {
+            background: linear-gradient(135deg, #22c55e 0%, #16a34a 100%);
+        }
         .stat-bar {
             height: 4px;
             background-color: #e5e7eb;
             border-radius: 2px;
             overflow: hidden;
         }
-        .stat-bar-fill-gray {
-            background-color: #9ca3af;
-            transition: width 0.3s ease;
-        }
-        .stat-bar-fill-yellow {
-            background-color: #fbbf24;
-            transition: width 0.3s ease;
-        }
-        .stat-bar-fill-orange {
-            background-color: #f97316;
-            transition: width 0.3s ease;
-        }
-        .stat-bar-fill-green {
-            background-color: #4ade80;
-            transition: width 0.3s ease;
-        }
-        .stat-bar-fill-red {
-            background-color: #ef4444;
-            transition: width 0.3s ease;
-        }
-        .stat-item {
-            transition: all 0.2s ease;
-        }
-        .stat-item:hover {
-            transform: translateX(4px);
-            background-color: #f3f4f6;
-        }
-        .player-card {
-            background: linear-gradient(to bottom, #ffffff, #f8fafc);
-            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
-        }
-        .stats-section {
-            background: linear-gradient(to bottom, #f8fafc, #f1f5f9);
-            transition: all 0.3s ease;
-        }
-        .stats-section:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
-        }
+        .stat-bar-fill-gray { background-color: #9ca3af; }
+        .stat-bar-fill-yellow { background-color: #fbbf24; }
+        .stat-bar-fill-orange { background-color: #f97316; }
+        .stat-bar-fill-green { background-color: #22c55e; }
+        .stat-item:hover { background-color: #f0fdf4; }
     </style>
 </head>
-<body class="bg-gradient-to-br from-gray-50 to-gray-100 p-4 min-h-screen">
-<div class="w-full max-w-4xl mx-auto">
-    <div class="player-card rounded-xl overflow-hidden mb-6">
+<body class="bg-green-50 min-h-screen flex flex-col">
+<!-- Header -->
+<header class="bg-white shadow-md">
+    <nav class="container mx-auto px-4 py-4 flex justify-between items-center">
+        <a href="/" class="text-2xl font-bold text-green-600 flex items-center gap-2">
+            <i class="icon icon-soccer-ball text-green-500"></i>
+            Soccer Profiles
+        </a>
+        <div class="space-x-4">
+            <a href="/api/search/simple-players" class="text-gray-600 hover:text-green-600">Search</a>
+            <a href="/api/team" class="text-gray-600 hover:text-green-600">Teams</a>
+            <a href="/api/leagues" class="text-gray-600 hover:text-green-600">Leagues</a>
+        </div>
+    </nav>
+</header>
+
+<!-- Hero Section -->
+<section class="hero-gradient text-white py-12">
+    <div class="container mx-auto px-4">
+        <h1 class="text-4xl font-bold mb-2" th:text="${player.name}">Player Name</h1>
+        <p class="text-xl" th:text="${player.teamName + ' - ' + player.position}">Team - Position</p>
+    </div>
+</section>
+
+<!-- Main Content -->
+<main class="flex-grow container mx-auto px-4 py-8">
+    <div class="bg-white rounded-lg shadow-lg overflow-hidden">
         <div class="p-6">
             <!-- Player Header -->
             <div class="flex flex-col sm:flex-row items-start gap-6 mb-8">
                 <div class="relative group">
-                    <div class="w-36 h-36 rounded-xl overflow-hidden bg-gray-200 border-2 border-gray-200 shadow-lg transition-transform duration-300 transform group-hover:scale-105">
-                        <img th:if="${realFootballStat.imageUrl}" th:src="${realFootballStat.imageUrl}" th:alt="${player.name}"
-                             class="w-full h-full object-cover">
-                        <img th:unless="${realFootballStat.imageUrl}" th:src="@{/images/players/{name}.jpg(name=${player.name})}" th:alt="${player.name}"
-                             class="w-full h-full object-cover">
-                    </div>
-                    <div class="absolute -bottom-2 left-1/2 transform -translate-x-1/2 bg-white px-3 py-1 rounded-full shadow-md">
-                        <span class="text-sm font-medium" th:text="${player.position}">Position</span>
+                    <div class="w-36 h-36 rounded-xl overflow-hidden bg-gray-200 border-2 border-green-200 shadow-lg transition-transform duration-300 transform group-hover:scale-105">
+                        <img th:src="${player.imageUrl}" th:alt="${player.name}" class="w-full h-full object-cover">
                     </div>
                 </div>
 
                 <div class="flex-grow">
                     <div class="sm:flex justify-between items-start mb-6">
                         <div>
-                            <h1 class="text-4xl font-bold mb-2" th:text="${player.name}">Player Name</h1>
-                            <div class="flex items-center gap-2 text-gray-600">
-                                <i class="icon icon-map-pin"></i>
-                                <span th:text="${player.teamName}" class="text-lg">Team Name</span>
-                            </div>
+                            <h2 class="text-3xl font-bold mb-2" th:text="${player.name}">Player Name</h2>
+                            <p class="text-xl text-gray-600" th:text="${player.position}">Position</p>
                         </div>
-                        <div class="mt-4 sm:mt-0 flex items-center gap-2">
-                            <div class="px-4 py-2 bg-blue-50 rounded-lg text-center">
+                        <div class="mt-4 sm:mt-0">
+                            <div class="px-4 py-2 bg-green-100 rounded-lg text-center">
                                 <div class="text-sm text-gray-600">Market Value</div>
-                                <div class="text-lg font-bold text-blue-600">
-                                    €<span th:text="${#numbers.formatDecimal(player.marketValue / 1000000, 1, 'COMMA', 2, 'POINT')}">50.00</span>m
+                                <div class="text-lg font-bold text-green-600">
+                                    €<span th:text="${#numbers.formatDecimal(player.marketValue / 1000000, 1, 'COMMA', 2, 'POINT')}">50.00</span>M
                                 </div>
                             </div>
                         </div>
                     </div>
 
-                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-6">
-                        <!-- Player Info -->
-                        <div class="space-y-3">
-                            <div class="flex items-center gap-3 p-2 rounded-lg hover:bg-gray-50 transition-colors">
-                                <i class="icon icon-calendar-days text-blue-500"></i>
-                                <div>
-                                    <div class="text-sm text-gray-600">Age</div>
-                                    <div class="font-medium">
-                                        <span th:text="${player.age}">30</span>
-                                        (<span th:text="${#temporals.format(player.birth, 'MMM d, yyyy')}">Jan 1, 1990</span>)
-                                    </div>
-                                </div>
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                        <div class="space-y-2">
+                            <div class="flex items-center gap-2">
+                                <i class="icon icon-calendar-days text-green-500"></i>
+                                <span>Age: <span th:text="${player.age}">30</span>
+                                        (DOB: <span th:text="${#temporals.format(player.birth, 'MMM d, yyyy')}">Jan 1, 1990</span>)
+                                    </span>
                             </div>
-                            <div class="flex items-center gap-3 p-2 rounded-lg hover:bg-gray-50 transition-colors">
+                            <div class="flex items-center gap-2">
                                 <i class="icon icon-ruler text-green-500"></i>
-                                <div>
-                                    <div class="text-sm text-gray-600">Height</div>
-                                    <div class="font-medium" th:text="${player.height + ' cm'}">180 cm</div>
-                                </div>
+                                <span>Height: <span th:text="${player.height + ' cm'}">180 cm</span></span>
                             </div>
-                            <div class="flex items-center gap-3 p-2 rounded-lg hover:bg-gray-50 transition-colors">
-                                <i class="icon icon-weight text-yellow-500"></i>
-                                <div>
-                                    <div class="text-sm text-gray-600">Weight</div>
-                                    <div class="font-medium" th:text="${player.weight + ' kg'}">75 kg</div>
-                                </div>
+                            <div class="flex items-center gap-2">
+                                <i class="icon icon-weight text-green-500"></i>
+                                <span>Weight: <span th:text="${player.weight + ' kg'}">75 kg</span></span>
                             </div>
-                            <div class="flex items-center gap-3 p-2 rounded-lg hover:bg-gray-50 transition-colors">
-                                <i class="icon icon-flag text-red-500"></i>
-                                <div>
-                                    <div class="text-sm text-gray-600">Nationality</div>
-                                    <div class="font-medium" th:text="${player.nationName}">Spain</div>
-                                </div>
+                            <div class="flex items-center gap-2">
+                                <i class="icon icon-users text-green-500"></i>
+                                <span>Team: <span th:text="${player.teamName}">Team Name</span></span>
+                            </div>
+                            <div class="flex items-center gap-2">
+                                <i class="icon icon-flag text-green-500"></i>
+                                <span>Nationality: <span th:text="${player.nationName}">Nation</span></span>
                             </div>
                         </div>
 
                         <!-- Real Football Statistics -->
-                        <div class="stats-section rounded-xl p-4">
+                        <div class="bg-green-50 rounded-xl p-4">
                             <h3 class="font-semibold mb-4 flex items-center gap-2 text-lg">
-                                <i class="icon icon-activity text-blue-500"></i>
+                                <i class="icon icon-activity text-green-500"></i>
                                 Season Statistics
                             </h3>
                             <div class="grid grid-cols-2 gap-4">
@@ -143,21 +117,21 @@
                                 </div>
                                 <div class="bg-white rounded-lg p-3 shadow-sm">
                                     <div class="flex items-center gap-2 mb-1">
-                                        <i class="icon icon-target text-red-500"></i>
+                                        <i class="icon icon-ball-football text-green-500"></i>
                                         <span class="text-sm text-gray-600">Goals</span>
                                     </div>
                                     <span class="text-xl font-bold" th:text="${realFootballStat.goal}">0</span>
                                 </div>
                                 <div class="bg-white rounded-lg p-3 shadow-sm">
                                     <div class="flex items-center gap-2 mb-1">
-                                        <i class="icon icon-help-circle text-purple-500"></i>
+                                        <i class="icon icon-footprints text-green-500"></i>
                                         <span class="text-sm text-gray-600">Assists</span>
                                     </div>
                                     <span class="text-xl font-bold" th:text="${realFootballStat.assist}">0</span>
                                 </div>
                                 <div class="bg-white rounded-lg p-3 shadow-sm">
                                     <div class="flex items-center gap-2 mb-1">
-                                        <i class="icon icon-star text-yellow-500"></i>
+                                        <i class="icon icon-star text-green-500"></i>
                                         <span class="text-sm text-gray-600">Rating</span>
                                     </div>
                                     <span class="text-xl font-bold" th:text="${realFootballStat.rating}">0.0</span>
@@ -171,9 +145,9 @@
             <!-- Attributes Grid -->
             <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
                 <!-- Technical Attributes -->
-                <div class="stats-section rounded-xl p-4">
+                <div class="bg-green-50 rounded-xl p-4">
                     <h3 class="font-semibold mb-4 flex items-center gap-2">
-                        <i class="icon icon-zap text-yellow-500"></i>
+                        <i class="icon icon-zap text-green-500"></i>
                         Technical
                     </h3>
                     <div class="space-y-2">
@@ -195,9 +169,9 @@
                 </div>
 
                 <!-- Mental Attributes -->
-                <div class="stats-section rounded-xl p-4">
+                <div class="bg-green-50 rounded-xl p-4">
                     <h3 class="font-semibold mb-4 flex items-center gap-2">
-                        <i class="icon icon-brain text-blue-500"></i>
+                        <i class="icon icon-brain text-green-500"></i>
                         Mental
                     </h3>
                     <div class="space-y-2">
@@ -219,9 +193,9 @@
                 </div>
 
                 <!-- Physical Attributes -->
-                <div class="stats-section rounded-xl p-4">
+                <div class="bg-green-50 rounded-xl p-4">
                     <h3 class="font-semibold mb-4 flex items-center gap-2">
-                        <i class="icon icon-dumbbell text-red-500"></i>
+                        <i class="icon icon-dumbbell text-green-500"></i>
                         Physical
                     </h3>
                     <div class="space-y-2">
@@ -238,21 +212,53 @@
             </div>
         </div>
     </div>
-</div>
+</main>
+
+<!-- Footer -->
+<footer class="bg-gray-800 text-white py-8">
+    <div class="container mx-auto px-4">
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
+            <div>
+                <h3 class="text-lg font-semibold mb-4">About Us</h3>
+                <p class="text-gray-400">Soccer Profiles provides comprehensive information about soccer players worldwide.</p>
+            </div>
+            <div>
+                <h3 class="text-lg font-semibold mb-4">Quick Links</h3>
+                <ul class="space-y-2">
+                    <li><a href="/about" class="text-gray-400 hover:text-white">About</a></li>
+                    <li><a href="/contact" class="text-gray-400 hover:text-white">Contact</a></li>
+                    <li><a href="/privacy" class="text-gray-400 hover:text-white">Privacy Policy</a></li>
+                    <li><a href="/terms" class="text-gray-400 hover:text-white">Terms of Service</a></li>
+                </ul>
+            </div>
+            <div>
+                <h3 class="text-lg font-semibold mb-4">Follow Us</h3>
+                <div class="flex space-x-4">
+                    <a href="#" class="text-gray-400 hover:text-white"><i class="icon icon-twitter"></i></a>
+                    <a href="#" class="text-gray-400 hover:text-white"><i class="icon icon-facebook"></i></a>
+                    <a href="#" class="text-gray-400 hover:text-white"><i class="icon icon-instagram"></i></a>
+                </div>
+            </div>
+        </div>
+        <div class="mt-8 pt-8 border-t border-gray-700 text-center">
+            <p class="text-gray-400">&copy; 2023 Soccer Profiles. All rights reserved.</p>
+        </div>
+    </div>
+</footer>
 
 <!-- Attribute Template -->
-<div th:fragment="attribute(name, value)" class="stat-item flex justify-between items-center px-3 py-2 rounded-lg text-sm">
+<div th:fragment="attribute(name, value)" class="stat-item flex justify-between items-center px-3 py-2 rounded-lg text-sm transition-all duration-200">
     <span th:text="${name}" class="text-gray-700">Attribute</span>
     <div class="flex items-center gap-3">
         <span class="font-semibold w-6 text-right" th:text="${value ?: '0'}">0</span>
         <div class="w-20 stat-bar">
             <div th:with="safeValue=${value ?: 0}"
                  th:class="${
-                    safeValue <= 5 ? 'stat-bar-fill-gray h-full' :
-                    safeValue <= 10 ? 'stat-bar-fill-orange h-full' :
-                    safeValue <= 15 ? 'stat-bar-fill-yellow h-full' :
-                    'stat-bar-fill-green h-full'
-                 }"
+                        safeValue <= 5 ? 'stat-bar-fill-gray h-full' :
+                        safeValue <= 10 ? 'stat-bar-fill-yellow h-full' :
+                        safeValue <= 15 ? 'stat-bar-fill-orange h-full' :
+                        'stat-bar-fill-green h-full'
+                     }"
                  th:style="'width: ' + ${(value ?: 0) * 5} + '%'"></div>
         </div>
     </div>
