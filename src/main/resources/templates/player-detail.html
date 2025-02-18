@@ -62,7 +62,9 @@
             <div class="flex flex-col sm:flex-row items-start gap-6 mb-8">
                 <div class="relative group">
                     <div class="w-36 h-36 rounded-xl overflow-hidden bg-gray-200 border-2 border-gray-200 shadow-lg transition-transform duration-300 transform group-hover:scale-105">
-                        <img th:src="@{/images/players/{name}.jpg(name=${player.name})}" th:alt="${player.name}"
+                        <img th:if="${realFootballStat.imageUrl}" th:src="${realFootballStat.imageUrl}" th:alt="${player.name}"
+                             class="w-full h-full object-cover">
+                        <img th:unless="${realFootballStat.imageUrl}" th:src="@{/images/players/{name}.jpg(name=${player.name})}" th:alt="${player.name}"
                              class="w-full h-full object-cover">
                     </div>
                     <div class="absolute -bottom-2 left-1/2 transform -translate-x-1/2 bg-white px-3 py-1 rounded-full shadow-md">

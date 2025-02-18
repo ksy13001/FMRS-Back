@@ -42,7 +42,7 @@ public class FootballApiService {
         return getPlayerRealFootballStatByStatistics(response.getBody());
     }
 
-    // 출장경기수, 골, 어시스트, 평점
+    // 출장경기수, 골, 어시스트, 평점, 선수 이미지
     private PlayerRealFootballStatDto getPlayerRealFootballStatByStatistics(PlayerStatisticsApiResponseDto response) {
         PlayerStatisticsApiResponseDto.StatisticDto stat = response.getResponse().get(0).getStatistics().get(0);
         PlayerRealFootballStatDto playerRealStatDto = new PlayerRealFootballStatDto();
@@ -51,6 +51,7 @@ public class FootballApiService {
         playerRealStatDto.setAssist(stat.getGoals().getAssists());
         playerRealStatDto.setPk(stat.getPenalty().getScored());
         playerRealStatDto.setRating(stat.getGames().getRating());
+        playerRealStatDto.setImageUrl(response.getResponse().get(0).getPlayer().getPhoto());
         return playerRealStatDto;
     }
 
