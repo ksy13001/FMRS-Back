@@ -13,6 +13,7 @@ import org.springframework.data.redis.core.RedisHash;
 public class PlayerStat {
     @Id
     private Long playerId;
+    private Integer apiFootballId;
     private Integer gamesPlayed;
     private Integer goal;
     private Integer pk;
@@ -21,8 +22,9 @@ public class PlayerStat {
     private String imageUrl;
 
     @Builder
-    public PlayerStat(Long playerId, Integer gamesPlayed, Integer goal, Integer pk, Integer assist, String rating, String imageUrl) {
+    public PlayerStat(Long playerId, Integer apiFootballId, Integer gamesPlayed, Integer goal, Integer pk, Integer assist, String rating, String imageUrl) {
         this.playerId = playerId;
+        this.apiFootballId = apiFootballId;
         this.gamesPlayed = gamesPlayed;
         this.goal = goal;
         this.pk = pk;
