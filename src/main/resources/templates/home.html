@@ -29,11 +29,11 @@
         }
     </style>
 </head>
-<body class="bg-slate-100 min-h-screen flex flex-col">
+<body class="bg-slate-100 min-h-screen flex flex-col text-base">
 <!-- Header -->
 <header class="bg-white shadow-md">
-    <nav class="w-4/5 mx-auto px-4 py-4 flex justify-between items-center">
-        <a href="/" class="text-2xl font-bold text-slate-800 flex items-center gap-2">
+    <nav class="w-[80%] mx-auto px-4 py-4 flex justify-between items-center">
+        <a href="/" class="text-3xl font-bold text-slate-800 flex items-center gap-2">
             <i class="icon icon-soccer-ball text-emerald-600"></i>
             ProSoccer DB
         </a>
@@ -46,10 +46,10 @@
 </header>
 
 <!-- Hero Section -->
-<section class="hero-gradient text-white py-20 relative">
-    <div class="w-4/5 mx-auto px-4 text-center relative z-10">
-        <h1 class="text-4xl md:text-5xl font-bold mb-4">Discover Elite Soccer Talents</h1>
-        <p class="text-xl mb-8 text-slate-300">Explore comprehensive profiles of professional soccer players worldwide</p>
+<section class="hero-gradient text-white py-24 relative">
+    <div class="w-[80%] mx-auto px-4 text-center relative z-10">
+        <h1 class="text-5xl md:text-6xl font-bold mb-4">Discover Elite Soccer Talents</h1>
+        <p class="text-2xl mb-8 text-slate-300">Explore comprehensive profiles of professional soccer players worldwide</p>
         <a href="/search" class="bg-emerald-600 text-white px-8 py-3 rounded-full font-semibold hover:bg-emerald-700 transition duration-300 inline-flex items-center">
             <i class="icon icon-search mr-2"></i>
             Start Exploring
@@ -63,10 +63,10 @@
 </section>
 
 <!-- Main Content -->
-<main class="flex-grow w-4/5 mx-auto px-4 py-12">
+<main class="flex-grow w-[80%] mx-auto px-4 py-16">
     <!-- Quick Search -->
     <section class="mb-12 bg-white rounded-lg shadow-md p-6">
-        <h2 class="text-2xl font-semibold mb-4 text-slate-800">Quick Search</h2>
+        <h2 class="text-3xl font-semibold mb-4 text-slate-800">Quick Search</h2>
         <form action="/api/search/simple-players" method="get" class="flex gap-2">
             <div class="relative flex-grow">
                 <i class="icon icon-search absolute left-3 top-1/2 transform -translate-y-1/2 text-slate-400"></i>
@@ -81,11 +81,11 @@
 
     <!-- Featured Players -->
     <section class="mb-12">
-        <h2 class="text-2xl font-semibold mb-6 text-slate-800">Featured Players</h2>
-        <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+        <h2 class="text-3xl font-semibold mb-6 text-slate-800">Featured Players</h2>
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
             <!-- Featured Player Card (repeated for each player) -->
             <div th:each="player : ${featuredPlayers.players}" class="bg-white rounded-lg shadow-md overflow-hidden hover:shadow-lg transition duration-300">
-                <div class="p-4">
+                <div class="p-6">
                     <div class="flex items-start gap-4">
                         <div class="relative group">
                             <div class="w-24 h-24 rounded-full overflow-hidden bg-slate-200 border-2 border-slate-400 shadow-lg transition-transform duration-300 transform group-hover:scale-105">
@@ -93,7 +93,7 @@
                             </div>
                         </div>
                         <div class="flex-grow">
-                            <h3 class="text-xl font-semibold mb-2">
+                            <h3 class="text-2xl font-semibold mb-2">
                                 <a th:href="@{/api/players/{id}(id=${player.id})}" class="text-slate-800 hover:text-emerald-600 transition duration-300" th:text="${player.name}">Player Name</a>
                             </h3>
                             <p class="text-slate-600 mb-1" th:text="${player.teamName}">Team Name</p>
@@ -116,7 +116,7 @@
 
     <!-- Recent Updates -->
     <section>
-        <h2 class="text-2xl font-semibold mb-6 text-slate-800">Recent Updates</h2>
+        <h2 class="text-3xl font-semibold mb-6 text-slate-800">Recent Updates</h2>
         <div class="bg-white rounded-lg shadow-md p-6">
             <ul class="space-y-4">
                 <li th:each="update : ${recentUpdates}" class="border-b border-slate-200 pb-4 last:border-b-0 last:pb-0">
@@ -134,7 +134,7 @@
 
 <!-- Footer -->
 <footer class="bg-slate-800 text-white py-12">
-    <div class="w-4/5 mx-auto px-4">
+    <div class="w-[80%] mx-auto px-4">
         <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
             <div>
                 <h3 class="text-lg font-semibold mb-4">About ProSoccer DB</h3>
