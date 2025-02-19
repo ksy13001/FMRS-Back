@@ -199,4 +199,8 @@ public class Player {
     public void updateMarketValue(int marketValue) {
         this.marketValue = marketValue;
     }
+
+    public void updateImageUrl(String imageUrl) {
+        this.imageUrl = imageUrl;
+    }
 }
