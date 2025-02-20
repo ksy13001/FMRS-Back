@@ -2,6 +2,7 @@ package com.ksy.fmrs.service;
 
 import com.ksy.fmrs.domain.Player;
 import com.ksy.fmrs.domain.PlayerStat;
+import com.ksy.fmrs.domain.enums.UrlEnum;
 import com.ksy.fmrs.dto.PlayerStatDto;
 import com.ksy.fmrs.dto.PlayerStatisticsApiResponseDto;
 import com.ksy.fmrs.dto.TeamApiResponseDto;
@@ -42,7 +43,7 @@ public class FootballApiService {
         return getOptionalPlayerStatById(playerId)
                 .map(PlayerStatDto::new)
                 .orElseGet(() -> {
-                    String url = buildPlayerStatUrl(playerName, getTeamApiIdByTeamName(teamName));
+                    String url = UrlEnum.buildPlayerStatUrl(playerName, getTeamApiIdByTeamName(teamName));
                     ResponseEntity<PlayerStatisticsApiResponseDto> response = getApiResponse(url, PlayerStatisticsApiResponseDto.class);
                     PlayerStatDto playerStatDto = getPlayerStatFromStatistics(Objects.requireNonNull(response.getBody()));
                     updatePlayerImage(playerId, playerStatDto.getImageUrl());
@@ -74,7 +75,7 @@ public class FootballApiService {
     }
 
     private Integer getTeamApiIdByTeamName(String teamName) {
-        String url = buildTeamUrl(teamName);
+        String url = UrlEnum.buildTeamUrl(teamName);
 
         ResponseEntity<TeamApiResponseDto> teamApiResponseDto = getApiResponse(url, TeamApiResponseDto.class);
         return Objects.requireNonNull(teamApiResponseDto.getBody())
@@ -98,17 +99,6 @@ public class FootballApiService {
                 .defaultHeader("X-RapidAPI-Key", apiFootballKey)
                 .defaultHeader("X-RapidAPI-Host", apiFootballHost)
                 .build();
-    }
-
-    // 선수 통계 API URL을 생성 (playerName, teamApiId, 시즌)
-    private String buildPlayerStatUrl(String playerName, Integer teamApiId) {
-        return PLAYER_STAT_URL.getValue() + PARAM_SEARCH.getValue() + playerName + AND.getValue() + PARAM_TEAM.getValue() + teamApiId;
-    }
-
-    // 팀 API URL을 생성 (teamName)
-    private String buildTeamUrl(String teamName) {
-        return TEAM_URL.getValue() + PARAM_NAME.getValue()
-                + teamName;
     }
 
     private PlayerStat playerStatDtoToPlayerStat(Long playerId, PlayerStatDto playerStatDto) {
