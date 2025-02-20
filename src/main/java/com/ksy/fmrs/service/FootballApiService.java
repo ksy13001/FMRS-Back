@@ -28,19 +28,20 @@ public class FootballApiService {
     @Value("${api-football.host}")
     private String apiFootballHost;
 
-    private final PlayerStatRepository  playerStatRepository;
+    private final PlayerStatRepository playerStatRepository;
     private final PlayerRepository playerRepository;
+
     /**
      * 1. playerDetailDto 에서 playerName, teamName 가져옴
      * 2. teamName 을 통해 api-football 에서 teamApiId 가져옴
      * 3. playerName + teamApiId 를 통해 api-football 에서 playerApi + playerRealStat 가져옴
-     * */
+     */
     @Transactional
     public PlayerStatDto getPlayerRealStat(Long playerId, String playerName, String teamName) {
 
         return getOptionalPlayerStatById(playerId)
                 .map(PlayerStatDto::new)
-                .orElseGet(()->{
+                .orElseGet(() -> {
                     String url = buildPlayerStatUrl(playerName, getTeamApiIdByTeamName(teamName));
                     ResponseEntity<PlayerStatisticsApiResponseDto> response = getApiResponse(url, PlayerStatisticsApiResponseDto.class);
                     PlayerStatDto playerStatDto = getPlayerStatFromStatistics(Objects.requireNonNull(response.getBody()));
@@ -65,17 +66,17 @@ public class FootballApiService {
     }
 
     private String truncateToTwoDecimalsRanging(String r) {
-        if(r == null || r.isEmpty()) {
+        if (r == null || r.isEmpty()) {
             return "0";
         }
         double rating = Double.parseDouble(r);
         return String.format("%.2f", rating);
     }
 
-    private Integer getTeamApiIdByTeamName(String teamName){
+    private Integer getTeamApiIdByTeamName(String teamName) {
         String url = buildTeamUrl(teamName);
 
-        ResponseEntity<TeamApiResponseDto> teamApiResponseDto = getApiResponse(url,  TeamApiResponseDto.class);
+        ResponseEntity<TeamApiResponseDto> teamApiResponseDto = getApiResponse(url, TeamApiResponseDto.class);
         return Objects.requireNonNull(teamApiResponseDto.getBody())
                 .getResponse()
                 .getFirst()
@@ -92,7 +93,7 @@ public class FootballApiService {
                 .toEntity(responseType);
     }
 
-    RestClient createAPIFootballRestClient(){
+    RestClient createAPIFootballRestClient() {
         return RestClient.builder()
                 .defaultHeader("X-RapidAPI-Key", apiFootballKey)
                 .defaultHeader("X-RapidAPI-Host", apiFootballHost)
@@ -128,17 +129,17 @@ public class FootballApiService {
         player.updateImageUrl(imageUrl);
     }
 
-    private void savePlayerStat(PlayerStat playerStat){
+    private void savePlayerStat(PlayerStat playerStat) {
         playerStatRepository.save(playerStat);
     }
 
-    private Optional<PlayerStat> getOptionalPlayerStatById(Long playerStatId){
+    private Optional<PlayerStat> getOptionalPlayerStatById(Long playerStatId) {
         return playerStatRepository.findById(playerStatId);
     }
 
-    private Player findPlayerById(Long playerId){
+    private Player findPlayerById(Long playerId) {
         return playerRepository.findById(playerId).orElseThrow(
-                ()->new IllegalArgumentException("Player with id "+playerId+" not found")
+                () -> new IllegalArgumentException("Player with id " + playerId + " not found")
         );
     }
 }
