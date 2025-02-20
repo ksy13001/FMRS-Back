@@ -16,8 +16,8 @@ public class PlayerStatDto {
     private String imageUrl;
 
     public PlayerStatDto(PlayerStat playerStat) {
-        this.assist = playerStat.getAssist();
         this.gamesPlayed = playerStat.getGamesPlayed();
+        this.assist = playerStat.getAssist();
         this.goal = playerStat.getGoal();
         this.pk = playerStat.getPk();
         this.rating = playerStat.getRating();
