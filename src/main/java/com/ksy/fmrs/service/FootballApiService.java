@@ -13,13 +13,11 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.client.RestClient;
-import org.springframework.web.util.UriComponentsBuilder;
-import org.springframework.web.util.UriUtils;
 
-import java.nio.charset.Charset;
-import java.nio.charset.CharsetEncoder;
 import java.util.Objects;
 import java.util.Optional;
+
+import static com.ksy.fmrs.domain.enums.UrlEnum.*;
 
 @RequiredArgsConstructor
 @Service
@@ -29,14 +27,6 @@ public class FootballApiService {
     private String apiFootballKey;
     @Value("${api-football.host}")
     private String apiFootballHost;
-
-    // 기본 URL 및 쿼리 파라미터 상수
-    private static final String TEAM_URL = "https://v3.football.api-sports.io/teams?";
-    private static final String PLAYER_STAT_URL = "https://v3.football.api-sports.io/players?";
-    private static final String PARAM_NAME = "name=";
-    private static final String PARAM_SEARCH = "search=";
-    private static final String PARAM_TEAM = "team=";
-    private static final String AND = "&";
 
     private final PlayerStatRepository  playerStatRepository;
     private final PlayerRepository playerRepository;
@@ -75,6 +65,9 @@ public class FootballApiService {
     }
 
     private String truncateToTwoDecimalsRanging(String r) {
+        if(r == null || r.isEmpty()) {
+            return "0";
+        }
         double rating = Double.parseDouble(r);
         return String.format("%.2f", rating);
     }
@@ -108,12 +101,13 @@ public class FootballApiService {
 
     // 선수 통계 API URL을 생성 (playerName, teamApiId, 시즌)
     private String buildPlayerStatUrl(String playerName, Integer teamApiId) {
-        return PLAYER_STAT_URL + PARAM_SEARCH + playerName + AND + PARAM_TEAM + teamApiId;
+        return PLAYER_STAT_URL.getValue() + PARAM_SEARCH.getValue() + playerName + AND.getValue() + PARAM_TEAM.getValue() + teamApiId;
     }
 
     // 팀 API URL을 생성 (teamName)
     private String buildTeamUrl(String teamName) {
-        return TEAM_URL + PARAM_NAME + teamName;
+        return TEAM_URL.getValue() + PARAM_NAME.getValue()
+                + teamName;
     }
 
     private PlayerStat playerStatDtoToPlayerStat(Long playerId, PlayerStatDto playerStatDto) {
