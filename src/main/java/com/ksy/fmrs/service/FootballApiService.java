@@ -15,6 +15,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.client.RestClient;
 
+import java.util.Arrays;
 import java.util.Objects;
 import java.util.Optional;
 
@@ -43,13 +44,20 @@ public class FootballApiService {
         return getOptionalPlayerStatById(playerId)
                 .map(PlayerStatDto::new)
                 .orElseGet(() -> {
-                    String url = UrlEnum.buildPlayerStatUrl(playerName, getTeamApiIdByTeamName(teamName));
+                    String url = UrlEnum.buildPlayerStatUrl(splitPlayerName(playerName), getTeamApiIdByTeamName(teamName));
                     ResponseEntity<PlayerStatisticsApiResponseDto> response = getApiResponse(url, PlayerStatisticsApiResponseDto.class);
                     PlayerStatDto playerStatDto = getPlayerStatFromStatistics(Objects.requireNonNull(response.getBody()));
                     updatePlayerImage(playerId, playerStatDto.getImageUrl());
                     savePlayerStat(playerStatDtoToPlayerStat(playerId, playerStatDto));
                     return playerStatDto;
                 });
+    }
+    private String splitPlayerName(String fullName) {
+        String[] tokens = fullName.trim().split("\\s+");
+        if (tokens.length > 1) {
+            return tokens[1];
+        }
+        return tokens[tokens.length - 1];
     }
 
     // 출장경기수, 골, 어시스트, 평점, 선수 이미지
