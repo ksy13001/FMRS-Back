@@ -94,7 +94,7 @@
                         </div>
                         <div class="flex-grow">
                             <h3 class="text-2xl font-semibold mb-2">
-                                <a th:href="@{/api/players/{id}(id=${player.id})}" class="text-slate-800 hover:text-emerald-600 transition duration-300" th:text="${player.name}">Player Name</a>
+                                <a th:href="@{/players/{id}(id=${player.id})}" class="text-slate-800 hover:text-emerald-600 transition duration-300" th:text="${player.name}">Player Name</a>
                             </h3>
                             <p class="text-slate-600 mb-1" th:text="${player.teamName}">Team Name</p>
                             <p class="text-slate-600 mb-2" th:text="${player.position}">Position</p>
