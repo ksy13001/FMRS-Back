@@ -31,9 +31,9 @@
 </head>
 <body class="bg-slate-100 min-h-screen flex flex-col text-base">
 <!-- Header -->
-<header class="bg-white shadow-md">
-    <nav class="w-[80%] mx-auto px-4 py-4 flex justify-between items-center">
-        <a href="/" class="text-3xl font-bold text-slate-800 flex items-center gap-2">
+<header class="bg-white shadow-sm">
+    <nav class="w-full max-w-7xl mx-auto px-4 py-2 flex justify-between items-center">
+        <a href="/" class="text-xl font-bold text-slate-800 flex items-center gap-2">
             <i class="icon icon-soccer-ball text-emerald-600"></i>
             ProSoccer DB
         </a>
@@ -46,33 +46,28 @@
 </header>
 
 <!-- Hero Section -->
-<section class="hero-gradient text-white py-24 relative">
-    <div class="w-[80%] mx-auto px-4 text-center relative z-10">
-        <h1 class="text-5xl md:text-6xl font-bold mb-4">Discover Elite Soccer Talents</h1>
-        <p class="text-2xl mb-8 text-slate-300">Explore comprehensive profiles of professional soccer players worldwide</p>
-        <a href="/search" class="bg-emerald-600 text-white px-8 py-3 rounded-full font-semibold hover:bg-emerald-700 transition duration-300 inline-flex items-center">
+<section class="hero-gradient text-white py-12 relative">
+    <div class="w-full max-w-7xl mx-auto px-4 text-center relative z-10">
+        <h1 class="text-4xl md:text-5xl font-bold mb-2">Discover Elite Soccer Talents</h1>
+        <p class="text-xl mb-4 text-slate-300">Explore comprehensive profiles of professional soccer players worldwide</p>
+        <a href="/search" class="bg-emerald-600 text-white px-6 py-2 rounded-full font-semibold hover:bg-emerald-700 transition duration-300 inline-flex items-center">
             <i class="icon icon-search mr-2"></i>
             Start Exploring
         </a>
     </div>
-    <div class="custom-shape-divider-bottom-1687123561">
-        <svg data-name="Layer 1" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 120" preserveAspectRatio="none">
-            <path d="M321.39,56.44c58-10.79,114.16-30.13,172-41.86,82.39-16.72,168.19-17.73,250.45-.39C823.78,31,906.67,72,985.66,92.83c70.05,18.48,146.53,26.09,214.34,3V0H0V27.35A600.21,600.21,0,0,0,321.39,56.44Z" class="shape-fill"></path>
-        </svg>
-    </div>
 </section>
 
 <!-- Main Content -->
-<main class="flex-grow w-[80%] mx-auto px-4 py-16">
+<main class="flex-grow w-full max-w-7xl mx-auto px-4 py-8">
     <!-- Quick Search -->
-    <section class="mb-12 bg-white rounded-lg shadow-md p-6">
-        <h2 class="text-3xl font-semibold mb-4 text-slate-800">Quick Search</h2>
+    <section class="mb-8 bg-white rounded-lg shadow-sm p-4">
+        <h2 class="text-2xl font-semibold mb-2 text-slate-800">Quick Search</h2>
         <form action="/api/search/simple-players" method="get" class="flex gap-2">
             <div class="relative flex-grow">
                 <i class="icon icon-search absolute left-3 top-1/2 transform -translate-y-1/2 text-slate-400"></i>
                 <input type="text" name="name" placeholder="Search players..." class="w-full pl-10 pr-4 py-2 rounded-lg border border-slate-300 focus:outline-none focus:ring-2 focus:ring-emerald-500 transition duration-300">
             </div>
-            <button type="submit" class="bg-emerald-600 text-white px-6 py-2 rounded-lg hover:bg-emerald-700 transition duration-300 flex items-center">
+            <button type="submit" class="bg-emerald-600 text-white px-4 py-2 rounded-lg hover:bg-emerald-700 transition duration-300 flex items-center">
                 <i class="icon icon-search mr-2"></i>
                 Search
             </button>
@@ -80,32 +75,32 @@
     </section>
 
     <!-- Featured Players -->
-    <section class="mb-12">
-        <h2 class="text-3xl font-semibold mb-6 text-slate-800">Featured Players</h2>
-        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+    <section class="mb-8">
+        <h2 class="text-2xl font-semibold mb-4 text-slate-800">Featured Players</h2>
+        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
             <!-- Featured Player Card (repeated for each player) -->
-            <div th:each="player : ${featuredPlayers.players}" class="bg-white rounded-lg shadow-md overflow-hidden hover:shadow-lg transition duration-300">
-                <div class="p-6">
-                    <div class="flex items-start gap-4">
+            <div th:each="player : ${featuredPlayers.players}" class="bg-white rounded-lg shadow-sm overflow-hidden hover:shadow-md transition duration-300">
+                <div class="p-4">
+                    <div class="flex items-start gap-3">
                         <div class="relative group">
-                            <div class="w-24 h-24 rounded-full overflow-hidden bg-slate-200 border-2 border-slate-400 shadow-lg transition-transform duration-300 transform group-hover:scale-105">
+                            <div class="w-16 h-16 rounded-full overflow-hidden bg-slate-200 border-2 border-slate-400 shadow-md transition-transform duration-300 transform group-hover:scale-105">
                                 <img th:src="${player.imageUrl}" th:alt="${player.name}" class="w-full h-full object-cover">
                             </div>
                         </div>
                         <div class="flex-grow">
-                            <h3 class="text-2xl font-semibold mb-2">
-                                <a th:href="@{/players/{id}(id=${player.id})}" class="text-slate-800 hover:text-emerald-600 transition duration-300" th:text="${player.name}">Player Name</a>
+                            <h3 class="text-lg font-semibold mb-1">
+                                <a th:href="@{/api/players/{id}(id=${player.id})}" class="text-slate-800 hover:text-emerald-600 transition duration-300" th:text="${player.name}">Player Name</a>
                             </h3>
-                            <p class="text-slate-600 mb-1" th:text="${player.teamName}">Team Name</p>
-                            <p class="text-slate-600 mb-2" th:text="${player.position}">Position</p>
-                            <p class="text-emerald-600 font-semibold">
+                            <p class="text-sm text-slate-600 mb-1" th:text="${player.teamName}">Team Name</p>
+                            <p class="text-sm text-slate-600 mb-1" th:text="${player.position}">Position</p>
+                            <p class="text-sm text-emerald-600 font-semibold">
                                 €<span th:text="${#numbers.formatDecimal(player.marketValue / 1000000, 1, 'COMMA', 2, 'POINT')}">50.00</span>M
                             </p>
                         </div>
                     </div>
                 </div>
-                <div class="bg-slate-50 px-4 py-3 mt-2">
-                    <a th:href="@{/players/{id}(id=${player.id})}" class="text-emerald-600 hover:text-emerald-700 transition duration-300 flex items-center justify-center">
+                <div class="bg-slate-50 px-4 py-2 mt-2">
+                    <a th:href="@{/api/players/{id}(id=${player.id})}" class="text-sm text-emerald-600 hover:text-emerald-700 transition duration-300 flex items-center justify-center">
                         View Full Profile
                         <i class="icon icon-arrow-right ml-2"></i>
                     </a>
@@ -116,13 +111,13 @@
 
     <!-- Recent Updates -->
     <section>
-        <h2 class="text-3xl font-semibold mb-6 text-slate-800">Recent Updates</h2>
-        <div class="bg-white rounded-lg shadow-md p-6">
-            <ul class="space-y-4">
-                <li th:each="update : ${recentUpdates}" class="border-b border-slate-200 pb-4 last:border-b-0 last:pb-0">
-                    <h3 class="text-lg font-semibold mb-1 text-slate-800" th:text="${update.title}">Update Title</h3>
-                    <p class="text-slate-600 mb-2" th:text="${update.description}">Update description goes here...</p>
-                    <span class="text-sm text-slate-500 flex items-center">
+        <h2 class="text-2xl font-semibold mb-4 text-slate-800">Recent Updates</h2>
+        <div class="bg-white rounded-lg shadow-sm p-4">
+            <ul class="space-y-3">
+                <li th:each="update : ${recentUpdates}" class="border-b border-slate-200 pb-3 last:border-b-0 last:pb-0">
+                    <h3 class="text-base font-semibold mb-1 text-slate-800" th:text="${update.title}">Update Title</h3>
+                    <p class="text-sm text-slate-600 mb-1" th:text="${update.description}">Update description goes here...</p>
+                    <span class="text-xs text-slate-500 flex items-center">
                             <i class="icon icon-calendar mr-2"></i>
                             <span th:text="${#temporals.format(update.date, 'MMMM d, yyyy')}">June 1, 2023</span>
                         </span>
@@ -133,16 +128,16 @@
 </main>
 
 <!-- Footer -->
-<footer class="bg-slate-800 text-white py-12">
-    <div class="w-[80%] mx-auto px-4">
-        <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
+<footer class="bg-slate-800 text-white py-8 text-sm">
+    <div class="w-full max-w-7xl mx-auto px-4">
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
             <div>
-                <h3 class="text-lg font-semibold mb-4">About ProSoccer DB</h3>
-                <p class="text-slate-400">ProSoccer DB provides comprehensive, up-to-date information about professional soccer players worldwide. Our database is trusted by scouts, analysts, and fans alike.</p>
+                <h3 class="text-base font-semibold mb-2">About ProSoccer DB</h3>
+                <p class="text-slate-400 text-sm">ProSoccer DB provides comprehensive, up-to-date information about professional soccer players worldwide. Our database is trusted by scouts, analysts, and fans alike.</p>
             </div>
             <div>
-                <h3 class="text-lg font-semibold mb-4">Quick Links</h3>
-                <ul class="space-y-2">
+                <h3 class="text-base font-semibold mb-2">Quick Links</h3>
+                <ul class="space-y-1">
                     <li><a href="/about" class="text-slate-400 hover:text-white transition duration-300">About</a></li>
                     <li><a href="/contact" class="text-slate-400 hover:text-white transition duration-300">Contact</a></li>
                     <li><a href="/privacy" class="text-slate-400 hover:text-white transition duration-300">Privacy Policy</a></li>
@@ -150,7 +145,7 @@
                 </ul>
             </div>
             <div>
-                <h3 class="text-lg font-semibold mb-4">Connect With Us</h3>
+                <h3 class="text-base font-semibold mb-2">Connect With Us</h3>
                 <div class="flex space-x-4">
                     <a href="#" class="text-slate-400 hover:text-white transition duration-300"><i class="icon icon-twitter"></i></a>
                     <a href="#" class="text-slate-400 hover:text-white transition duration-300"><i class="icon icon-facebook"></i></a>
@@ -159,8 +154,8 @@
                 </div>
             </div>
         </div>
-        <div class="mt-8 pt-8 border-t border-slate-700 text-center">
-            <p class="text-slate-400">&copy; 2023 ProSoccer DB. All rights reserved.</p>
+        <div class="mt-6 pt-6 border-t border-slate-700 text-center">
+            <p class="text-slate-400 text-sm">&copy; 2023 ProSoccer DB. All rights reserved.</p>
         </div>
     </div>
 </footer>

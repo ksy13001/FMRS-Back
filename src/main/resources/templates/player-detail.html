@@ -11,9 +11,9 @@
             background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%);
         }
         .stat-bar {
-            height: 4px;
+            height: 3px;
             background-color: #e2e8f0;
-            border-radius: 2px;
+            border-radius: 1px;
             overflow: hidden;
         }
         .stat-bar-fill-gray { background-color: #94a3b8; }
@@ -23,134 +23,136 @@
         .stat-item:hover { background-color: #f1f5f9; }
     </style>
 </head>
-<body class="bg-slate-100 min-h-screen flex flex-col">
+<body class="bg-slate-100 min-h-screen flex flex-col text-xs">
 <!-- Header -->
-<header class="bg-white shadow-md">
-    <nav class="w-4/5 mx-auto px-4 py-4 flex justify-between items-center">
-        <a href="/api/home" class="text-2xl font-bold text-slate-800 flex items-center gap-2">
+<header class="bg-white shadow-sm">
+    <nav class="w-full max-w-7xl mx-auto px-2 py-2 flex justify-between items-center">
+        <a href="/home" class="text-lg font-bold text-slate-800 flex items-center gap-1">
             <i class="icon icon-soccer-ball text-emerald-600"></i>
-            ProSoccer DB
+            FMRS
         </a>
-        <div class="space-x-4">
-            <a href="/api/search/simple-players" class="text-slate-600 hover:text-emerald-600 transition duration-300">Search</a>
-            <a href="/api/team" class="text-slate-600 hover:text-emerald-600 transition duration-300">Teams</a>
-            <a href="/api/leagues" class="text-slate-600 hover:text-emerald-600 transition duration-300">Leagues</a>
+        <div class="space-x-3">
+            <a href="/search/simple-players" class="text-slate-600 hover:text-emerald-600 transition duration-300">Search</a>
+            <a href="/team" class="text-slate-600 hover:text-emerald-600 transition duration-300">Teams</a>
+            <a href="/leagues" class="text-slate-600 hover:text-emerald-600 transition duration-300">Leagues</a>
         </div>
     </nav>
 </header>
 
 <!-- Hero Section -->
-<section class="hero-gradient text-white py-12">
-    <div class="w-4/5 mx-auto px-4">
-        <h1 class="text-4xl font-bold mb-2" th:text="${player.name}">Player Name</h1>
-        <p class="text-xl text-slate-300" th:text="${player.teamName + ' - ' + player.position}">Team - Position</p>
+<section class="hero-gradient text-white py-4">
+    <div class="w-full max-w-7xl mx-auto px-2">
+        <h1 class="text-2xl font-bold mb-0.5" th:text="${player.name}">Player Name</h1>
+        <p class="text-base text-slate-300" th:text="${player.teamName + ' - ' + player.position}">Team - Position</p>
     </div>
 </section>
 
 <!-- Main Content -->
-<main class="flex-grow w-4/5 mx-auto px-4 py-8">
-    <div class="bg-white rounded-lg shadow-lg overflow-hidden">
-        <div class="p-6">
+<main class="flex-grow w-full max-w-7xl mx-auto px-2 py-4">
+    <div class="bg-white rounded-lg shadow-sm overflow-hidden">
+        <div class="p-3">
             <!-- Player Header -->
-            <div class="flex flex-col sm:flex-row items-start gap-6 mb-8">
+            <div class="flex flex-col sm:flex-row items-start gap-3 mb-4">
                 <div class="relative group">
-                    <div class="w-36 h-36 rounded-full overflow-hidden bg-slate-200 border-4 border-slate-400 shadow-lg transition-transform duration-300 transform group-hover:scale-105">
+                    <div class="w-24 h-24 rounded-lg overflow-hidden bg-slate-200 border border-slate-400 shadow-sm transition-transform duration-300 transform group-hover:scale-105">
                         <img th:src="${player.imageUrl}" th:alt="${player.name}" class="w-full h-full object-cover">
                     </div>
                 </div>
 
                 <div class="flex-grow">
-                    <div class="sm:flex justify-between items-start mb-6">
+                    <div class="sm:flex justify-between items-start mb-2">
                         <div>
-                            <h2 class="text-3xl font-bold mb-2 text-slate-800" th:text="${player.name}">Player Name</h2>
-                            <p class="text-xl text-slate-600" th:text="${player.position}">Position</p>
+                            <h2 class="text-xl font-bold mb-0.5 text-slate-800" th:text="${player.name}">Player Name</h2>
+                            <p class="text-base text-slate-600" th:text="${player.position}">Position</p>
                         </div>
-                        <div class="mt-4 sm:mt-0">
-                            <div class="px-4 py-2 bg-emerald-100 rounded-lg text-center">
-                                <div class="text-sm text-slate-600">Market Value</div>
-                                <div class="text-lg font-bold text-emerald-600">
+                        <div class="mt-1 sm:mt-0">
+                            <div class="px-2 py-1 bg-emerald-100 rounded-lg text-center">
+                                <div class="text-xs text-slate-600">Market Value</div>
+                                <div class="text-sm font-bold text-emerald-600">
                                     €<span th:text="${#numbers.formatDecimal(player.marketValue / 1000000, 1, 'COMMA', 2, 'POINT')}">50.00</span>M
                                 </div>
                             </div>
                         </div>
                     </div>
 
-                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                        <div class="space-y-2">
-                            <div class="flex items-center gap-2 text-slate-700">
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-2 text-xs">
+                        <div class="space-y-0.5">
+                            <div class="flex items-center gap-1 text-slate-700">
                                 <i class="icon icon-calendar-days text-emerald-500"></i>
                                 <span>Age: <span th:text="${player.age}">30</span>
-                                        (DOB: <span th:text="${#temporals.format(player.birth, 'MMM d, yyyy')}">Jan 1, 1990</span>)
-                                    </span>
+                                   (DOB: <span th:text="${#temporals.format(player.birth, 'MMM d, yyyy')}">Jan 1, 1990</span>)
+                               </span>
                             </div>
-                            <div class="flex items-center gap-2 text-slate-700">
+                            <div class="flex items-center gap-1 text-slate-700">
                                 <i class="icon icon-ruler text-emerald-500"></i>
                                 <span>Height: <span th:text="${player.height + ' cm'}">180 cm</span></span>
                             </div>
-                            <div class="flex items-center gap-2 text-slate-700">
+                            <div class="flex items-center gap-1 text-slate-700">
                                 <i class="icon icon-weight text-emerald-500"></i>
                                 <span>Weight: <span th:text="${player.weight + ' kg'}">75 kg</span></span>
                             </div>
-                            <div class="flex items-center gap-2 text-slate-700">
+                        </div>
+                        <div class="space-y-0.5">
+                            <div class="flex items-center gap-1 text-slate-700">
                                 <i class="icon icon-users text-emerald-500"></i>
                                 <span>Team: <span th:text="${player.teamName}">Team Name</span></span>
                             </div>
-                            <div class="flex items-center gap-2 text-slate-700">
+                            <div class="flex items-center gap-1 text-slate-700">
                                 <i class="icon icon-flag text-emerald-500"></i>
                                 <span>Nationality: <span th:text="${player.nationName}">Nation</span></span>
-                            </div>
-                        </div>
-
-                        <!-- Real Football Statistics -->
-                        <div class="bg-slate-50 rounded-xl p-4">
-                            <h3 class="font-semibold mb-4 flex items-center gap-2 text-lg text-slate-800">
-                                <i class="icon icon-activity text-emerald-500"></i>
-                                Season Statistics
-                            </h3>
-                            <div class="grid grid-cols-2 gap-4">
-                                <div class="bg-white rounded-lg p-3 shadow-sm">
-                                    <div class="flex items-center gap-2 mb-1">
-                                        <i class="icon icon-play-circle text-emerald-500"></i>
-                                        <span class="text-sm text-slate-600">Games</span>
-                                    </div>
-                                    <span class="text-xl font-bold text-slate-800" th:text="${realFootballStat.gamesPlayed}">0</span>
-                                </div>
-                                <div class="bg-white rounded-lg p-3 shadow-sm">
-                                    <div class="flex items-center gap-2 mb-1">
-                                        <i class="icon icon-ball-football text-emerald-500"></i>
-                                        <span class="text-sm text-slate-600">Goals</span>
-                                    </div>
-                                    <span class="text-xl font-bold text-slate-800" th:text="${realFootballStat.goal}">0</span>
-                                </div>
-                                <div class="bg-white rounded-lg p-3 shadow-sm">
-                                    <div class="flex items-center gap-2 mb-1">
-                                        <i class="icon icon-footprints text-emerald-500"></i>
-                                        <span class="text-sm text-slate-600">Assists</span>
-                                    </div>
-                                    <span class="text-xl font-bold text-slate-800" th:text="${realFootballStat.assist}">0</span>
-                                </div>
-                                <div class="bg-white rounded-lg p-3 shadow-sm">
-                                    <div class="flex items-center gap-2 mb-1">
-                                        <i class="icon icon-star text-emerald-500"></i>
-                                        <span class="text-sm text-slate-600">Rating</span>
-                                    </div>
-                                    <span class="text-xl font-bold text-slate-800" th:text="${realFootballStat.rating}">0.0</span>
-                                </div>
                             </div>
                         </div>
                     </div>
                 </div>
             </div>
 
+            <!-- Real Football Statistics -->
+            <div class="bg-slate-50 rounded-xl p-2 mb-3">
+                <h3 class="font-semibold mb-1 flex items-center gap-1 text-sm text-slate-800">
+                    <i class="icon icon-activity text-emerald-500"></i>
+                    Season Statistics
+                </h3>
+                <div class="grid grid-cols-2 sm:grid-cols-4 gap-2">
+                    <div class="bg-white rounded-lg p-1 shadow-sm">
+                        <div class="flex items-center gap-1 mb-0.5">
+                            <i class="icon icon-play-circle text-emerald-500"></i>
+                            <span class="text-xs text-slate-600">Games</span>
+                        </div>
+                        <span class="text-sm font-bold text-slate-800" th:text="${realFootballStat.gamesPlayed}">0</span>
+                    </div>
+                    <div class="bg-white rounded-lg p-1 shadow-sm">
+                        <div class="flex items-center gap-1 mb-0.5">
+                            <i class="icon icon-ball-football text-emerald-500"></i>
+                            <span class="text-xs text-slate-600">Goals</span>
+                        </div>
+                        <span class="text-sm font-bold text-slate-800" th:text="${realFootballStat.goal}">0</span>
+                    </div>
+                    <div class="bg-white rounded-lg p-1 shadow-sm">
+                        <div class="flex items-center gap-1 mb-0.5">
+                            <i class="icon icon-footprints text-emerald-500"></i>
+                            <span class="text-xs text-slate-600">Assists</span>
+                        </div>
+                        <span class="text-sm font-bold text-slate-800" th:text="${realFootballStat.assist}">0</span>
+                    </div>
+                    <div class="bg-white rounded-lg p-1 shadow-sm">
+                        <div class="flex items-center gap-1 mb-0.5">
+                            <i class="icon icon-star text-emerald-500"></i>
+                            <span class="text-xs text-slate-600">Rating</span>
+                        </div>
+                        <span class="text-sm font-bold text-slate-800" th:text="${realFootballStat.rating}">0.0</span>
+                    </div>
+                </div>
+            </div>
+
             <!-- Attributes Grid -->
-            <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-3">
                 <!-- Technical Attributes -->
-                <div class="bg-slate-50 rounded-xl p-4">
-                    <h3 class="font-semibold mb-4 flex items-center gap-2 text-slate-800">
+                <div class="bg-slate-50 rounded-xl p-2">
+                    <h3 class="font-semibold mb-1 flex items-center gap-1 text-sm text-slate-800">
                         <i class="icon icon-zap text-emerald-500"></i>
                         Technical
                     </h3>
-                    <div class="space-y-2">
+                    <div class="space-y-0.5">
                         <div th:replace=":: attribute('Corners', ${player.corners})"></div>
                         <div th:replace=":: attribute('Crossing', ${player.crossing})"></div>
                         <div th:replace=":: attribute('Dribbling', ${player.dribbling})"></div>
@@ -169,12 +171,12 @@
                 </div>
 
                 <!-- Mental Attributes -->
-                <div class="bg-slate-50 rounded-xl p-4">
-                    <h3 class="font-semibold mb-4 flex items-center gap-2 text-slate-800">
+                <div class="bg-slate-50 rounded-xl p-2">
+                    <h3 class="font-semibold mb-1 flex items-center gap-1 text-sm text-slate-800">
                         <i class="icon icon-brain text-emerald-500"></i>
                         Mental
                     </h3>
-                    <div class="space-y-2">
+                    <div class="space-y-0.5">
                         <div th:replace=":: attribute('Aggression', ${player.aggression})"></div>
                         <div th:replace=":: attribute('Anticipation', ${player.anticipation})"></div>
                         <div th:replace=":: attribute('Bravery', ${player.bravery})"></div>
@@ -193,12 +195,12 @@
                 </div>
 
                 <!-- Physical Attributes -->
-                <div class="bg-slate-50 rounded-xl p-4">
-                    <h3 class="font-semibold mb-4 flex items-center gap-2 text-slate-800">
+                <div class="bg-slate-50 rounded-xl p-2">
+                    <h3 class="font-semibold mb-1 flex items-center gap-1 text-sm text-slate-800">
                         <i class="icon icon-dumbbell text-emerald-500"></i>
                         Physical
                     </h3>
-                    <div class="space-y-2">
+                    <div class="space-y-0.5">
                         <div th:replace=":: attribute('Acceleration', ${player.acceleration})"></div>
                         <div th:replace=":: attribute('Agility', ${player.agility})"></div>
                         <div th:replace=":: attribute('Balance', ${player.balance})"></div>
@@ -215,16 +217,16 @@
 </main>
 
 <!-- Footer -->
-<footer class="bg-slate-800 text-white py-12">
-    <div class="w-4/5 mx-auto px-4">
-        <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
+<footer class="bg-slate-800 text-white py-3 text-xs">
+    <div class="w-full max-w-7xl mx-auto px-2">
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-3">
             <div>
-                <h3 class="text-lg font-semibold mb-4">About ProSoccer DB</h3>
-                <p class="text-slate-400">ProSoccer DB provides comprehensive, up-to-date information about professional soccer players worldwide. Our database is trusted by scouts, analysts, and fans alike.</p>
+                <h3 class="text-sm font-semibold mb-1">About ProSoccer DB</h3>
+                <p class="text-slate-400 text-xs">Comprehensive, up-to-date information about professional soccer players, teams, and leagues worldwide.</p>
             </div>
             <div>
-                <h3 class="text-lg font-semibold mb-4">Quick Links</h3>
-                <ul class="space-y-2">
+                <h3 class="text-sm font-semibold mb-1">Quick Links</h3>
+                <ul class="space-y-0.5">
                     <li><a href="/about" class="text-slate-400 hover:text-white transition duration-300">About</a></li>
                     <li><a href="/contact" class="text-slate-400 hover:text-white transition duration-300">Contact</a></li>
                     <li><a href="/privacy" class="text-slate-400 hover:text-white transition duration-300">Privacy Policy</a></li>
@@ -232,8 +234,8 @@
                 </ul>
             </div>
             <div>
-                <h3 class="text-lg font-semibold mb-4">Connect With Us</h3>
-                <div class="flex space-x-4">
+                <h3 class="text-sm font-semibold mb-1">Connect With Us</h3>
+                <div class="flex space-x-2">
                     <a href="#" class="text-slate-400 hover:text-white transition duration-300"><i class="icon icon-twitter"></i></a>
                     <a href="#" class="text-slate-400 hover:text-white transition duration-300"><i class="icon icon-facebook"></i></a>
                     <a href="#" class="text-slate-400 hover:text-white transition duration-300"><i class="icon icon-instagram"></i></a>
@@ -241,25 +243,25 @@
                 </div>
             </div>
         </div>
-        <div class="mt-8 pt-8 border-t border-slate-700 text-center">
-            <p class="text-slate-400">&copy; 2023 ProSoccer DB. All rights reserved.</p>
+        <div class="mt-3 pt-3 border-t border-slate-700 text-center">
+            <p class="text-slate-400 text-xs">&copy; 2023 ProSoccer DB. All rights reserved.</p>
         </div>
     </div>
 </footer>
 
 <!-- Attribute Template -->
-<div th:fragment="attribute(name, value)" class="stat-item flex justify-between items-center px-3 py-2 rounded-lg text-sm transition-all duration-200">
+<div th:fragment="attribute(name, value)" class="stat-item flex justify-between items-center px-1 py-0.5 rounded-lg text-xs transition-all duration-200">
     <span th:text="${name}" class="text-slate-700">Attribute</span>
-    <div class="flex items-center gap-3">
-        <span class="font-semibold w-6 text-right text-slate-800" th:text="${value ?: '0'}">0</span>
-        <div class="w-20 stat-bar">
+    <div class="flex items-center gap-1">
+        <span class="font-semibold w-4 text-right text-slate-800" th:text="${value ?: '0'}">0</span>
+        <div class="w-12 stat-bar">
             <div th:with="safeValue=${value ?: 0}"
                  th:class="${
-                        safeValue <= 5 ? 'stat-bar-fill-gray h-full' :
-                        safeValue <= 10 ? 'stat-bar-fill-yellow h-full' :
-                        safeValue <= 15 ? 'stat-bar-fill-orange h-full' :
-                        'stat-bar-fill-emerald h-full'
-                     }"
+                       safeValue <= 5 ? 'stat-bar-fill-gray h-full' :
+                       safeValue <= 10 ? 'stat-bar-fill-yellow h-full' :
+                       safeValue <= 15 ? 'stat-bar-fill-orange h-full' :
+                       'stat-bar-fill-emerald h-full'
+                    }"
                  th:style="'width: ' + ${(value ?: 0) * 5} + '%'"></div>
         </div>
     </div>
