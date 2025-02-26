@@ -15,8 +15,8 @@ public class PlayerController {
     private final PlayerService playerService;
     private final FootballApiService footballApiService;
 
-    @GetMapping("/api/players/{playerId}")
-    public String getPlayerProfile(@PathVariable Long playerId, Model model) {
+    @GetMapping("/players/{playerId}")
+    public String getPlayerDetail(@PathVariable Long playerId, Model model) {
         PlayerDetailsResponseDto playerDetailsResponseDto = playerService.getPlayerDetails(playerId);
         PlayerStatDto playerStatDto = footballApiService.getPlayerRealStat(
                 playerDetailsResponseDto.getId(),
@@ -28,11 +28,13 @@ public class PlayerController {
         return "player-detail";
     }
 
+    @ResponseBody
     @GetMapping("/api/team/{teamId}/players")
     public TeamPlayersResponseDto getPlayers(@PathVariable Long teamId) {
         return playerService.getTeamPlayersByTeamId(teamId);
     }
 
+    @ResponseBody
     @GetMapping("/api/search/simple-players")
     public SearchPlayerResponseDto searchPlayerByName(@RequestParam String name) {
         return playerService.searchPlayerByName(name);
@@ -43,7 +45,8 @@ public class PlayerController {
 //    public String searchPlayerByDetailCondition(@ModelAttribute("searchPlayerCondition") SearchPlayerCondition searchPlayerCondition, Model model) {
 //        return "players-detail-search";
 //    }
-    @GetMapping("/api/players/detail-search")
+
+    @GetMapping("/players/detail-search")
     public String searchPlayerByDetailCondition(Model model) {
         SearchPlayerCondition searchPlayerCondition = new SearchPlayerCondition(); // 새로운 객체를 생성하여 모델에 추가
         model.addAttribute("searchPlayerCondition", searchPlayerCondition); // 모델에 추가
@@ -51,7 +54,7 @@ public class PlayerController {
     }
 
     // 상세 검색 결과 반환 페이지
-    @GetMapping("/api/players/detail-search/result")
+    @GetMapping("/players/detail-search/result")
     public String searchPlayerByDetailConditionResult(@ModelAttribute("searchPlayerCondition") SearchPlayerCondition searchPlayerCondition, Model model) {
         SearchPlayerResponseDto searchPlayerResponseDto = playerService.searchPlayerByDetailCondition(searchPlayerCondition);
         model.addAttribute("players", searchPlayerResponseDto);
