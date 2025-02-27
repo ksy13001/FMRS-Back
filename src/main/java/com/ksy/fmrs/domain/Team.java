@@ -19,6 +19,8 @@ public class Team {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
+    private Integer teamApiId;
+
     private String name;
 
 

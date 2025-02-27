@@ -15,6 +15,8 @@ public class League {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
+    Integer leagueApiId;
+
     private String name;
 
     private int division;
