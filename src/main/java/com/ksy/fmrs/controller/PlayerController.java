@@ -17,7 +17,7 @@ public class PlayerController {
 
     @GetMapping("/players/{playerId}")
     public String getPlayerDetail(@PathVariable Long playerId, Model model) {
-        PlayerDetailsResponseDto playerDetailsResponseDto = playerService.getPlayerDetails(playerId);
+        PlayerDetailsDto playerDetailsResponseDto = playerService.getPlayerDetails(playerId);
         PlayerStatDto playerStatDto = footballApiService.getPlayerRealStat(
                 playerDetailsResponseDto.getId(),
                 playerDetailsResponseDto.getName(),
@@ -66,7 +66,7 @@ public class PlayerController {
     @ResponseBody
     @GetMapping("/api/player/{playerId}")
     public PlayerStatDto getPlayerRealFootBallStatTest(@PathVariable Long playerId) {
-        PlayerDetailsResponseDto playerDetailsResponseDto = playerService.getPlayerDetails(playerId);
+        PlayerDetailsDto playerDetailsResponseDto = playerService.getPlayerDetails(playerId);
         PlayerStatDto playerRealFootballStatDto = footballApiService.getPlayerRealStat(
                 playerDetailsResponseDto.getId(),
                 playerDetailsResponseDto.getName(),

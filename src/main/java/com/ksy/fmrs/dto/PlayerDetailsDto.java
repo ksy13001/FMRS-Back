@@ -9,9 +9,9 @@ import java.time.LocalDate;
 
 @Getter
 @Setter
-public class PlayerDetailsResponseDto {
+public class PlayerDetailsDto {
 
-    public PlayerDetailsResponseDto(Player player, String teamName, String nationName) {
+    public PlayerDetailsDto(Player player, String teamName, String nationName) {
         this.id = player.getId();
         this.name = player.getName();
         this.birth = player.getBirth();
