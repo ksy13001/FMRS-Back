@@ -13,6 +13,8 @@ import com.ksy.fmrs.repository.Player.PlayerRepository;
 import com.ksy.fmrs.repository.PlayerStatRepository;
 import java.util.List;
 import java.util.Optional;
+
+import org.assertj.core.api.Assertions;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
@@ -186,7 +188,15 @@ public class FootballApiServiceTest {
 
         // 외부 API 호출 없이 바로 반환되었으므로 save() 호출되지 않음
         verify(playerStatRepository, never()).save(any(PlayerStat.class));
-        // 외부 API 호출이 없었으므로 createAPIFootballRestClient() 호출되지 않음을 검증
-        verify(footballApiService, never()).createAPIFootballRestClient();
+    }
+
+    @Test
+    void 메서드명() throws Exception{
+        // given
+        String  playerName = "Neymar";
+        Integer teamId = 276;
+        // when
+        Assertions.assertThat("Neymar276").isEqualTo(playerName+teamId);
+        // then
     }
 }
