@@ -19,6 +19,8 @@ public class League {
 
     private int division;
 
+    private String imageUrl;
+
     @ManyToOne
     @JoinColumn(name = "nation_id")
     private Nation nation;
@@ -27,5 +29,9 @@ public class League {
     public League(String name, int division) {
         this.name = name;
         this.division = division;
+    }
+
+    public void updateImageUrl(String imageUrl) {
+        this.imageUrl = imageUrl;
     }
 }
