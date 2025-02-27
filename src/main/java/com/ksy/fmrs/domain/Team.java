@@ -25,6 +25,10 @@ public class Team {
 
     private String logoUrl;
 
+    private String nationName;
+
+    private String nationLogoUrl;
+
     private Integer played;
 
     private Integer won;
@@ -51,7 +55,11 @@ public class Team {
     private League league;
 
     @Builder
-    public Team(String name) {
+    public Team(String name, Integer teamApiId, Integer leagueApiId, String logoUrl, String nationName, String nationLogoImageUrl) {
         this.name = name;
+        this.teamApiId = teamApiId;
+        this.logoUrl = logoUrl;
+        this.nationName = nationName;
+        this.nationLogoUrl = nationLogoImageUrl;
     }
 }
