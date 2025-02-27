@@ -34,7 +34,7 @@ public class FootballApiService {
      * 3. playerName + teamApiId 를 통해 api-football 에서 playerApi + playerRealStat 가져옴
      */
     @Transactional
-    public PlayerStatDto getPlayerRealStat(Long playerId, String playerName, String teamName) {
+    public PlayerStatDto savePlayerRealStat(Long playerId, String playerName, String teamName) {
 
         return getOptionalPlayerStatById(playerId)
                 .map(PlayerStatDto::new)
@@ -48,22 +48,28 @@ public class FootballApiService {
                 });
     }
 
-    public LeagueDetailsDto getLeagueDetails(Integer leagueId) {
-        String url = UrlEnum.buildStandingUrl(leagueId);
-        StandingsAPIResponseDto response =  getApiResponse(url, StandingsAPIResponseDto.class);
-        return getValidatedLeagueDetails(response,  leagueId);
+    public LeagueDetailsDto getLeagueDetails(Integer leagueApiId) {
+        String url = UrlEnum.buildStandingUrl(leagueApiId);
+        StandingsAPIResponseDto response = getApiResponse(url, StandingsAPIResponseDto.class);
+        return getValidatedLeagueDetails(response, leagueApiId);
     }
 
-    public List<PlayerSimpleDto> getLeagueTopScorers(Integer leagueId) {
-        String url = UrlEnum.buildTopScorersUrl(leagueId);
+    public List<PlayerSimpleDto> getLeagueTopScorers(Integer leagueApiId) {
+        String url = UrlEnum.buildTopScorersUrl(leagueApiId);
         LeagueApiTopPlayerResponseDto response = getApiResponse(url, LeagueApiTopPlayerResponseDto.class);
         return convertToPlayerSimpleDtoList(response);
     }
 
     public List<PlayerSimpleDto> getLeagueTopAssists(Integer leagueId) {
-        String url =  UrlEnum.buildTopAssistsUrl(leagueId);
+        String url = UrlEnum.buildTopAssistsUrl(leagueId);
         LeagueApiTopPlayerResponseDto response = getApiResponse(url, LeagueApiTopPlayerResponseDto.class);
         return convertToPlayerSimpleDtoList(response);
+    }
+
+    public TeamDetailsDto getTeamDetails(Integer teamApiId, Integer leagueApiId) {
+        String url = UrlEnum.buildTeamStatisticsUrl(teamApiId, leagueApiId);
+        TeamStatisticsApiResponseDto response = getApiResponse(url, TeamStatisticsApiResponseDto.class);
+        return convertStatisticsToTeamDetailsDto(response);
     }
 
 
@@ -96,7 +102,7 @@ public class FootballApiService {
     }
 
     // API 호출 공통 로직
-    private <T> T  getApiResponse(String url, Class<T> responseType) {
+    private <T> T getApiResponse(String url, Class<T> responseType) {
         ResponseEntity<T> responseEntity = createAPIFootballRestClient()
                 .get()
                 .uri(url)
@@ -110,12 +116,12 @@ public class FootballApiService {
         if (!responseEntity.getStatusCode().is2xxSuccessful() || responseEntity.getBody() == null) {
             throw new IllegalArgumentException("API 호출 결과가 없습니다. URL: " + url);
         }
-        return  responseEntity.getBody();
+        return responseEntity.getBody();
     }
 
     private LeagueDetailsDto getValidatedLeagueDetails(StandingsAPIResponseDto response, Integer leagueId) {
-        if(response.getResults()<=0){
-            throw new IllegalArgumentException("not exist league standing id:"+leagueId);
+        if (response.getResults() <= 0) {
+            throw new IllegalArgumentException("not exist league standing id:" + leagueId);
         }
         return convertStandingToLeagueDetailsDto(response);
     }
@@ -181,9 +187,11 @@ public class FootballApiService {
                 .map(this::convertStandingToTeamStandingDto)
                 .toList();
         return LeagueDetailsDto.builder()
+                .leagueApiId(league.getId())
                 .name(league.getName())
-                .country(league.getCountry())
-                .logoUrl(league.getLogo())
+                .nationName(league.getCountry())
+                .nationImageUrl(league.getFlag())
+                .logoImageUrl(league.getLogo())
                 .currentSeason(league.getSeason())
                 .standings(teamStandingDtos)
                 .build();
@@ -208,10 +216,12 @@ public class FootballApiService {
                 .build();
     }
 
-    private List<PlayerSimpleDto> convertToPlayerSimpleDtoList(LeagueApiTopPlayerResponseDto  response) {
+    private List<PlayerSimpleDto> convertToPlayerSimpleDtoList(LeagueApiTopPlayerResponseDto response) {
         return response.getResponse()
                 .stream()
-                .map((playerWrapper)-> PlayerSimpleDto.builder()
+                .map((playerWrapper) -> PlayerSimpleDto.builder()
+                        .teamApiId(playerWrapper.getStatistics().getFirst().getTeam().getId())
+                        .playerApiId(playerWrapper.getPlayer().getId())
                         .name(playerWrapper.getPlayer().getName())
                         .teamName(playerWrapper.getStatistics().getFirst().getTeam().getName())
                         .age(playerWrapper.getPlayer().getAge())
@@ -220,5 +230,26 @@ public class FootballApiService {
                         .rating(playerWrapper.getStatistics().getFirst().getGames().getRating())
                         .imageUrl(playerWrapper.getPlayer().getPhoto())
                         .build()).toList();
+    }
+
+    private TeamDetailsDto convertStatisticsToTeamDetailsDto(TeamStatisticsApiResponseDto response) {
+        TeamStatisticsApiResponseDto.Team team = response.getResponse().getTeam();
+        TeamStatisticsApiResponseDto.League league = response.getResponse().getLeague();
+        TeamStatisticsApiResponseDto.Fixtures fixtures = response.getResponse().getFixtures();
+        return TeamDetailsDto.builder()
+                .teamName(team.getName())
+                .teamApiId(team.getId())
+                .leagueApiId(league.getId())
+                .leagueName(league.getName())
+                .leagueLogoImageUrl(league.getLogo())
+                .nationName(league.getCountry())
+                .nationLogoImageUrl(league.getFlag())
+                .played(fixtures.getPlayed().getTotal())
+                .wins(fixtures.getWins().getTotal())
+                .draws(fixtures.getDraws().getTotal())
+                .losses(fixtures.getLoses().getTotal())
+                .goals(response.getResponse().getGoals().getGoalsFor().getTotal().getTotal())
+                .against(response.getResponse().getAgainst().getTotal().getTotal())
+                .build();
     }
 }
