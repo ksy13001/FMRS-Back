@@ -23,11 +23,31 @@ public class Team {
 
     private String name;
 
+    private String logoUrl;
+
+    private Integer played;
+
+    private Integer won;
+
+    private Integer drawn;
+
+    private Integer lost;
+
+    private Integer goalsFor;
+
+    private Integer goalsAgainst;
+
+    private Integer points;
+
+    private Integer goalsDifference;
+
+    private String description;
 
     @OneToMany(mappedBy = "team", fetch = FetchType.LAZY)
     private List<Player> players = new ArrayList<>();
 
-    @ManyToOne
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "league_id")
     private League league;
 
     @Builder

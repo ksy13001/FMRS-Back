@@ -6,6 +6,9 @@ import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 
+import java.util.ArrayList;
+import java.util.List;
+
 @Getter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 @Entity
@@ -19,21 +22,30 @@ public class League {
 
     private String name;
 
-    private int division;
+    private String nation;
 
-    private String imageUrl;
+    private String nationImageUrl;
 
-    @ManyToOne
-    @JoinColumn(name = "nation_id")
-    private Nation nation;
+    private Integer currentSeason;
+
+    private String logoUrl;
 
     @Builder
-    public League(String name, int division) {
+    public League(Integer leagueApiId, String name, String nation, String nationImageUrl, Integer currentSeason, String logoUrl) {
+        this.leagueApiId = leagueApiId;
         this.name = name;
-        this.division = division;
+        this.nation = nation;
+        this.nationImageUrl = nationImageUrl;
+        this.currentSeason = currentSeason;
+        this.logoUrl = logoUrl;
     }
 
-    public void updateImageUrl(String imageUrl) {
-        this.imageUrl = imageUrl;
+    public void updateLeagueInfo(Integer leagueApiId, String name, String nation, String nationImageUrl, Integer currentSeason, String logoUrl) {
+        this.leagueApiId = leagueApiId;
+        this.name = name;
+        this.nation = nation;
+        this.nationImageUrl = nationImageUrl;
+        this.currentSeason = currentSeason;
+        this.logoUrl = logoUrl;
     }
 }
