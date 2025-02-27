@@ -6,7 +6,7 @@ import static org.mockito.Mockito.*;
 import com.ksy.fmrs.domain.Nation;
 import com.ksy.fmrs.domain.Player;
 import com.ksy.fmrs.domain.Team;
-import com.ksy.fmrs.dto.PlayerDetailsResponseDto;
+import com.ksy.fmrs.dto.PlayerDetailsDto;
 import com.ksy.fmrs.dto.SearchPlayerResponseDto;
 import com.ksy.fmrs.dto.TeamPlayersResponseDto;
 import com.ksy.fmrs.dto.SearchPlayerCondition;
@@ -58,7 +58,7 @@ public class PlayerServiceTest {
         when(playerRepository.findById(playerId)).thenReturn(Optional.of(player));
 
         // when
-        PlayerDetailsResponseDto result = playerService.getPlayerDetails(playerId);
+        PlayerDetailsDto result = playerService.getPlayerDetails(playerId);
 
         // then
         assertNotNull(result);
@@ -104,7 +104,7 @@ public class PlayerServiceTest {
 
         // then
         assertNotNull(result);
-        List<PlayerDetailsResponseDto> players = result.getPlayers();
+        List<PlayerDetailsDto> players = result.getPlayers();
         assertEquals(2, players.size());
     }
 
