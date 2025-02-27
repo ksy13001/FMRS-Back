@@ -12,12 +12,13 @@ import org.springframework.web.bind.annotation.GetMapping;
 public class HomeController {
     private final PlayerService playerService;
 
-    @GetMapping("/api/home")
+    @GetMapping("/home")
     public String home(Model model) {
         SearchPlayerResponseDto searchPlayerResponseDto = playerService.getPlayersByMarketValueDesc();
 
         model.addAttribute("featuredPlayers", searchPlayerResponseDto);
         return "home";
     }
+
 
 }
