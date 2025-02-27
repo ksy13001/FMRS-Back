@@ -10,10 +10,11 @@ import java.util.List;
 @Setter
 @Builder
 public class LeagueDetailsDto {
-
+    Integer leagueApiId;
     String name;
-    String country;
-    String logoUrl;
+    String logoImageUrl;
+    String nationName;
+    String nationImageUrl;
     int currentSeason;
     List<TeamStandingDto> standings;
     List<PlayerSimpleDto> topScorers;

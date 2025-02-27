@@ -8,6 +8,8 @@ import lombok.Setter;
 @Setter
 @Builder
 public class PlayerSimpleDto {
+    Integer teamApiId;
+    Integer playerApiId;
     String name;
     String teamName;
     Integer age;
