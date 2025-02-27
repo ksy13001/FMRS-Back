@@ -6,5 +6,5 @@ import java.util.List;
 
 @Data
 public class TeamPlayersResponseDto {
-    private final List<PlayerDetailsResponseDto> players;
+    private final List<PlayerDetailsDto> players;
 }
