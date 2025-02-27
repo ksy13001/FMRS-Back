@@ -19,14 +19,14 @@ public class PlayerService {
     /**
      * 선수 상세 정보 조회
      * */
-    public PlayerDetailsResponseDto getPlayerDetails(Long playerId) {
+    public PlayerDetailsDto getPlayerDetails(Long playerId) {
         Player player = playerRepository.findById(playerId)
                 .orElseThrow(() -> new IllegalArgumentException("Player not found: " + playerId));
         return convertPlayerToPlayerDetailsResponseDto(player);
     }
 
-    private PlayerDetailsResponseDto convertPlayerToPlayerDetailsResponseDto(Player player) {
-        return new PlayerDetailsResponseDto(player,  getTeamNameByPlayer(player), getNationNameByPlayer(player));
+    private PlayerDetailsDto convertPlayerToPlayerDetailsResponseDto(Player player) {
+        return new PlayerDetailsDto(player,  getTeamNameByPlayer(player), getNationNameByPlayer(player));
     }
 
     private String getTeamNameByPlayer(Player player) {

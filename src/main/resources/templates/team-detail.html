@@ -1,0 +1,177 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title th:text="${team.name + ' - Team Profile | ProSoccer DB'}">Team Profile | ProSoccer DB</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://cdn.jsdelivr.net/npm/lucide-static@0.321.0/font/lucide.min.css" rel="stylesheet">
+    <style>
+        .hero-gradient {
+            background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%);
+        }
+    </style>
+</head>
+<body class="bg-slate-100 min-h-screen flex flex-col">
+<!-- Header -->
+<header class="bg-white shadow-md">
+    <nav class="w-[80%] mx-auto px-4 py-4 flex justify-between items-center">
+        <a href="/api/home" class="text-3xl font-bold text-slate-800 flex items-center gap-2">
+            <i class="icon icon-soccer-ball text-emerald-600"></i>
+            ProSoccer DB
+        </a>
+        <div class="space-x-4">
+            <a href="/api/search/simple-players" class="text-slate-600 hover:text-emerald-600 transition duration-300">Search</a>
+            <a href="/api/team" class="text-slate-600 hover:text-emerald-600 transition duration-300">Teams</a>
+            <a href="/api/leagues" class="text-slate-600 hover:text-emerald-600 transition duration-300">Leagues</a>
+        </div>
+    </nav>
+</header>
+
+<!-- Hero Section -->
+<section class="hero-gradient text-white py-12">
+    <div class="w-[80%] mx-auto px-4">
+        <h1 class="text-4xl font-bold mb-2" th:text="${team.name}">Team Name</h1>
+        <p class="text-xl text-slate-300" th:text="${team.league + ' - ' + team.country}">League - Country</p>
+    </div>
+</section>
+
+<!-- Main Content -->
+<main class="flex-grow w-[80%] mx-auto px-4 py-8">
+    <div class="bg-white rounded-lg shadow-lg overflow-hidden">
+        <div class="p-6">
+            <!-- Team Header -->
+            <div class="flex flex-col sm:flex-row items-start gap-6 mb-8">
+                <div class="relative group">
+                    <div class="w-36 h-36 rounded-lg overflow-hidden bg-slate-200 border-4 border-slate-400 shadow-lg transition-transform duration-300 transform group-hover:scale-105">
+                        <img th:src="${team.logoUrl}" th:alt="${team.name + ' logo'}" class="w-full h-full object-cover">
+                    </div>
+                </div>
+
+                <div class="flex-grow">
+                    <div class="sm:flex justify-between items-start mb-6">
+                        <div>
+                            <h2 class="text-3xl font-bold mb-2 text-slate-800" th:text="${team.name}">Team Name</h2>
+                            <p class="text-xl text-slate-600" th:text="${team.nickname}">Team Nickname</p>
+                        </div>
+                        <div class="mt-4 sm:mt-0">
+                            <div class="px-4 py-2 bg-emerald-100 rounded-lg text-center">
+                                <div class="text-sm text-slate-600">Founded</div>
+                                <div class="text-lg font-bold text-emerald-600" th:text="${team.foundedYear}">1900</div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                        <div class="space-y-2">
+                            <div class="flex items-center gap-2 text-slate-700">
+                                <i class="icon icon-map-pin text-emerald-500"></i>
+                                <span>Stadium: <span th:text="${team.stadium}">Stadium Name</span></span>
+                            </div>
+                            <div class="flex items-center gap-2 text-slate-700">
+                                <i class="icon icon-users text-emerald-500"></i>
+                                <span>Capacity: <span th:text="${#numbers.formatDecimal(team.stadiumCapacity, 0, 'COMMA', 0, 'POINT')}">50,000</span></span>
+                            </div>
+                            <div class="flex items-center gap-2 text-slate-700">
+                                <i class="icon icon-flag text-emerald-500"></i>
+                                <span>Country: <span th:text="${team.country}">Country</span></span>
+                            </div>
+                            <div class="flex items-center gap-2 text-slate-700">
+                                <i class="icon icon-trophy text-emerald-500"></i>
+                                <span>League: <span th:text="${team.league}">League Name</span></span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Team Players -->
+            <section class="mb-8">
+                <h3 class="text-2xl font-semibold mb-4 text-slate-800">Players</h3>
+                <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
+                    <div th:each="player : ${team.players}" class="bg-slate-50 rounded-lg p-4 shadow-sm">
+                        <div class="flex items-center gap-3">
+                            <img th:src="${player.imageUrl}" th:alt="${player.name}" class="w-12 h-12 rounded-full object-cover">
+                            <div>
+                                <a th:href="@{/api/players/{id}(id=${player.id})}" class="font-semibold text-slate-800 hover:text-emerald-600 transition duration-300" th:text="${player.name}">Player Name</a>
+                                <p class="text-sm text-slate-600" th:text="${player.position}">Position</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Recent Results -->
+            <section class="mb-8">
+                <h3 class="text-2xl font-semibold mb-4 text-slate-800">Recent Results</h3>
+                <div class="space-y-4">
+                    <div th:each="result : ${recentResults}" class="bg-slate-50 rounded-lg p-4 shadow-sm">
+                        <div class="flex justify-between items-center">
+                            <span class="text-slate-600" th:text="${#temporals.format(result.date, 'MMM d, yyyy')}">Jun 1, 2023</span>
+                            <span class="font-semibold" th:text="${result.competition}">League</span>
+                        </div>
+                        <div class="flex justify-between items-center mt-2">
+                            <span class="text-lg font-semibold" th:text="${result.homeTeam}">Home Team</span>
+                            <span class="text-xl font-bold" th:text="${result.score}">2 - 1</span>
+                            <span class="text-lg font-semibold" th:text="${result.awayTeam}">Away Team</span>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Upcoming Fixtures -->
+            <section>
+                <h3 class="text-2xl font-semibold mb-4 text-slate-800">Upcoming Fixtures</h3>
+                <div class="space-y-4">
+                    <div th:each="fixture : ${upcomingFixtures}" class="bg-slate-50 rounded-lg p-4 shadow-sm">
+                        <div class="flex justify-between items-center">
+                            <span class="text-slate-600" th:text="${#temporals.format(fixture.date, 'MMM d, yyyy')}">Jun 15, 2023</span>
+                            <span class="font-semibold" th:text="${fixture.competition}">League</span>
+                        </div>
+                        <div class="flex justify-between items-center mt-2">
+                            <span class="text-lg font-semibold" th:text="${fixture.homeTeam}">Home Team</span>
+                            <span class="text-xl font-bold">vs</span>
+                            <span class="text-lg font-semibold" th:text="${fixture.awayTeam}">Away Team</span>
+                        </div>
+                    </div>
+                </div>
+            </section>
+        </div>
+    </div>
+</main>
+
+<!-- Footer -->
+<footer class="bg-slate-800 text-white py-12">
+    <div class="w-[80%] mx-auto px-4">
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
+            <div>
+                <h3 class="text-lg font-semibold mb-4">About ProSoccer DB</h3>
+                <p class="text-slate-400">ProSoccer DB provides comprehensive, up-to-date information about professional soccer players worldwide. Our database is trusted by scouts, analysts, and fans alike.</p>
+            </div>
+            <div>
+                <h3 class="text-lg font-semibold mb-4">Quick Links</h3>
+                <ul class="space-y-2">
+                    <li><a href="/about" class="text-slate-400 hover:text-white transition duration-300">About</a></li>
+                    <li><a href="/contact" class="text-slate-400 hover:text-white transition duration-300">Contact</a></li>
+                    <li><a href="/privacy" class="text-slate-400 hover:text-white transition duration-300">Privacy Policy</a></li>
+                    <li><a href="/terms" class="text-slate-400 hover:text-white transition duration-300">Terms of Service</a></li>
+                </ul>
+            </div>
+            <div>
+                <h3 class="text-lg font-semibold mb-4">Connect With Us</h3>
+                <div class="flex space-x-4">
+                    <a href="#" class="text-slate-400 hover:text-white transition duration-300"><i class="icon icon-twitter"></i></a>
+                    <a href="#" class="text-slate-400 hover:text-white transition duration-300"><i class="icon icon-facebook"></i></a>
+                    <a href="#" class="text-slate-400 hover:text-white transition duration-300"><i class="icon icon-instagram"></i></a>
+                    <a href="#" class="text-slate-400 hover:text-white transition duration-300"><i class="icon icon-linkedin"></i></a>
+                </div>
+            </div>
+        </div>
+        <div class="mt-8 pt-8 border-t border-slate-700 text-center">
+            <p class="text-slate-400">&copy; 2023 ProSoccer DB. All rights reserved.</p>
+        </div>
+    </div>
+</footer>
+</body>
+</html>
+
