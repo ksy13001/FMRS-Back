@@ -55,11 +55,16 @@ public class Team {
     private League league;
 
     @Builder
-    public Team(String name, Integer teamApiId, Integer leagueApiId, String logoUrl, String nationName, String nationLogoImageUrl) {
+    public Team(String name, Integer teamApiId, String logoUrl, String nationName, String nationLogoImageUrl) {
         this.name = name;
         this.teamApiId = teamApiId;
         this.logoUrl = logoUrl;
         this.nationName = nationName;
         this.nationLogoUrl = nationLogoImageUrl;
+    }
+
+    public void updateLeague(League league) {
+        this.league = league;
+        league.getTeams().add(this);
     }
 }
