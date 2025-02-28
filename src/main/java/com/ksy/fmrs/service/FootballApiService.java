@@ -2,6 +2,7 @@ package com.ksy.fmrs.service;
 
 import com.ksy.fmrs.domain.Player;
 import com.ksy.fmrs.domain.PlayerStat;
+import com.ksy.fmrs.domain.enums.LeagueType;
 import com.ksy.fmrs.domain.enums.UrlEnum;
 import com.ksy.fmrs.dto.*;
 import com.ksy.fmrs.repository.Player.PlayerRepository;
@@ -14,11 +15,15 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.client.RestClient;
 
 import java.util.List;
+import java.util.Objects;
 import java.util.Optional;
 
 @RequiredArgsConstructor
 @Service
 public class FootballApiService {
+
+    private static final int SEASON_2024 = 2024;
+    private static final int SEASON_2025 = 2025;
 
     @Value("${api-football.key}")
     private String apiFootballKey;
@@ -66,11 +71,27 @@ public class FootballApiService {
         return convertToPlayerSimpleDtoList(response);
     }
 
-    public TeamDetailsDto getTeamDetails(Integer teamApiId, Integer leagueApiId) {
+    public TeamDetailsDto getTeamDetails(Integer leagueApiId, Integer teamApiId) {
         String url = UrlEnum.buildTeamStatisticsUrl(teamApiId, leagueApiId);
         TeamStatisticsApiResponseDto response = getApiResponse(url, TeamStatisticsApiResponseDto.class);
         return convertStatisticsToTeamDetailsDto(response);
     }
+
+    public Boolean isNotLeague(Integer leagueApiId) {
+        LeagueApiResponseDto response = getApiResponse(UrlEnum.buildLeagueUrl(leagueApiId), LeagueApiResponseDto.class);
+        LeagueApiResponseDto.League league = response.getResponse().getFirst().getLeague();
+        LeagueApiResponseDto.Season season = response.getResponse().getFirst().getSeasons().getLast();
+        return Objects.equals(league.getType(), LeagueType.CUP.getValue()) ||
+                !season.getCoverage().isStandings() ||
+                (season.getYear() != SEASON_2024 && season.getYear() != SEASON_2025) ;
+    }
+
+//    private LeagueType validateLeagueType(LeagueApiResponseDto response) {
+//        if(response.getResponse().getFirst().getLeague().getType().equals(LeagueType.CUP.getValue())) {
+//            return LeagueType.CUP;
+//        }
+//        return LeagueType.LEAGUE;
+//    }
 
 
     private String splitPlayerName(String fullName) {
@@ -200,18 +221,18 @@ public class FootballApiService {
     private TeamStandingDto convertStandingToTeamStandingDto(StandingsAPIResponseDto.Standing standing) {
         return TeamStandingDto.builder()
                 .rank(standing.getRank())
-                .teamId(standing.getTeam().getId())
+                .teamApiId(standing.getTeam().getId())
                 .teamName(standing.getTeam().getName())
                 .teamLogo(standing.getTeam().getLogo())
                 .played(standing.getAll().getPlayed())
                 .won(standing.getAll().getWin())
                 .drawn(standing.getAll().getDraw())
                 .lost(standing.getAll().getLose())
-                .goalsFor(standing.getAll().getGoals().getGoalsFor())
-                .goalsAgainst(standing.getAll().getGoals().getAgainst())
-                .points(standing.getPoints())
-                .goalsDifference(standing.getGoalsDiff())
-                .description(standing.getDescription())
+//                .goalsFor(standing.getAll().getGoals().getGoalsFor())
+//                .goalsAgainst(standing.getAll().getGoals().getAgainst())
+//                .points(standing.getPoints())
+//                .goalsDifference(standing.getGoalsDiff())
+//                .description(standing.getDescription())
                 .form(standing.getForm())
                 .build();
     }
@@ -239,6 +260,7 @@ public class FootballApiService {
         return TeamDetailsDto.builder()
                 .teamName(team.getName())
                 .teamApiId(team.getId())
+                .logoImageUrl(team.getLogo())
                 .leagueApiId(league.getId())
                 .leagueName(league.getName())
                 .leagueLogoImageUrl(league.getLogo())
@@ -248,8 +270,8 @@ public class FootballApiService {
                 .wins(fixtures.getWins().getTotal())
                 .draws(fixtures.getDraws().getTotal())
                 .losses(fixtures.getLoses().getTotal())
-                .goals(response.getResponse().getGoals().getGoalsFor().getTotal().getTotal())
-                .against(response.getResponse().getAgainst().getTotal().getTotal())
+//                .goals(response.getResponse().getGoals().getGoalsFor().getTotal().getTotal())
+//                .against(response.getResponse().getAgainst().getTotal().getTotal())
                 .build();
     }
 }
