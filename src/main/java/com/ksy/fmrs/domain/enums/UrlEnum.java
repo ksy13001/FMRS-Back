@@ -46,7 +46,8 @@ public enum UrlEnum {
 
     // 리그 정보 get API URL 생성(leagueId:Integer) 리그 1172개 전부 조회 할거라 id 값 몰라도됨
     public static String buildLeagueUrl(Integer leagueApiId) {
-        return LEAGUE_URL.getValue() + PARAM_ID.getValue() + leagueApiId;
+        return LEAGUE_URL.getValue() +
+                PARAM_ID.getValue() + leagueApiId ;
     }
 
     public static String buildTopScorersUrl(Integer leagueApiId) {
