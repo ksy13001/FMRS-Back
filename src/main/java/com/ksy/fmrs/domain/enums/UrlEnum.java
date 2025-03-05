@@ -50,26 +50,26 @@ public enum UrlEnum {
                 PARAM_ID.getValue() + leagueApiId ;
     }
 
-    public static String buildTopScorersUrl(Integer leagueApiId) {
+    public static String buildTopScorersUrl(Integer leagueApiId, int currentSeason) {
         return TOPSCORERS_URL.getValue() +
                 PARAM_LEAGUE.getValue() + leagueApiId +
                 AND.getValue() +
-                PARAM_SEASON.getValue() + SEASON_2024_2025.getValue();
+                PARAM_SEASON.getValue() + currentSeason;
     }
 
-    public static String buildTopAssistsUrl(Integer leagueApiId) {
+    public static String buildTopAssistsUrl(Integer leagueApiId, int currentSeason) {
         return TOPASSISTS_URL.getValue() +
                 PARAM_LEAGUE.getValue() + leagueApiId +
                 AND.getValue() +
-                PARAM_SEASON.getValue() + SEASON_2024_2025.getValue();
+                PARAM_SEASON.getValue() + currentSeason;
     }
 
-    public static String buildStandingUrl(Integer leagueApiId) {
+    public static String buildStandingUrl(Integer leagueApiId, int currentSeason) {
         return STANDING_URL.getValue() +
                 PARAM_LEAGUE.getValue() + leagueApiId +
                 AND.getValue() +
                 PARAM_SEASON.getValue() +
-                SEASON_2024_2025.getValue();
+                currentSeason;
     }
 
     public static String buildSquadUrl(Integer teamApiId) {
@@ -77,13 +77,13 @@ public enum UrlEnum {
                 PARAM_TEAM.getValue() + teamApiId;
     }
 
-    public static String buildTeamStatisticsUrl(Integer teamApiId, Integer leagueApiId) {
+    public static String buildTeamStatisticsUrl(Integer teamApiId, Integer leagueApiId, int currentSeason) {
         return TEAM_STATISTICS.getValue() +
                 PARAM_TEAM.getValue() + teamApiId+
                 AND.getValue()+
                 PARAM_LEAGUE.getValue() + leagueApiId+
                 AND.getValue()+
-                PARAM_SEASON.getValue() + SEASON_2024_2025.getValue();
+                PARAM_SEASON.getValue() + currentSeason;
     }
 }
 //GET /players/topscorers?league=39&season=2019
