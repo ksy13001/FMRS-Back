@@ -17,10 +17,10 @@ public class TeamStandingDto {
     Integer drawn;
     Integer lost;
     String form;
-//    Integer goalsFor;
-//    Integer goalsAgainst;
-//    Integer points;
-//    Integer goalsDifference;
-//    String description;
+    Integer goalsFor;
+    Integer goalsAgainst;
+    Integer points;
+    Integer goalsDifference;
+    String description;
 
 }

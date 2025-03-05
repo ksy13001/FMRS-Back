@@ -1,15 +1,16 @@
 package com.ksy.fmrs.controller;
 
-import com.ksy.fmrs.dto.LeagueDetailsDto;
+import com.ksy.fmrs.dto.LeagueDetailsRequestDto;
+import com.ksy.fmrs.dto.LeagueDetailsResponseDto;
+import com.ksy.fmrs.dto.LeagueStandingDto;
 import com.ksy.fmrs.dto.PlayerSimpleDto;
 import com.ksy.fmrs.service.FootballApiService;
-import com.ksy.fmrs.service.PlayerService;
+import com.ksy.fmrs.service.LeagueService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.ResponseBody;
 
 import java.util.List;
 
@@ -17,23 +18,29 @@ import java.util.List;
 @Controller
 public class LeagueController {
 
+    private final LeagueService leagueService;
     private final FootballApiService footballApiService;
 
     @GetMapping("/leagues/{leagueId}")
-    public String getLeagueDetail(Model model, @PathVariable Integer leagueId) {
-        LeagueDetailsDto leagueDetailsDto = footballApiService.getLeagueDetails(leagueId);
-        List<PlayerSimpleDto> topScorers = footballApiService.getLeagueTopScorers(leagueId);
-        List<PlayerSimpleDto> topAssistants = footballApiService.getLeagueTopAssists(leagueId);
+    public String getLeagueDetails(Model model, @PathVariable Long leagueId) {
+        LeagueDetailsResponseDto leagueDetailsResponseDto = leagueService.getLeagueDetails(leagueId);
+        Integer leagueApiId = leagueDetailsResponseDto.getLeagueApiId();
+        LeagueStandingDto leagueStandingDto = footballApiService.getLeagueStandings(
+                leagueApiId,
+                leagueDetailsResponseDto.getCurrentSeason());
+        List<PlayerSimpleDto> topScorers = footballApiService.getLeagueTopScorers(leagueApiId);
+        List<PlayerSimpleDto> topAssistants = footballApiService.getLeagueTopAssists(leagueApiId);
 
-        model.addAttribute("league", leagueDetailsDto);
+        model.addAttribute("league", leagueDetailsResponseDto);
+        model.addAttribute("standing", leagueStandingDto);
         model.addAttribute("topScorers", topScorers);
         model.addAttribute("topAssistants", topAssistants);
         return "league-detail";
     }
 
-    @ResponseBody
-    @GetMapping("/api/leagues/{leagueId}")
-    public LeagueDetailsDto getLeagueDetail(@PathVariable Integer leagueId) {
-        return footballApiService.getLeagueDetails(leagueId);
-    }
+//    @ResponseBody
+//    @GetMapping("/api/leagues/{leagueId}")
+//    public LeagueStandingDto getLeagueDetail(@PathVariable Long leagueId) {
+//        return footballApiService.getLeagueStandings(leagueId);
+//    }
 }
