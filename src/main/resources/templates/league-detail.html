@@ -28,6 +28,7 @@
     </nav>
 </header>
 
+
 <!-- Hero Section -->
 <section class="hero-gradient text-white py-4">
     <div class="w-full max-w-7xl mx-auto px-4 flex items-center gap-4">
@@ -68,7 +69,7 @@
                         </tr>
                         </thead>
                         <tbody>
-                        <tr th:each="team : ${league.standings}" th:class="${
+                        <tr th:each="team : ${standing.standings}" th:class="${
                                     team.description == 'Champions League' ? 'bg-blue-50' :
                                     team.description == 'UEFA Europa League' ? 'bg-orange-50' :
                                     team.description == 'Relegation' ? 'bg-red-50' : ''
@@ -161,6 +162,7 @@
         </div>
     </div>
 </main>
+
 
 <!-- Footer -->
 <footer class="bg-slate-800 text-white py-4 text-xs">

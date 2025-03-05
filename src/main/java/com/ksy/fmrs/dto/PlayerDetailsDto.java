@@ -11,7 +11,7 @@ import java.time.LocalDate;
 @Setter
 public class PlayerDetailsDto {
 
-    public PlayerDetailsDto(Player player, String teamName, String nationName) {
+    public PlayerDetailsDto(Player player, String teamName) {
         this.id = player.getId();
         this.name = player.getName();
         this.birth = player.getBirth();
@@ -21,7 +21,8 @@ public class PlayerDetailsDto {
         this.marketValue = player.getMarketValue();
         this.position = player.getPosition();
         this.teamName = teamName;
-        this.nationName = nationName;
+        this.nationName = player.getNationName();
+        this.nationLogoUrl = player.getNationLogoUrl();
         this.imageUrl = player.getImageUrl();
 
         this.corners = player.getCorners();
@@ -73,6 +74,7 @@ public class PlayerDetailsDto {
     private PositionEnum position;
     private String teamName;
     private String nationName;
+    private String nationLogoUrl;
     private String imageUrl;
 
     private int corners;

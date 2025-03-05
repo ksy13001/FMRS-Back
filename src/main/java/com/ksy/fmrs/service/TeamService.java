@@ -21,6 +21,7 @@ public class TeamService {
                 .logoUrl(teamDetailsDto.getLogoImageUrl())
                 .nationName(teamDetailsDto.getNationName())
                 .nationLogoImageUrl(teamDetailsDto.getNationLogoImageUrl())
+                .currentSeason(teamDetailsDto.getCurrentSeason())
                 .build();
 
         League league = leagueRepository.findLeagueByLeagueApiId(teamDetailsDto.getLeagueApiId())

@@ -28,15 +28,15 @@ public class Player {
 
     private int weight;
 
+    private String nationName;
+
+    private String nationLogoUrl;
+
     @Column(name = "market_value")
     private int marketValue;
 
     @Enumerated(EnumType.STRING)
     private PositionEnum position;
-
-    @ManyToOne
-    @JoinColumn(name = "nation_id")
-    private Nation nation;
 
     @ManyToOne
     @JoinColumn(name = "team_id")

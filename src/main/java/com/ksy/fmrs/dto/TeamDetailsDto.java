@@ -16,6 +16,7 @@ public class TeamDetailsDto {
     String leagueLogoImageUrl;
     String nationName;
     String nationLogoImageUrl;
+    int currentSeason;
 
     Integer played;
     Integer wins;
