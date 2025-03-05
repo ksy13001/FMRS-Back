@@ -1,10 +1,11 @@
 package com.ksy.fmrs.service;
 
+import com.ksy.fmrs.domain.League;
 import com.ksy.fmrs.domain.Player;
 import com.ksy.fmrs.domain.PlayerStat;
-import com.ksy.fmrs.domain.enums.LeagueType;
 import com.ksy.fmrs.domain.enums.UrlEnum;
 import com.ksy.fmrs.dto.*;
+import com.ksy.fmrs.repository.LeagueRepository;
 import com.ksy.fmrs.repository.Player.PlayerRepository;
 import com.ksy.fmrs.repository.PlayerStatRepository;
 import lombok.RequiredArgsConstructor;
@@ -15,15 +16,13 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.client.RestClient;
 
 import java.util.List;
-import java.util.Objects;
 import java.util.Optional;
 
 @RequiredArgsConstructor
 @Service
 public class FootballApiService {
 
-    private static final int SEASON_2024 = 2024;
-    private static final int SEASON_2025 = 2025;
+    private final LeagueRepository leagueRepository;
 
     @Value("${api-football.key}")
     private String apiFootballKey;
@@ -53,37 +52,34 @@ public class FootballApiService {
                 });
     }
 
-    public LeagueDetailsDto getLeagueDetails(Integer leagueApiId) {
-        String url = UrlEnum.buildStandingUrl(leagueApiId);
+    public LeagueStandingDto getLeagueStandings(Integer leagueApiId, int currentSeason) {
+        String url = UrlEnum.buildStandingUrl(leagueApiId, currentSeason);
         StandingsAPIResponseDto response = getApiResponse(url, StandingsAPIResponseDto.class);
         return getValidatedLeagueDetails(response, leagueApiId);
     }
 
     public List<PlayerSimpleDto> getLeagueTopScorers(Integer leagueApiId) {
-        String url = UrlEnum.buildTopScorersUrl(leagueApiId);
+        League league = findLeagueByLeagueApiId(leagueApiId);
+        String url = UrlEnum.buildTopScorersUrl(leagueApiId, league.getCurrentSeason());
         LeagueApiTopPlayerResponseDto response = getApiResponse(url, LeagueApiTopPlayerResponseDto.class);
         return convertToPlayerSimpleDtoList(response);
     }
 
-    public List<PlayerSimpleDto> getLeagueTopAssists(Integer leagueId) {
-        String url = UrlEnum.buildTopAssistsUrl(leagueId);
+    public List<PlayerSimpleDto> getLeagueTopAssists(Integer leagueApiId) {
+        League league = findLeagueByLeagueApiId(leagueApiId);
+        String url = UrlEnum.buildTopAssistsUrl(leagueApiId, league.getCurrentSeason());
         LeagueApiTopPlayerResponseDto response = getApiResponse(url, LeagueApiTopPlayerResponseDto.class);
         return convertToPlayerSimpleDtoList(response);
     }
 
-    public TeamDetailsDto getTeamDetails(Integer leagueApiId, Integer teamApiId) {
-        String url = UrlEnum.buildTeamStatisticsUrl(teamApiId, leagueApiId);
+    public TeamDetailsDto getTeamDetails(Integer leagueApiId, Integer teamApiId, int currentSeason) {
+        String url = UrlEnum.buildTeamStatisticsUrl(teamApiId, leagueApiId, currentSeason);
         TeamStatisticsApiResponseDto response = getApiResponse(url, TeamStatisticsApiResponseDto.class);
-        return convertStatisticsToTeamDetailsDto(response);
+        return convertStatisticsToTeamDetailsDto(response, currentSeason);
     }
 
-    public Boolean isNotLeague(Integer leagueApiId) {
-        LeagueApiResponseDto response = getApiResponse(UrlEnum.buildLeagueUrl(leagueApiId), LeagueApiResponseDto.class);
-        LeagueApiResponseDto.League league = response.getResponse().getFirst().getLeague();
-        LeagueApiResponseDto.Season season = response.getResponse().getFirst().getSeasons().getLast();
-        return Objects.equals(league.getType(), LeagueType.CUP.getValue()) ||
-                !season.getCoverage().isStandings() ||
-                (season.getYear() != SEASON_2024 && season.getYear() != SEASON_2025) ;
+    public LeagueDetailsRequestDto getLeagueInfo(Integer leagueApiId) {
+        return converToLeagueInfoDto(getApiResponse(UrlEnum.buildLeagueUrl(leagueApiId), LeagueApiResponseDto.class));
     }
 
 //    private LeagueType validateLeagueType(LeagueApiResponseDto response) {
@@ -140,7 +136,7 @@ public class FootballApiService {
         return responseEntity.getBody();
     }
 
-    private LeagueDetailsDto getValidatedLeagueDetails(StandingsAPIResponseDto response, Integer leagueId) {
+    private LeagueStandingDto getValidatedLeagueDetails(StandingsAPIResponseDto response, Integer leagueId) {
         if (response.getResults() <= 0) {
             throw new IllegalArgumentException("not exist league standing id:" + leagueId);
         }
@@ -174,6 +170,10 @@ public class FootballApiService {
         );
     }
 
+    private League findLeagueByLeagueApiId(Integer leagueApiId) {
+        return leagueRepository.findLeagueByLeagueApiId(leagueApiId)
+                .orElseThrow(() -> new IllegalArgumentException("League not found. leagueApiId: " + leagueApiId));
+    }
 
     private PlayerStat convertPlayerStatDtoToPlayerStat(Long playerId, PlayerStatDto playerStatDto) {
         return PlayerStat.builder()
@@ -202,18 +202,12 @@ public class FootballApiService {
         return playerStatDto;
     }
 
-    private LeagueDetailsDto convertStandingToLeagueDetailsDto(StandingsAPIResponseDto response) {
+    private LeagueStandingDto convertStandingToLeagueDetailsDto(StandingsAPIResponseDto response) {
         StandingsAPIResponseDto.League league = response.getResponse().getFirst().getLeague();
         List<TeamStandingDto> teamStandingDtos = league.getStandings().getFirst().stream()
                 .map(this::convertStandingToTeamStandingDto)
                 .toList();
-        return LeagueDetailsDto.builder()
-                .leagueApiId(league.getId())
-                .name(league.getName())
-                .nationName(league.getCountry())
-                .nationImageUrl(league.getFlag())
-                .logoImageUrl(league.getLogo())
-                .currentSeason(league.getSeason())
+        return LeagueStandingDto.builder()
                 .standings(teamStandingDtos)
                 .build();
     }
@@ -228,11 +222,11 @@ public class FootballApiService {
                 .won(standing.getAll().getWin())
                 .drawn(standing.getAll().getDraw())
                 .lost(standing.getAll().getLose())
-//                .goalsFor(standing.getAll().getGoals().getGoalsFor())
-//                .goalsAgainst(standing.getAll().getGoals().getAgainst())
-//                .points(standing.getPoints())
-//                .goalsDifference(standing.getGoalsDiff())
-//                .description(standing.getDescription())
+                .goalsFor(standing.getAll().getGoals().getGoalsFor())
+                .goalsAgainst(standing.getAll().getGoals().getAgainst())
+                .points(standing.getPoints())
+                .goalsDifference(standing.getGoalsDiff())
+                .description(standing.getDescription())
                 .form(standing.getForm())
                 .build();
     }
@@ -253,7 +247,7 @@ public class FootballApiService {
                         .build()).toList();
     }
 
-    private TeamDetailsDto convertStatisticsToTeamDetailsDto(TeamStatisticsApiResponseDto response) {
+    private TeamDetailsDto convertStatisticsToTeamDetailsDto(TeamStatisticsApiResponseDto response, int currentSeason) {
         TeamStatisticsApiResponseDto.Team team = response.getResponse().getTeam();
         TeamStatisticsApiResponseDto.League league = response.getResponse().getLeague();
         TeamStatisticsApiResponseDto.Fixtures fixtures = response.getResponse().getFixtures();
@@ -270,8 +264,26 @@ public class FootballApiService {
                 .wins(fixtures.getWins().getTotal())
                 .draws(fixtures.getDraws().getTotal())
                 .losses(fixtures.getLoses().getTotal())
+                .currentSeason(currentSeason)
 //                .goals(response.getResponse().getGoals().getGoalsFor().getTotal().getTotal())
 //                .against(response.getResponse().getAgainst().getTotal().getTotal())
+                .build();
+    }
+
+    private LeagueDetailsRequestDto converToLeagueInfoDto(LeagueApiResponseDto response) {
+        LeagueApiResponseDto.League league = response.getResponse().getFirst().getLeague();
+        LeagueApiResponseDto.Country country = response.getResponse().getFirst().getCountry();
+
+        LeagueApiResponseDto.Season season = response.getResponse().getFirst().getSeasons().getLast();
+        return LeagueDetailsRequestDto.builder()
+                .leagueApiId(league.getId())
+                .currentSeason(season.getYear())
+                .leagueName(league.getName())
+                .leagueType(league.getType())
+                .logoImageUrl(league.getLogo())
+                .nationName(country.getName())
+                .nationImageUrl(country.getFlag())
+                .Standing(season.getCoverage().isStandings())
                 .build();
     }
 }
