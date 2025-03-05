@@ -30,15 +30,24 @@ public class SchedulerService {
      * **/
     public void createInitialLeague() {
         for(int nowLeagueApiId = FIRST_LEAGUE_ID; nowLeagueApiId <= Last_LEAGUE_ID; nowLeagueApiId++){
+            if(leagueRepository.findLeagueByLeagueApiId(nowLeagueApiId).isPresent()){
+                continue;
+            }
             LeagueDetailsRequestDto leagueDetailsRequestDto = footballApiService.getLeagueInfo(nowLeagueApiId);
             if(!isLeagueType(leagueDetailsRequestDto)){
                 continue;
             }
+
+            saveInitialLeague(leagueDetailsRequestDto);
             LeagueStandingDto leagueStandingDto = footballApiService.getLeagueStandings(nowLeagueApiId, leagueDetailsRequestDto.getCurrentSeason());
-            leagueService.saveByLeagueDetails(leagueDetailsRequestDto);
+
+            if(leagueStandingDto.getStandings().isEmpty()){
+                // leagueApiId = 447 인 경우 leagueInfo 에서 standing=true 인데 실제 standing 요청시 null 인경우 존재
+                continue;
+            }
 
             leagueStandingDto.getStandings().forEach(standing -> {
-                createInitialTeam(leagueDetailsRequestDto.getLeagueApiId(), standing.getTeamApiId(), leagueDetailsRequestDto.getCurrentSeason());
+                saveInitialTeam(leagueDetailsRequestDto.getLeagueApiId(), standing.getTeamApiId(), leagueDetailsRequestDto.getCurrentSeason());
             });
         }
     }
@@ -50,8 +59,11 @@ public class SchedulerService {
                 leagueDetailsRequestDto.getStanding();
     }
 
+    private void saveInitialLeague(LeagueDetailsRequestDto leagueDetailsRequestDto) {
+        leagueService.saveByLeagueDetails(leagueDetailsRequestDto);
+    }
 
-    public void createInitialTeam(Integer leagueId, Integer teamId,  Integer currentSeason) {
+    private void saveInitialTeam(Integer leagueId, Integer teamId, Integer currentSeason) {
         if(teamRepository.findTeamByTeamApiId(teamId).isPresent()){
             return;
         }

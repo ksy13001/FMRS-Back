@@ -55,7 +55,7 @@ public class FootballApiService {
     public LeagueStandingDto getLeagueStandings(Integer leagueApiId, int currentSeason) {
         String url = UrlEnum.buildStandingUrl(leagueApiId, currentSeason);
         StandingsAPIResponseDto response = getApiResponse(url, StandingsAPIResponseDto.class);
-        return getValidatedLeagueDetails(response, leagueApiId);
+        return getValidatedLeagueDetails(response);
     }
 
     public List<PlayerSimpleDto> getLeagueTopScorers(Integer leagueApiId) {
@@ -136,9 +136,9 @@ public class FootballApiService {
         return responseEntity.getBody();
     }
 
-    private LeagueStandingDto getValidatedLeagueDetails(StandingsAPIResponseDto response, Integer leagueId) {
+    private LeagueStandingDto getValidatedLeagueDetails(StandingsAPIResponseDto response) {
         if (response.getResults() <= 0) {
-            throw new IllegalArgumentException("not exist league standing id:" + leagueId);
+            return convertNullStandingDto();
         }
         return convertStandingToLeagueDetailsDto(response);
     }
@@ -200,6 +200,12 @@ public class FootballApiService {
         playerStatDto.setRating(truncateToTwoDecimalsRanging(stat.getGames().getRating()));
         playerStatDto.setImageUrl(response.getResponse().getFirst().getPlayer().getPhoto());
         return playerStatDto;
+    }
+
+    private LeagueStandingDto convertNullStandingDto(){
+        return LeagueStandingDto.builder()
+                .standings(null)
+                .build();
     }
 
     private LeagueStandingDto convertStandingToLeagueDetailsDto(StandingsAPIResponseDto response) {
