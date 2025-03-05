@@ -7,6 +7,8 @@ public enum UrlEnum {
     STANDING_URL("https://v3.football.api-sports.io/standings?"),
     TOPSCORERS_URL("https://v3.football.api-sports.io/players/topscorers?"),
     TOPASSISTS_URL("https://v3.football.api-sports.io/players/topassists?"),
+    SQUAD_URL("https://v3.football.api-sports.io/players/squads?"),
+    TEAM_STATISTICS("https://v3.football.api-sports.io/teams/statistics?"),
     PARAM_NAME("name="),
     PARAM_SEARCH("search="),
     PARAM_TEAM("team="),
@@ -43,32 +45,46 @@ public enum UrlEnum {
     }
 
     // 리그 정보 get API URL 생성(leagueId:Integer) 리그 1172개 전부 조회 할거라 id 값 몰라도됨
-    public static String buildLeagueUrl(Integer leagueId) {
-        return LEAGUE_URL.getValue() + PARAM_ID.getValue()+leagueId;
+    public static String buildLeagueUrl(Integer leagueApiId) {
+        return LEAGUE_URL.getValue() +
+                PARAM_ID.getValue() + leagueApiId ;
     }
 
-    public static String buildTopScorersUrl(Integer leagueId) {
+    public static String buildTopScorersUrl(Integer leagueApiId, int currentSeason) {
         return TOPSCORERS_URL.getValue() +
-                PARAM_LEAGUE.getValue()+leagueId +
+                PARAM_LEAGUE.getValue() + leagueApiId +
                 AND.getValue() +
-                PARAM_SEASON.getValue() + SEASON_2024_2025.getValue();
+                PARAM_SEASON.getValue() + currentSeason;
     }
 
-    public static String buildTopAssistsUrl(Integer leagueId) {
+    public static String buildTopAssistsUrl(Integer leagueApiId, int currentSeason) {
         return TOPASSISTS_URL.getValue() +
-                PARAM_LEAGUE.getValue()+leagueId +
+                PARAM_LEAGUE.getValue() + leagueApiId +
                 AND.getValue() +
-                PARAM_SEASON.getValue() + SEASON_2024_2025.getValue();
+                PARAM_SEASON.getValue() + currentSeason;
     }
 
-
-    public static String buildStandingUrl(Integer leagueId) {
+    public static String buildStandingUrl(Integer leagueApiId, int currentSeason) {
         return STANDING_URL.getValue() +
-                PARAM_LEAGUE.getValue()+leagueId +
+                PARAM_LEAGUE.getValue() + leagueApiId +
                 AND.getValue() +
                 PARAM_SEASON.getValue() +
-                SEASON_2024_2025.getValue();
+                currentSeason;
+    }
+
+    public static String buildSquadUrl(Integer teamApiId) {
+        return SQUAD_URL.getValue() +
+                PARAM_TEAM.getValue() + teamApiId;
+    }
+
+    public static String buildTeamStatisticsUrl(Integer teamApiId, Integer leagueApiId, int currentSeason) {
+        return TEAM_STATISTICS.getValue() +
+                PARAM_TEAM.getValue() + teamApiId+
+                AND.getValue()+
+                PARAM_LEAGUE.getValue() + leagueApiId+
+                AND.getValue()+
+                PARAM_SEASON.getValue() + currentSeason;
     }
 }
-    //GET /players/topscorers?league=39&season=2019
-    //GET /players/topassists?league=39&season=2019
+//GET /players/topscorers?league=39&season=2019
+//GET /players/topassists?league=39&season=2019

@@ -9,17 +9,18 @@ import lombok.Setter;
 @Builder
 public class TeamStandingDto {
     Integer rank;
-    Integer teamId;
+    Integer teamApiId;
     String teamName;
     String teamLogo;
     Integer played;
     Integer won;
     Integer drawn;
     Integer lost;
+    String form;
     Integer goalsFor;
     Integer goalsAgainst;
     Integer points;
     Integer goalsDifference;
     String description;
-    String form;
+
 }

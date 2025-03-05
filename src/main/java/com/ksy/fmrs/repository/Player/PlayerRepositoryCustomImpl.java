@@ -1,7 +1,6 @@
 package com.ksy.fmrs.repository.Player;
 
 import com.ksy.fmrs.domain.Player;
-import com.ksy.fmrs.domain.QNation;
 import com.ksy.fmrs.domain.QPlayer;
 import com.ksy.fmrs.domain.QTeam;
 import com.ksy.fmrs.domain.enums.PositionEnum;
@@ -41,16 +40,13 @@ public class PlayerRepositoryCustomImpl implements PlayerRepositoryCustom {
     public List<Player> searchPlayerByDetailCondition(SearchPlayerCondition condition) {
         QPlayer player = QPlayer.player;
         QTeam team = QTeam.team;
-        QNation nation = QNation.nation;
         return jpaQueryFactory
                 .selectFrom(player)
                 .leftJoin(player.team, team)    // 무소속인 선수들까지 가져오기 위해 leftJoin
-                .join(player.nation, nation)
                 .where(
                         age(condition.getAgeMin(), condition.getAgeMax()),
                         position(condition.getPositionEnum()),
                         team(team, condition.getTeamName()),
-                        nation(nation, condition.getNationName()),
 //                        // technical
                         cornersMin(condition.getCorners()),
                         crossingMin(condition.getCrossing()),
@@ -124,14 +120,6 @@ public class PlayerRepositoryCustomImpl implements PlayerRepositoryCustom {
             return null;
         }
         return team.name.eq(teamName);
-    }
-
-    //나라
-    private BooleanExpression nation(QNation nation, String nationName){
-        if (nationName == null || nationName.isEmpty()){
-            return null;
-        }
-        return nation.name.eq(nationName);
     }
 
     // 능력치 조건

@@ -28,13 +28,19 @@
     </nav>
 </header>
 
+
 <!-- Hero Section -->
 <section class="hero-gradient text-white py-4">
     <div class="w-full max-w-7xl mx-auto px-4 flex items-center gap-4">
-        <img th:src="${league.logoUrl}" th:alt="${league.name + ' logo'}" class="w-16 h-16 object-contain bg-white rounded-full p-1">
-        <div>
-            <h1 class="text-2xl font-bold" th:text="${league.name}">League Name</h1>
-            <p class="text-sm text-slate-300" th:text="${league.country + ' - Season ' + league.currentSeason}">Country - Current Season</p>
+        <div class="flex items-center gap-4">
+            <img th:src="${league.logoImageUrl}" th:alt="${league.name + ' logo'}" class="w-16 h-16 object-contain bg-white rounded-full p-1">
+            <div>
+                <h1 class="text-2xl font-bold" th:text="${league.name}">League Name</h1>
+                <div class="flex items-center gap-2 text-sm text-slate-300">
+                    <img th:if="${league.nationImageUrl}" th:src="${league.nationImageUrl}" th:alt="${league.nationName + ' flag'}" class="w-4 h-4 rounded-full object-cover">
+                    <span th:text="${league.nationName + ' - Season ' + league.currentSeason}">Country - Current Season</span>
+                </div>
+            </div>
         </div>
     </div>
 </section>
@@ -63,7 +69,7 @@
                         </tr>
                         </thead>
                         <tbody>
-                        <tr th:each="team : ${league.standings}" th:class="${
+                        <tr th:each="team : ${standing.standings}" th:class="${
                                     team.description == 'Champions League' ? 'bg-blue-50' :
                                     team.description == 'UEFA Europa League' ? 'bg-orange-50' :
                                     team.description == 'Relegation' ? 'bg-red-50' : ''
@@ -81,7 +87,7 @@
                             <td class="px-2 py-2 text-right" th:text="${team.lost}">0</td>
                             <td class="px-2 py-2 text-right" th:text="${team.goalsFor}">0</td>
                             <td class="px-2 py-2 text-right" th:text="${team.goalsAgainst}">0</td>
-                            <td class="px-2 py-2 text-right" th:text="${team.goalsDifference >= 0 ? '+' + team.goalsDifference : team.goalsDifference}">0</td>
+                            <td class="px-2 py-2 text-right" th:text="${team.goalsDifference > 0 ? '+' + team.goalsDifference : team.goalsDifference}">0</td>
                             <td class="px-2 py-2 text-right font-bold" th:text="${team.points}">0</td>
                         </tr>
                         </tbody>
@@ -112,15 +118,15 @@
                     <h2 class="text-base font-semibold mb-2 text-slate-800">Top Scorers</h2>
                     <div class="space-y-2">
                         <div th:each="player, iterStat : ${topScorers}" th:if="${iterStat.index < 5}"
-                             class="flex items-center justify-between p-1 hover:bg-slate-50 rounded transition duration-300">
-                            <div class="flex items-center gap-2">
-                                <img th:src="${player.imageUrl}" th:alt="${player.name}" class="w-8 h-8 rounded-full object-cover">
-                                <div>
-                                    <h3 class="font-semibold text-xs" th:text="${player.name}">Player Name</h3>
-                                    <p class="text-xs text-slate-600" th:text="${player.teamName}">Team Name</p>
-                                </div>
+                             class="flex items-center gap-2 p-1 hover:bg-slate-50 rounded transition duration-300">
+                            <img th:src="${player.imageUrl}" th:alt="${player.name}" class="w-8 h-8 rounded-full object-cover">
+                            <div class="flex-grow">
+                                <h3 class="font-semibold text-xs" th:text="${player.name}">Player Name</h3>
+                                <p class="text-xs text-slate-600" th:text="${player.teamName}">Team Name</p>
                             </div>
-                            <div th:class="${iterStat.index == 0 ? 'text-sm font-bold text-blue-600' : 'text-sm font-bold text-slate-800'}" th:text="${player.goal}">0</div>
+                            <div class="text-center">
+                                <p class="text-sm font-bold" th:class="${iterStat.index == 0 ? 'text-blue-600' : 'text-black'}" th:text="${player.goal}">0</p>
+                            </div>
                         </div>
                     </div>
                     <a href="#" class="text-xs text-blue-600 hover:text-blue-700 transition duration-300 flex items-center justify-center mt-2">
@@ -131,20 +137,20 @@
             </div>
 
             <!-- Top Assistants -->
-            <div class="bg-white rounded-lg shadow-sm overflow-hidden">
+            <div class="bg-white rounded-lg shadow-sm overflow-hidden mt-4">
                 <div class="p-3">
                     <h2 class="text-base font-semibold mb-2 text-slate-800">Top Assistants</h2>
                     <div class="space-y-2">
                         <div th:each="player, iterStat : ${topAssistants}" th:if="${iterStat.index < 5}"
-                             class="flex items-center justify-between p-1 hover:bg-slate-50 rounded transition duration-300">
-                            <div class="flex items-center gap-2">
-                                <img th:src="${player.imageUrl}" th:alt="${player.name}" class="w-8 h-8 rounded-full object-cover">
-                                <div>
-                                    <h3 class="font-semibold text-xs" th:text="${player.name}">Player Name</h3>
-                                    <p class="text-xs text-slate-600" th:text="${player.teamName}">Team Name</p>
-                                </div>
+                             class="flex items-center gap-2 p-1 hover:bg-slate-50 rounded transition duration-300">
+                            <img th:src="${player.imageUrl}" th:alt="${player.name}" class="w-8 h-8 rounded-full object-cover">
+                            <div class="flex-grow">
+                                <h3 class="font-semibold text-xs" th:text="${player.name}">Player Name</h3>
+                                <p class="text-xs text-slate-600" th:text="${player.teamName}">Team Name</p>
                             </div>
-                            <div th:class="${iterStat.index == 0 ? 'text-sm font-bold text-blue-600' : 'text-sm font-bold text-slate-800'}" th:text="${player.assist}">0</div>
+                            <div class="text-center">
+                                <p class="text-sm font-bold" th:class="${iterStat.index == 0 ? 'text-blue-600' : 'text-black'}" th:text="${player.assist}">0</p>
+                            </div>
                         </div>
                     </div>
                     <a href="#" class="text-xs text-blue-600 hover:text-blue-700 transition duration-300 flex items-center justify-center mt-2">
@@ -156,6 +162,7 @@
         </div>
     </div>
 </main>
+
 
 <!-- Footer -->
 <footer class="bg-slate-800 text-white py-4 text-xs">

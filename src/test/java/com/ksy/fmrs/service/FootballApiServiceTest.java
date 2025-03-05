@@ -1,17 +1,13 @@
 package com.ksy.fmrs.service;
 
 import static org.junit.jupiter.api.Assertions.*;
-import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.*;
 
-import com.ksy.fmrs.domain.Player;
 import com.ksy.fmrs.domain.PlayerStat;
 import com.ksy.fmrs.dto.PlayerStatDto;
-import com.ksy.fmrs.dto.PlayerStatisticsApiResponseDto;
-import com.ksy.fmrs.dto.TeamApiResponseDto;
 import com.ksy.fmrs.repository.Player.PlayerRepository;
 import com.ksy.fmrs.repository.PlayerStatRepository;
-import java.util.List;
+
 import java.util.Optional;
 
 import org.assertj.core.api.Assertions;
@@ -21,8 +17,6 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.Spy;
 import org.mockito.junit.jupiter.MockitoExtension;
-import org.springframework.http.ResponseEntity;
-import org.springframework.test.util.ReflectionTestUtils;
 import org.springframework.web.client.RestClient;
 import org.springframework.web.client.RestClient.RequestHeadersSpec;
 import org.springframework.web.client.RestClient.RequestHeadersUriSpec;
@@ -155,7 +149,7 @@ public class FootballApiServiceTest {
      * - 외부 API 호출 없이 DB의 정보를 DTO로 변환하여 반환함.
      */
     @Test
-    public void testGetPlayerRealStat_whenExistsInDB() {
+    public void testSavePlayerRealStat_whenExistsInDB() {
         // given
         Long playerId = 1L;
         String playerName = "Neymar";
@@ -175,7 +169,7 @@ public class FootballApiServiceTest {
         when(playerStatRepository.findById(playerId)).thenReturn(Optional.of(existingStat));
 
         // when
-        PlayerStatDto result = footballApiService.getPlayerRealStat(playerId, playerName, teamName);
+        PlayerStatDto result = footballApiService.savePlayerRealStat(playerId, playerName, teamName);
 
         // then
         assertNotNull(result);

@@ -1,6 +1,5 @@
 package com.ksy.fmrs.service;
 
-import com.ksy.fmrs.domain.Nation;
 import com.ksy.fmrs.domain.Player;
 import com.ksy.fmrs.domain.Team;
 import com.ksy.fmrs.dto.*;
@@ -26,7 +25,7 @@ public class PlayerService {
     }
 
     private PlayerDetailsDto convertPlayerToPlayerDetailsResponseDto(Player player) {
-        return new PlayerDetailsDto(player,  getTeamNameByPlayer(player), getNationNameByPlayer(player));
+        return new PlayerDetailsDto(player,  getTeamNameByPlayer(player));
     }
 
     private String getTeamNameByPlayer(Player player) {
@@ -35,11 +34,11 @@ public class PlayerService {
                 .orElse(null);
     }
 
-    private String getNationNameByPlayer(Player player) {
-        return Optional.ofNullable(player.getNation())
-                .map(Nation::getName)
-                .orElse(null);
-    }
+//    private String getNationNameByPlayer(Player player) {
+//        return Optional.ofNullable(player.getNation())
+//                .map(Nation::getName)
+//                .orElse(null);
+//    }
 
     /**
      * 팀 소속 선수들 모두 조회
