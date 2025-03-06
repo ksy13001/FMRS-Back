@@ -1,4 +1,4 @@
-package com.ksy.fmrs.domain.Player;
+package com.ksy.fmrs.domain.player;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.Embeddable;

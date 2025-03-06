@@ -1,8 +1,7 @@
-package com.ksy.fmrs.domain.Player;
+package com.ksy.fmrs.domain.player;
 
 
 import com.ksy.fmrs.domain.Team;
-import com.ksy.fmrs.domain.enums.PositionEnum;
 import jakarta.persistence.*;
 import lombok.*;
 
@@ -17,6 +16,7 @@ public class Player {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
+    @Column(name = "player_api_id")
     private Integer playerApiId;
 
     private String name;
@@ -29,8 +29,10 @@ public class Player {
 
     private int weight;
 
+    @Column(name = "nation_name")
     private String nationName;
 
+    @Column(name="nation_logo_url")
     private String nationLogoUrl;
 
     @Column(name = "market_value")
@@ -40,32 +42,45 @@ public class Player {
     @JoinColumn(name = "team_id")
     private Team team;
 
+    @Column(name = "image_url")
     private String imageUrl;
 
     @Embedded
     private Position position;
 
+    @Column(name = "current_ability")
+    private int currentAbility;
+
+    @Column(name = "potential_ability")
+    private int potentialAbility;
+
     // 인성
+    @Column(name = "personality_attributes")
     @Embedded
     private PersonalityAttributes personalityAttributes;
 
     // 기술(Technical) 능력치
+    @Column(name = "technical_attributes")
     @Embedded
     private TechnicalAttributes technicalAttributes;
 
     // 정신(Mental) 능력치
+    @Column(name = "mental_attributes")
     @Embedded
     private MentalAttributes mentalAttributes;
 
     // 신체(Physical) 능력치
+    @Column(name = "physical_attributes")
     @Embedded
     private PhysicalAttributes physicalAttributes;
 
     // 골키퍼 능력치
+    @Column(name = "goalKeeper_attributes")
     @Embedded
     private GoalKeeperAttributes goalKeeperAttributes;
 
     // 히든 능력치
+    @Column(name = "hidden_attributes")
     @Embedded
     private HiddenAttributes hiddenAttributes;
 
@@ -84,7 +99,9 @@ public class Player {
             MentalAttributes mentalAttributes,
             PhysicalAttributes physicalAttributes,
             GoalKeeperAttributes goalKeeperAttributes,
-            HiddenAttributes hiddenAttributes
+            HiddenAttributes hiddenAttributes,
+            int currentAbility,
+            int potentialAbility
     ) {
         this.name = name;
         this.birth = birth;
@@ -100,6 +117,8 @@ public class Player {
         this.physicalAttributes = physicalAttributes;
         this.goalKeeperAttributes = goalKeeperAttributes;
         this.hiddenAttributes = hiddenAttributes;
+        this.currentAbility = currentAbility;
+        this.potentialAbility = potentialAbility;
     }
 
     // 연관관계 설정 메서드

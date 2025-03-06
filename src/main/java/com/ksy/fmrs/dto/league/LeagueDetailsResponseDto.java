@@ -1,4 +1,4 @@
-package com.ksy.fmrs.dto;
+package com.ksy.fmrs.dto.league;
 
 import com.ksy.fmrs.domain.enums.LeagueType;
 import lombok.Builder;
