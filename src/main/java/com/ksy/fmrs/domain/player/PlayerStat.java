@@ -1,4 +1,4 @@
-package com.ksy.fmrs.domain;
+package com.ksy.fmrs.domain.player;
 
 import lombok.AccessLevel;
 import lombok.Builder;

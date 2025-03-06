@@ -1,4 +1,4 @@
-package com.ksy.fmrs.dto;
+package com.ksy.fmrs.dto.apiFootball;
 
 import lombok.Data;
 import java.util.List;

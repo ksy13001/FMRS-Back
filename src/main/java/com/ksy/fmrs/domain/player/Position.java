@@ -1,4 +1,4 @@
-package com.ksy.fmrs.domain.Player;
+package com.ksy.fmrs.domain.player;
 
 import jakarta.persistence.Embeddable;
 import lombok.*;
@@ -9,20 +9,20 @@ import lombok.*;
 @AllArgsConstructor
 @Builder
 public class Position {
-    private int Goalkeeper;
-    private int DefenderCentral;
-    private int DefenderLeft;
-    private int DefenderRight;
-    private int WingBackLeft;
-    private int WingBackRight;
-    private int DefensiveMidfielder;
-    private int MidfielderLeft;
-    private int MidfielderRight;
-    private int MidfielderCentral;
-    private int AttackingMidCentral;
-    private int AttackingMidLeft;
-    private int AttackingMidRight;
-    private int Striker;
+    private int goalkeeper;
+    private int defenderCentral;
+    private int defenderLeft;
+    private int defenderRight;
+    private int wingBackLeft;
+    private int wingBackRight;
+    private int defensiveMidfielder;
+    private int midfielderLeft;
+    private int midfielderRight;
+    private int midfielderCentral;
+    private int attackingMidCentral;
+    private int attackingMidLeft;
+    private int attackingMidRight;
+    private int striker;
 
 }
 //GK("Goalkeeper"),

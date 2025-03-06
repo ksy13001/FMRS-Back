@@ -1,6 +1,6 @@
-package com.ksy.fmrs.dto;
+package com.ksy.fmrs.dto.player;
 
-import com.ksy.fmrs.domain.PlayerStat;
+import com.ksy.fmrs.domain.player.PlayerStat;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 

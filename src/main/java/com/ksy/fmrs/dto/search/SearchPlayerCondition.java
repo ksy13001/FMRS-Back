@@ -1,4 +1,4 @@
-package com.ksy.fmrs.dto;
+package com.ksy.fmrs.dto.search;
 
 import com.ksy.fmrs.domain.enums.PositionEnum;
 import lombok.Getter;

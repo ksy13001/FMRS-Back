@@ -1,4 +1,4 @@
-package com.ksy.fmrs.dto;
+package com.ksy.fmrs.dto.search;
 
 import lombok.Builder;
 import lombok.Getter;

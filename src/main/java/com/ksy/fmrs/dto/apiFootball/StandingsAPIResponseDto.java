@@ -1,4 +1,4 @@
-package com.ksy.fmrs.dto;
+package com.ksy.fmrs.dto.apiFootball;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.Data;
