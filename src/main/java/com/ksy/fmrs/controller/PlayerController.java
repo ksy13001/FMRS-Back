@@ -65,17 +65,4 @@ public class PlayerController {
         return "players-detail-search";
     }
 
-
-    // 실축스탯 테스트용 api
-    @ResponseBody
-    @GetMapping("/api/player/{playerId}")
-    public PlayerStatDto getPlayerRealFootBallStatTest(@PathVariable Long playerId) {
-        PlayerDetailsDto playerDetailsResponseDto = playerService.getPlayerDetails(playerId);
-        PlayerStatDto playerRealFootballStatDto = footballApiService.savePlayerRealStat(
-                playerDetailsResponseDto.getId(),
-                playerDetailsResponseDto.getName(),
-                playerDetailsResponseDto.getTeamName()
-        );
-        return playerRealFootballStatDto;
-    }
 }

@@ -24,9 +24,4 @@ public class HomeController {
         return "home";
     }
 
-    @ResponseBody
-    @PostMapping("/api/insert-league-team-data")
-    public void insertInitialLeagueTeamData() {
-        initializationService.createInitialLeague();
-    }
 }
