@@ -1,10 +1,17 @@
 package com.ksy.fmrs.service;
 
 import com.ksy.fmrs.domain.League;
-import com.ksy.fmrs.domain.Player;
-import com.ksy.fmrs.domain.PlayerStat;
+import com.ksy.fmrs.domain.player.Player;
+import com.ksy.fmrs.domain.player.PlayerStat;
 import com.ksy.fmrs.domain.enums.UrlEnum;
-import com.ksy.fmrs.dto.*;
+import com.ksy.fmrs.dto.apiFootball.*;
+import com.ksy.fmrs.dto.league.LeagueApiResponseDto;
+import com.ksy.fmrs.dto.league.LeagueDetailsRequestDto;
+import com.ksy.fmrs.dto.league.LeagueStandingDto;
+import com.ksy.fmrs.dto.player.PlayerSimpleDto;
+import com.ksy.fmrs.dto.player.PlayerStatDto;
+import com.ksy.fmrs.dto.search.TeamDetailsDto;
+import com.ksy.fmrs.dto.search.TeamStandingDto;
 import com.ksy.fmrs.repository.LeagueRepository;
 import com.ksy.fmrs.repository.Player.PlayerRepository;
 import com.ksy.fmrs.repository.PlayerStatRepository;

@@ -1,10 +1,9 @@
 package com.ksy.fmrs.repository.Player;
 
-import com.ksy.fmrs.domain.Player;
-import com.ksy.fmrs.domain.QPlayer;
+import com.ksy.fmrs.domain.player.Player;
 import com.ksy.fmrs.domain.QTeam;
-import com.ksy.fmrs.domain.enums.PositionEnum;
-import com.ksy.fmrs.dto.SearchPlayerCondition;
+import com.ksy.fmrs.domain.player.QPlayer;
+import com.ksy.fmrs.dto.search.SearchPlayerCondition;
 import com.querydsl.core.types.dsl.BooleanExpression;
 import com.querydsl.jpa.impl.JPAQueryFactory;
 import lombok.RequiredArgsConstructor;
@@ -45,7 +44,7 @@ public class PlayerRepositoryCustomImpl implements PlayerRepositoryCustom {
                 .leftJoin(player.team, team)    // 무소속인 선수들까지 가져오기 위해 leftJoin
                 .where(
                         age(condition.getAgeMin(), condition.getAgeMax()),
-                        position(condition.getPositionEnum()),
+//                        position(condition.getPositionEnum()),
                         team(team, condition.getTeamName()),
 //                        // technical
                         cornersMin(condition.getCorners()),
@@ -107,12 +106,12 @@ public class PlayerRepositoryCustomImpl implements PlayerRepositoryCustom {
     }
 
     // 포지션(멀티포지션인 경우 고려해서 수정 필요)
-    private BooleanExpression position(PositionEnum positionEnum){
-        if(positionEnum == null){
-            return null;
-        }
-        return QPlayer.player.position.eq(positionEnum);
-    }
+//    private BooleanExpression position(PositionEnum positionEnum){
+//        if(positionEnum == null){
+//            return null;
+//        }
+//        return QPlayer.player.position.eq(positionEnum);
+//    }
 
     // 팀
     private BooleanExpression team(QTeam team, String teamName){
@@ -130,7 +129,7 @@ public class PlayerRepositoryCustomImpl implements PlayerRepositoryCustom {
         if (corners == null) {
             return null;
         }
-        return QPlayer.player.corners.goe(corners);
+        return QPlayer.player.technicalAttributes.corners.goe(corners);
     }
 
 
@@ -138,7 +137,7 @@ public class PlayerRepositoryCustomImpl implements PlayerRepositoryCustom {
         if (crossingMin == null) {
             return null;
         }
-        return QPlayer.player.crossing.goe(crossingMin);
+        return QPlayer.player.technicalAttributes.crossing.goe(crossingMin);
     }
 
     // dribbling
@@ -146,7 +145,7 @@ public class PlayerRepositoryCustomImpl implements PlayerRepositoryCustom {
         if (dribblingMin == null) {
             return null;
         }
-        return QPlayer.player.dribbling.goe(dribblingMin);
+        return QPlayer.player.technicalAttributes.dribbling.goe(dribblingMin);
     }
 
     // finishing
@@ -154,7 +153,7 @@ public class PlayerRepositoryCustomImpl implements PlayerRepositoryCustom {
         if (finishingMin == null) {
             return null;
         }
-        return QPlayer.player.finishing.goe(finishingMin);
+        return QPlayer.player.technicalAttributes.finishing.goe(finishingMin);
     }
 
     // firstTouch
@@ -162,7 +161,7 @@ public class PlayerRepositoryCustomImpl implements PlayerRepositoryCustom {
         if (firstTouchMin == null) {
             return null;
         }
-        return QPlayer.player.firstTouch.goe(firstTouchMin);
+        return QPlayer.player.technicalAttributes.firstTouch.goe(firstTouchMin);
     }
 
     // freeKickTaking
@@ -170,7 +169,7 @@ public class PlayerRepositoryCustomImpl implements PlayerRepositoryCustom {
         if (freeKickTakingMin == null) {
             return null;
         }
-        return QPlayer.player.freeKickTaking.goe(freeKickTakingMin);
+        return QPlayer.player.technicalAttributes.freeKincks.goe(freeKickTakingMin);
     }
 
     // heading
@@ -178,7 +177,7 @@ public class PlayerRepositoryCustomImpl implements PlayerRepositoryCustom {
         if (headingMin == null) {
             return null;
         }
-        return QPlayer.player.heading.goe(headingMin);
+        return QPlayer.player.technicalAttributes.heading.goe(headingMin);
     }
 
     // longShots
@@ -186,7 +185,7 @@ public class PlayerRepositoryCustomImpl implements PlayerRepositoryCustom {
         if (longShotsMin == null) {
             return null;
         }
-        return QPlayer.player.longShots.goe(longShotsMin);
+        return QPlayer.player.technicalAttributes.longShots.goe(longShotsMin);
     }
 
     // longThrows
@@ -194,7 +193,7 @@ public class PlayerRepositoryCustomImpl implements PlayerRepositoryCustom {
         if (longThrowsMin == null) {
             return null;
         }
-        return QPlayer.player.longThrows.goe(longThrowsMin);
+        return QPlayer.player.technicalAttributes.longThrows.goe(longThrowsMin);
     }
 
     // marking
@@ -202,7 +201,7 @@ public class PlayerRepositoryCustomImpl implements PlayerRepositoryCustom {
         if (markingMin == null) {
             return null;
         }
-        return QPlayer.player.marking.goe(markingMin);
+        return QPlayer.player.technicalAttributes.marking.goe(markingMin);
     }
 
     // passing
@@ -210,7 +209,7 @@ public class PlayerRepositoryCustomImpl implements PlayerRepositoryCustom {
         if (passingMin == null) {
             return null;
         }
-        return QPlayer.player.passing.goe(passingMin);
+        return QPlayer.player.technicalAttributes.passing.goe(passingMin);
     }
 
     // penaltyTaking
@@ -218,7 +217,7 @@ public class PlayerRepositoryCustomImpl implements PlayerRepositoryCustom {
         if (penaltyTakingMin == null) {
             return null;
         }
-        return QPlayer.player.penaltyTaking.goe(penaltyTakingMin);
+        return QPlayer.player.technicalAttributes.penaltyTaking.goe(penaltyTakingMin);
     }
 
     // tackling
@@ -226,7 +225,7 @@ public class PlayerRepositoryCustomImpl implements PlayerRepositoryCustom {
         if (tacklingMin == null) {
             return null;
         }
-        return QPlayer.player.tackling.goe(tacklingMin);
+        return QPlayer.player.technicalAttributes.tackling.goe(tacklingMin);
     }
 
     // technique
@@ -234,7 +233,7 @@ public class PlayerRepositoryCustomImpl implements PlayerRepositoryCustom {
         if (techniqueMin == null) {
             return null;
         }
-        return QPlayer.player.technique.goe(techniqueMin);
+        return QPlayer.player.technicalAttributes.technique.goe(techniqueMin);
     }
 
     // aggression
@@ -242,7 +241,7 @@ public class PlayerRepositoryCustomImpl implements PlayerRepositoryCustom {
         if (aggressionMin == null) {
             return null;
         }
-        return QPlayer.player.aggression.goe(aggressionMin);
+        return QPlayer.player.mentalAttributes.aggression.goe(aggressionMin);
     }
 
     // anticipation
@@ -250,7 +249,7 @@ public class PlayerRepositoryCustomImpl implements PlayerRepositoryCustom {
         if (anticipationMin == null) {
             return null;
         }
-        return QPlayer.player.anticipation.goe(anticipationMin);
+        return QPlayer.player.mentalAttributes.anticipation.goe(anticipationMin);
     }
 
     // bravery
@@ -258,7 +257,7 @@ public class PlayerRepositoryCustomImpl implements PlayerRepositoryCustom {
         if (braveryMin == null) {
             return null;
         }
-        return QPlayer.player.bravery.goe(braveryMin);
+        return QPlayer.player.mentalAttributes.bravery.goe(braveryMin);
     }
 
     // composure
@@ -266,7 +265,7 @@ public class PlayerRepositoryCustomImpl implements PlayerRepositoryCustom {
         if (composureMin == null) {
             return null;
         }
-        return QPlayer.player.composure.goe(composureMin);
+        return QPlayer.player.mentalAttributes.composure.goe(composureMin);
     }
 
     // concentration
@@ -274,7 +273,7 @@ public class PlayerRepositoryCustomImpl implements PlayerRepositoryCustom {
         if (concentrationMin == null) {
             return null;
         }
-        return QPlayer.player.concentration.goe(concentrationMin);
+        return QPlayer.player.mentalAttributes.concentration.goe(concentrationMin);
     }
 
     // decisions
@@ -282,7 +281,7 @@ public class PlayerRepositoryCustomImpl implements PlayerRepositoryCustom {
         if (decisionsMin == null) {
             return null;
         }
-        return QPlayer.player.decisions.goe(decisionsMin);
+        return QPlayer.player.mentalAttributes.decisions.goe(decisionsMin);
     }
 
     // determination
@@ -290,7 +289,7 @@ public class PlayerRepositoryCustomImpl implements PlayerRepositoryCustom {
         if (determinationMin == null) {
             return null;
         }
-        return QPlayer.player.determination.goe(determinationMin);
+        return QPlayer.player.mentalAttributes.determination.goe(determinationMin);
     }
 
     // flair
@@ -298,7 +297,7 @@ public class PlayerRepositoryCustomImpl implements PlayerRepositoryCustom {
         if (flairMin == null) {
             return null;
         }
-        return QPlayer.player.flair.goe(flairMin);
+        return QPlayer.player.mentalAttributes.flair.goe(flairMin);
     }
 
     // leadership
@@ -306,7 +305,7 @@ public class PlayerRepositoryCustomImpl implements PlayerRepositoryCustom {
         if (leadershipMin == null) {
             return null;
         }
-        return QPlayer.player.leadership.goe(leadershipMin);
+        return QPlayer.player.mentalAttributes.leadership.goe(leadershipMin);
     }
 
     // offTheBall
@@ -314,7 +313,7 @@ public class PlayerRepositoryCustomImpl implements PlayerRepositoryCustom {
         if (offTheBallMin == null) {
             return null;
         }
-        return QPlayer.player.offTheBall.goe(offTheBallMin);
+        return QPlayer.player.mentalAttributes.offTheBall.goe(offTheBallMin);
     }
 
     // positioning
@@ -322,7 +321,7 @@ public class PlayerRepositoryCustomImpl implements PlayerRepositoryCustom {
         if (positioningMin == null) {
             return null;
         }
-        return QPlayer.player.positioning.goe(positioningMin);
+        return QPlayer.player.mentalAttributes.positioning.goe(positioningMin);
     }
 
     // teamwork
@@ -330,7 +329,7 @@ public class PlayerRepositoryCustomImpl implements PlayerRepositoryCustom {
         if (teamworkMin == null) {
             return null;
         }
-        return QPlayer.player.teamwork.goe(teamworkMin);
+        return QPlayer.player.mentalAttributes.teamwork.goe(teamworkMin);
     }
 
     // vision
@@ -338,7 +337,7 @@ public class PlayerRepositoryCustomImpl implements PlayerRepositoryCustom {
         if (visionMin == null) {
             return null;
         }
-        return QPlayer.player.vision.goe(visionMin);
+        return QPlayer.player.mentalAttributes.vision.goe(visionMin);
     }
 
     // workRate
@@ -346,7 +345,7 @@ public class PlayerRepositoryCustomImpl implements PlayerRepositoryCustom {
         if (workRateMin == null) {
             return null;
         }
-        return QPlayer.player.workRate.goe(workRateMin);
+        return QPlayer.player.mentalAttributes.workRate.goe(workRateMin);
     }
 
     // acceleration
@@ -354,7 +353,7 @@ public class PlayerRepositoryCustomImpl implements PlayerRepositoryCustom {
         if (accelerationMin == null) {
             return null;
         }
-        return QPlayer.player.acceleration.goe(accelerationMin);
+        return QPlayer.player.physicalAttributes.acceleration.goe(accelerationMin);
     }
 
     // agility
@@ -362,7 +361,7 @@ public class PlayerRepositoryCustomImpl implements PlayerRepositoryCustom {
         if (agilityMin == null) {
             return null;
         }
-        return QPlayer.player.agility.goe(agilityMin);
+        return QPlayer.player.physicalAttributes.agility.goe(agilityMin);
     }
 
     // balance
@@ -370,7 +369,7 @@ public class PlayerRepositoryCustomImpl implements PlayerRepositoryCustom {
         if (balanceMin == null) {
             return null;
         }
-        return QPlayer.player.balance.goe(balanceMin);
+        return QPlayer.player.physicalAttributes.balance.goe(balanceMin);
     }
 
     // jumpingReach
@@ -378,7 +377,7 @@ public class PlayerRepositoryCustomImpl implements PlayerRepositoryCustom {
         if (jumpingReachMin == null) {
             return null;
         }
-        return QPlayer.player.jumpingReach.goe(jumpingReachMin);
+        return QPlayer.player.physicalAttributes.jumpingReach.goe(jumpingReachMin);
     }
 
     // naturalFitness
@@ -386,7 +385,7 @@ public class PlayerRepositoryCustomImpl implements PlayerRepositoryCustom {
         if (naturalFitnessMin == null) {
             return null;
         }
-        return QPlayer.player.naturalFitness.goe(naturalFitnessMin);
+        return QPlayer.player.physicalAttributes.naturalFitness.goe(naturalFitnessMin);
     }
 
     // pace
@@ -394,7 +393,7 @@ public class PlayerRepositoryCustomImpl implements PlayerRepositoryCustom {
         if (paceMin == null) {
             return null;
         }
-        return QPlayer.player.pace.goe(paceMin);
+        return QPlayer.player.physicalAttributes.pace.goe(paceMin);
     }
 
     // stamina
@@ -402,7 +401,7 @@ public class PlayerRepositoryCustomImpl implements PlayerRepositoryCustom {
         if (staminaMin == null) {
             return null;
         }
-        return QPlayer.player.stamina.goe(staminaMin);
+        return QPlayer.player.physicalAttributes.stamina.goe(staminaMin);
     }
 
     // strength
@@ -410,6 +409,6 @@ public class PlayerRepositoryCustomImpl implements PlayerRepositoryCustom {
         if (strengthMin == null) {
             return null;
         }
-        return QPlayer.player.strength.goe(strengthMin);
+        return QPlayer.player.physicalAttributes.strength.goe(strengthMin);
     }
 }

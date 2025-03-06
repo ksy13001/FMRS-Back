@@ -1,12 +1,12 @@
 package com.ksy.fmrs.domain;
 
+import com.ksy.fmrs.domain.player.Player;
 import jakarta.persistence.*;
 import lombok.AccessLevel;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 
-import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
 

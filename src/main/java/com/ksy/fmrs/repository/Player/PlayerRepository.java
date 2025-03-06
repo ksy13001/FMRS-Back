@@ -1,6 +1,6 @@
 package com.ksy.fmrs.repository.Player;
 
-import com.ksy.fmrs.domain.Player;
+import com.ksy.fmrs.domain.player.Player;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 

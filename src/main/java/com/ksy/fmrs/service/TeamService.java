@@ -2,7 +2,7 @@ package com.ksy.fmrs.service;
 
 import com.ksy.fmrs.domain.League;
 import com.ksy.fmrs.domain.Team;
-import com.ksy.fmrs.dto.TeamDetailsDto;
+import com.ksy.fmrs.dto.search.TeamDetailsDto;
 import com.ksy.fmrs.repository.LeagueRepository;
 import com.ksy.fmrs.repository.Team.TeamRepository;
 import lombok.RequiredArgsConstructor;
