@@ -3,15 +3,16 @@ package com.ksy.fmrs.service;
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.*;
 
-import com.ksy.fmrs.domain.Nation;
-import com.ksy.fmrs.domain.Player;
+import com.ksy.fmrs.domain.player.Player;
 import com.ksy.fmrs.domain.Team;
-import com.ksy.fmrs.dto.PlayerDetailsDto;
-import com.ksy.fmrs.dto.SearchPlayerResponseDto;
-import com.ksy.fmrs.dto.TeamPlayersResponseDto;
-import com.ksy.fmrs.dto.SearchPlayerCondition;
+import com.ksy.fmrs.dto.player.PlayerDetailsDto;
+import com.ksy.fmrs.dto.search.SearchPlayerResponseDto;
+import com.ksy.fmrs.dto.search.TeamPlayersResponseDto;
+import com.ksy.fmrs.dto.search.SearchPlayerCondition;
 import com.ksy.fmrs.repository.Player.PlayerRepository;
+import org.assertj.core.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.mockito.*;
 import org.springframework.test.util.ReflectionTestUtils;
@@ -31,14 +32,14 @@ public class PlayerServiceTest {
 
     @InjectMocks
     private PlayerService playerService;
-
-    @BeforeEach
-    public void setup() {
-        MockitoAnnotations.openMocks(this);
-        // @Value로 주입받는 값들을 강제로 설정
-        ReflectionTestUtils.setField(playerService, "apiFootballKey", "dummyKey");
-        ReflectionTestUtils.setField(playerService, "apiFootballHost", "dummyHost");
-    }
+//
+//    @BeforeEach
+//    public void setup() {
+//        MockitoAnnotations.openMocks(this);
+//        // @Value로 주입받는 값들을 강제로 설정
+//        ReflectionTestUtils.setField(playerService, "apiFootballKey", "dummyKey");
+//        ReflectionTestUtils.setField(playerService, "apiFootballHost", "dummyHost");
+//    }
 
     @Test
     public void testGetPlayerDetailsSuccess() {
@@ -47,13 +48,13 @@ public class PlayerServiceTest {
         // 팀은 빌더를 통해 생성 (name만 인자로)
         Team team = Team.builder().name("Team A").build();
         // Nation은 일반 인스턴스로 생성 (혹은 builder가 있다면 동일하게 사용)
-        Nation nation = Nation.builder().name("Nation A").build();
+//        Nation nation = Nation.builder().name("Nation A").build();
 
         // Player는 빌더 패턴으로 생성한 후 id, team, nation은 Reflection을 통해 주입
         Player player = Player.builder().build();
         ReflectionTestUtils.setField(player, "id", playerId);
         ReflectionTestUtils.setField(player, "team", team);
-        ReflectionTestUtils.setField(player, "nation", nation);
+//        ReflectionTestUtils.setField(player, "nation", nation);
 
         when(playerRepository.findById(playerId)).thenReturn(Optional.of(player));
 
@@ -85,17 +86,17 @@ public class PlayerServiceTest {
         // given
         Long teamId = 1L;
         Team team = Team.builder().name("Team A").build();
-        Nation nation = Nation.builder().name("Nation A").build();
+//        Nation nation = Nation.builder().name("Nation A").build();
 
         Player player1 = Player.builder().build();
         ReflectionTestUtils.setField(player1, "id", 1L);
         ReflectionTestUtils.setField(player1, "team", team);
-        ReflectionTestUtils.setField(player1, "nation", nation);
+//        ReflectionTestUtils.setField(player1, "nation", nation);
 
         Player player2 = Player.builder().build();
         ReflectionTestUtils.setField(player2, "id", 2L);
         ReflectionTestUtils.setField(player2, "team", team);
-        ReflectionTestUtils.setField(player2, "nation", nation);
+//        ReflectionTestUtils.setField(player2, "nation", nation);
 
         when(playerRepository.findAllByTeamId(teamId)).thenReturn(Arrays.asList(player1, player2));
 
@@ -111,18 +112,18 @@ public class PlayerServiceTest {
     @Test
     public void testGetPlayersByMarketValueDesc() {
         // given
-        Nation nation = Nation.builder().name("Nation A").build();
+//        Nation nation = Nation.builder().name("Nation A").build();
         Team team = Team.builder().name("Team A").build();
 
         Player player1 = Player.builder().build();
         ReflectionTestUtils.setField(player1, "id", 1L);
         ReflectionTestUtils.setField(player1, "team", team);
-        ReflectionTestUtils.setField(player1, "nation", nation);
+//        ReflectionTestUtils.setField(player1, "nation", nation);
 
         Player player2 = Player.builder().build();
         ReflectionTestUtils.setField(player2, "id", 2L);
         ReflectionTestUtils.setField(player2, "team", team);
-        ReflectionTestUtils.setField(player2, "nation", nation);
+//        ReflectionTestUtils.setField(player2, "nation", nation);
 
         when(playerRepository.findAllByOrderByMarketValueDesc()).thenReturn(Arrays.asList(player1, player2));
 
@@ -138,13 +139,13 @@ public class PlayerServiceTest {
     public void testSearchPlayerByName() {
         // given
         String name = "John";
-        Nation nation = Nation.builder().name("Nation A").build();
+//        Nation nation = Nation.builder().name("Nation A").build();
         Team team = Team.builder().name("Team A").build();
 
         Player player = Player.builder().build();
         ReflectionTestUtils.setField(player, "id", 1L);
         ReflectionTestUtils.setField(player, "team", team);
-        ReflectionTestUtils.setField(player, "nation", nation);
+//        ReflectionTestUtils.setField(player, "nation", nation);
 
         when(playerRepository.searchPlayerByName(name)).thenReturn(Arrays.asList(player));
 
@@ -161,13 +162,13 @@ public class PlayerServiceTest {
         // given
         SearchPlayerCondition condition = new SearchPlayerCondition();
         // 필요한 조건 필드가 있다면 condition에 추가 설정
-        Nation nation = Nation.builder().name("Nation A").build();
+//        Nation nation = Nation.builder().name("Nation A").build();
         Team team = Team.builder().name("Team A").build();
 
         Player player = Player.builder().build();
         ReflectionTestUtils.setField(player, "id", 1L);
         ReflectionTestUtils.setField(player, "team", team);
-        ReflectionTestUtils.setField(player, "nation", nation);
+//        ReflectionTestUtils.setField(player, "nation", nation);
 
         when(playerRepository.searchPlayerByDetailCondition(condition)).thenReturn(Arrays.asList(player));
 
@@ -177,5 +178,25 @@ public class PlayerServiceTest {
         // then
         assertNotNull(result);
         assertEquals(1, result.getPlayers().size());
+    }
+
+    @Test
+    @DisplayName("Json 파일명으로 선수 이름 구하기")
+    void getPlayerNameFromFileName(){
+        // given
+        String fileName = "103607-James Henry";
+
+        if(fileName == null) {
+            throw new IllegalArgumentException("fileName is null");
+        }
+        String[] splitFile = fileName.split("-");
+        if(splitFile.length != 2) {
+            throw new IllegalArgumentException("fileName is invalid");
+        }
+        // when
+
+        // then
+        Assertions.assertThat("103607").isEqualTo(splitFile[0]);
+        Assertions.assertThat("James Henry").isEqualTo(splitFile[1]);
     }
 }
