@@ -26,6 +26,16 @@ public class PlayerRepositoryCustomImpl implements PlayerRepositoryCustom {
 //                .fetch();
 //    }
 
+    // lastName, 나이로 검색
+    @Override
+    public List<Player> searchPlayerByLastNameAndAge(String lastName, Integer age) {
+        return jpaQueryFactory
+                .selectFrom(QPlayer.player)
+                .where(eqName(lastName), eqAge(age))
+                .fetch();
+    }
+
+    // 이름 검색
     @Override
     public List<Player> searchPlayerByName(String name) {
         return jpaQueryFactory
@@ -90,16 +100,32 @@ public class PlayerRepositoryCustomImpl implements PlayerRepositoryCustom {
     }
 
     // 검색 조건
-    private BooleanExpression nameContains(String name){
-        if(name == null || name.isEmpty()){
+    private BooleanExpression nameContains(String name) {
+        if (name == null || name.isEmpty()) {
             return null;
         }
         return QPlayer.player.name.contains(name);
     }
 
+
+    private BooleanExpression eqName(String name){
+        if(name == null || name.isEmpty()){
+            return null;
+        }
+        return QPlayer.player.name.eq(name);
+    }
+
+    private BooleanExpression eqAge(Integer age) {
+        if (age == null) {
+            return null;
+        }
+        return QPlayer.player.age.eq(age);
+    }
+
+
     // 나이(초기값 14~99)
-    private BooleanExpression age(Integer ageMin, Integer ageMax){
-        if(ageMin == null || ageMax == null || ageMin > ageMax){
+    private BooleanExpression age(Integer ageMin, Integer ageMax) {
+        if (ageMin == null || ageMax == null || ageMin > ageMax) {
             return null;
         }
         return QPlayer.player.age.between(ageMin, ageMax);
@@ -114,8 +140,8 @@ public class PlayerRepositoryCustomImpl implements PlayerRepositoryCustom {
 //    }
 
     // 팀
-    private BooleanExpression team(QTeam team, String teamName){
-        if (teamName == null || teamName.isEmpty()){
+    private BooleanExpression team(QTeam team, String teamName) {
+        if (teamName == null || teamName.isEmpty()) {
             return null;
         }
         return team.name.eq(teamName);
