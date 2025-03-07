@@ -127,6 +127,15 @@ public class Player {
         team.getPlayers().add(this);
     }
 
+    public String getLastName(){
+        String[] split = name.split(" ");
+        return split[split.length-1];
+    }
+
+    public void updatePlayerApiId(Integer playerApiId) {
+        this.playerApiId = playerApiId;
+    }
+
     public void updateMarketValue(int marketValue) {
         this.marketValue = marketValue;
     }
