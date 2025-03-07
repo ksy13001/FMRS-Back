@@ -9,6 +9,8 @@ import java.util.List;
 @Repository
 public interface PlayerRepositoryCustom {
     List<Player> searchPlayerByName(String name);
+
     List<Player> searchPlayerByDetailCondition(SearchPlayerCondition condition);
-//    List<Player> getPlayersByTeamId(Long teamId);
+
+    List<Player> searchPlayerByLastNameAndAge(String lastName, Integer age);
 }

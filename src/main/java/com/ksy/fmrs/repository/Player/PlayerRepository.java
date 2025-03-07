@@ -5,10 +5,14 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 
 import java.util.List;
+import java.util.Optional;
 
 @Repository
 public interface PlayerRepository extends JpaRepository<Player, Long>, PlayerRepositoryCustom {
 
-    public List<Player> findAllByTeamId(Long teamId);
-    public List<Player> findAllByOrderByMarketValueDesc();
+    List<Player> findAllByTeamId(Long teamId);
+
+    Optional<Player> findByPlayerApiId(Integer playerApiId);
+
+    List<Player> findAllByOrderByMarketValueDesc();
 }
