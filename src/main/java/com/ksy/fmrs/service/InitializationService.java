@@ -10,9 +10,13 @@ import com.ksy.fmrs.dto.search.TeamDetailsDto;
 import com.ksy.fmrs.repository.LeagueRepository;
 import com.ksy.fmrs.repository.Player.PlayerRepository;
 import com.ksy.fmrs.repository.Team.TeamRepository;
+import com.ksy.fmrs.util.StringUtils;
+import com.ksy.fmrs.util.TimeUtils;
+import io.netty.util.internal.StringUtil;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.io.File;
@@ -85,38 +89,37 @@ public class InitializationService {
         teamService.saveByTeamDetails(teamDetailsDto);
     }
 
-
     @Transactional
     public void savePlayersFromFmPlayers(String dirPath){
+        playerRepository.saveAll(getPlayersFromFmPlayers(dirPath));
+    }
+
+    public List<Player> getPlayersFromFmPlayers(String dirPath) {
         File folder = new File(dirPath);
         File[] jsonFiles = folder.listFiles((dir, name) -> name.toLowerCase().endsWith(".json"));
 
-        if (jsonFiles == null || jsonFiles.length == 0) {
-            log.warn("No JSON files found in folder: {}", dirPath);
-            return;
-        }
         List<Player> players = new ArrayList<>();
         for (File file : jsonFiles) {
             try {
                 // DB에 저장
                 players.add(importPlayerFromJson(file));
-                log.info("Imported player from file: {}", file.getName());
             } catch (Exception e) {
                 log.error("Error importing file {}: {}", file.getName(), e.getMessage(), e);
             }
         }
-        playerRepository.saveAll(players);
+        return players;
     }
 
     private Player importPlayerFromJson(File file) throws IOException {
         FmPlayerDto fmPlayerDto = objectMapper.readValue(file, FmPlayerDto.class);
-        return convertFmPlayerDtoToPlayer(getPlayerNameFromFileName(file.getName()), fmPlayerDto);
+        return convertFmPlayerDtoToPlayer(StringUtils.getPlayerNameFromFileName(file.getName()), fmPlayerDto);
     }
 
     private Player convertFmPlayerDtoToPlayer(String name, FmPlayerDto fmPlayerDto) {
         return Player.builder()
                 .name(name)
-                .lastName(getLastName(name))
+                .lastName(StringUtils.getLastName(name))
+                .age(TimeUtils.getAge(fmPlayerDto.getBorn()))
                 .birth(fmPlayerDto.getBorn())
                 .height(fmPlayerDto.getHeight())
                 .weight(fmPlayerDto.getWeight())
@@ -132,32 +135,6 @@ public class InitializationService {
                 .position(getPositionFromFmPlayer(fmPlayerDto))
                 .build();
     }
-
-    private String getLastName(String name){
-        String[] split = name.split(" ");
-        return split[split.length-1];
-    }
-
-    //103607-James Henry
-    private String getPlayerNameFromFileName(String fileName) {
-        if(fileName == null) {
-            throw new IllegalArgumentException("fileName is null");
-        }
-        // 확장자(.json) 제거
-        int dotIndex = fileName.lastIndexOf('.');
-        if (dotIndex != -1) {
-            fileName = fileName.substring(0, dotIndex);
-        }
-        // 첫 번째 하이픈 위치 찾기
-        int hyphenIndex = fileName.indexOf('-');
-        if (hyphenIndex == -1 || hyphenIndex == fileName.length() - 1) {
-            // 하이픈이 없거나 하이픈이 마지막이면 전체 문자열 반환
-            return fileName.trim();
-        }
-        // 첫 번째 하이픈 이후의 모든 문자열을 이름으로 사용 (이름에 하이픈이 포함될 수 있음)
-        return fileName.substring(hyphenIndex + 1).trim();
-    }
-
 
     private GoalKeeperAttributes getGoalKeeperAttributesFromFmPlayer(FmPlayerDto fmPlayerDto) {
         FmPlayerDto.GoalKeeperAttributesDto goalKeeperAttributesDto = fmPlayerDto.getGoalKeeperAttributes();
