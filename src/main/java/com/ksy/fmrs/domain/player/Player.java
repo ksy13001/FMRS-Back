@@ -30,6 +30,8 @@ public class Player {
 
     private int weight;
 
+    private int age;
+
     @Column(name = "nation_name")
     private String nationName;
 
@@ -106,6 +108,7 @@ public class Player {
             int potentialAbility
     ) {
         this.name = name;
+        this.age = age;
         this.lastName = lastName;
         this.birth = birth;
         this.height = height;
@@ -139,9 +142,5 @@ public class Player {
 
     public void updateImageUrl(String imageUrl) {
         this.imageUrl = imageUrl;
-    }
-
-    public int getAge(){
-        return Period.between(this.birth, LocalDate.now()).getYears();
     }
 }
