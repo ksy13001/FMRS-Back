@@ -63,28 +63,32 @@ public class FootballApiService {
     }
 
     public LeagueStandingDto getLeagueStandings(Integer leagueApiId, int currentSeason) {
-        String url = UrlEnum.buildStandingUrl(leagueApiId, currentSeason);
-        StandingsAPIResponseDto response = getApiResponse(url, StandingsAPIResponseDto.class);
+        StandingsAPIResponseDto response = getApiResponse(
+                UrlEnum.buildStandingUrl(leagueApiId, currentSeason),
+                StandingsAPIResponseDto.class);
         return getValidatedLeagueDetails(response);
     }
 
     public List<PlayerSimpleDto> getLeagueTopScorers(Integer leagueApiId) {
         League league = findLeagueByLeagueApiId(leagueApiId);
-        String url = UrlEnum.buildTopScorersUrl(leagueApiId, league.getCurrentSeason());
-        LeagueApiTopPlayerResponseDto response = getApiResponse(url, LeagueApiTopPlayerResponseDto.class);
+        LeagueApiTopPlayerResponseDto response = getApiResponse(
+                UrlEnum.buildTopScorersUrl(leagueApiId, league.getCurrentSeason()),
+                LeagueApiTopPlayerResponseDto.class);
         return convertToPlayerSimpleDtoList(response);
     }
 
     public List<PlayerSimpleDto> getLeagueTopAssists(Integer leagueApiId) {
         League league = findLeagueByLeagueApiId(leagueApiId);
-        String url = UrlEnum.buildTopAssistsUrl(leagueApiId, league.getCurrentSeason());
-        LeagueApiTopPlayerResponseDto response = getApiResponse(url, LeagueApiTopPlayerResponseDto.class);
+        LeagueApiTopPlayerResponseDto response = getApiResponse(
+                UrlEnum.buildTopAssistsUrl(leagueApiId, league.getCurrentSeason()),
+                LeagueApiTopPlayerResponseDto.class);
         return convertToPlayerSimpleDtoList(response);
     }
 
     public TeamDetailsDto getTeamDetails(Integer leagueApiId, Integer teamApiId, int currentSeason) {
-        String url = UrlEnum.buildTeamStatisticsUrl(teamApiId, leagueApiId, currentSeason);
-        TeamStatisticsApiResponseDto response = getApiResponse(url, TeamStatisticsApiResponseDto.class);
+        TeamStatisticsApiResponseDto response = getApiResponse(
+                UrlEnum.buildTeamStatisticsUrl(teamApiId, leagueApiId, currentSeason),
+                TeamStatisticsApiResponseDto.class);
         return convertStatisticsToTeamDetailsDto(response, currentSeason);
     }
 
@@ -93,8 +97,9 @@ public class FootballApiService {
     }
 
     public List<SquadPlayerDto> getSquadPlayers(Integer teamApiId) {
-        String url = UrlEnum.buildSquadUrl(teamApiId);
-        List<SquadApiResponseDto.ResponseItem> response = getApiResponse(url, SquadApiResponseDto.class).getResponse();
+        List<SquadApiResponseDto.ResponseItem> response = getApiResponse(
+                UrlEnum.buildSquadUrl(teamApiId),
+                SquadApiResponseDto.class).getResponse();
         if (response == null || response.isEmpty() || response.get(0) == null) {
             return Collections.emptyList();
         }
