@@ -10,6 +10,7 @@ import com.ksy.fmrs.dto.league.LeagueDetailsRequestDto;
 import com.ksy.fmrs.dto.league.LeagueStandingDto;
 import com.ksy.fmrs.dto.player.PlayerSimpleDto;
 import com.ksy.fmrs.dto.player.PlayerStatDto;
+import com.ksy.fmrs.dto.player.SquadPlayerDto;
 import com.ksy.fmrs.dto.search.TeamDetailsDto;
 import com.ksy.fmrs.dto.search.TeamStandingDto;
 import com.ksy.fmrs.repository.LeagueRepository;
@@ -22,8 +23,10 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.client.RestClient;
 
+import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 @RequiredArgsConstructor
 @Service
@@ -86,7 +89,17 @@ public class FootballApiService {
     }
 
     public LeagueDetailsRequestDto getLeagueInfo(Integer leagueApiId) {
-        return converToLeagueInfoDto(getApiResponse(UrlEnum.buildLeagueUrl(leagueApiId), LeagueApiResponseDto.class));
+        return convertToLeagueInfoDto(getApiResponse(UrlEnum.buildLeagueUrl(leagueApiId), LeagueApiResponseDto.class));
+    }
+
+    public List<SquadPlayerDto> getSquadPlayers(Integer teamApiId) {
+        String url = UrlEnum.buildSquadUrl(teamApiId);
+        List<SquadApiResponseDto.ResponseItem> response = getApiResponse(url, SquadApiResponseDto.class).getResponse();
+        if (response == null || response.isEmpty() || response.get(0) == null) {
+            return Collections.emptyList();
+        }
+        return response.getFirst().getPlayers()
+                .stream().map(this::convertToSquadPlayerDto).collect(Collectors.toList());
     }
 
 //    private LeagueType validateLeagueType(LeagueApiResponseDto response) {
@@ -283,7 +296,7 @@ public class FootballApiService {
                 .build();
     }
 
-    private LeagueDetailsRequestDto converToLeagueInfoDto(LeagueApiResponseDto response) {
+    private LeagueDetailsRequestDto convertToLeagueInfoDto(LeagueApiResponseDto response) {
         LeagueApiResponseDto.League league = response.getResponse().getFirst().getLeague();
         LeagueApiResponseDto.Country country = response.getResponse().getFirst().getCountry();
 
@@ -297,6 +310,15 @@ public class FootballApiService {
                 .nationName(country.getName())
                 .nationImageUrl(country.getFlag())
                 .Standing(season.getCoverage().isStandings())
+                .build();
+    }
+
+    private SquadPlayerDto convertToSquadPlayerDto(SquadApiResponseDto.Player player) {
+        return SquadPlayerDto.builder()
+                .name(player.getName())
+                .age(player.getAge())
+                .imageUrl(player.getPhoto())
+                .playerApiId(player.getId())
                 .build();
     }
 }

@@ -6,6 +6,7 @@ import jakarta.persistence.*;
 import lombok.*;
 
 import java.time.LocalDate;
+import java.time.Period;
 
 @Getter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
@@ -21,9 +22,9 @@ public class Player {
 
     private String name;
 
-    private LocalDate birth;
+    private String lastName;
 
-    private int age;
+    private LocalDate birth;
 
     private int height;
 
@@ -87,6 +88,7 @@ public class Player {
     @Builder
     public Player(
             String name,
+            String lastName,
             LocalDate birth,
             int age,
             int height,
@@ -104,8 +106,8 @@ public class Player {
             int potentialAbility
     ) {
         this.name = name;
+        this.lastName = lastName;
         this.birth = birth;
-        this.age = age;
         this.height = height;
         this.weight = weight;
         this.marketValue = marketValue;
@@ -127,11 +129,6 @@ public class Player {
         team.getPlayers().add(this);
     }
 
-    public String getLastName(){
-        String[] split = name.split(" ");
-        return split[split.length-1];
-    }
-
     public void updatePlayerApiId(Integer playerApiId) {
         this.playerApiId = playerApiId;
     }
@@ -142,5 +139,9 @@ public class Player {
 
     public void updateImageUrl(String imageUrl) {
         this.imageUrl = imageUrl;
+    }
+
+    public int getAge(){
+        return Period.between(this.birth, LocalDate.now()).getYears();
     }
 }
