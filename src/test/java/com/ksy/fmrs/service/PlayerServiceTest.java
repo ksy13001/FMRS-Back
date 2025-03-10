@@ -183,20 +183,21 @@ public class PlayerServiceTest {
     @Test
     @DisplayName("Json 파일명으로 선수 이름 구하기")
     void getPlayerNameFromFileName(){
-        // given
         String fileName = "103607-James Henry";
 
         if(fileName == null) {
             throw new IllegalArgumentException("fileName is null");
         }
-        String[] splitFile = fileName.split("-");
-        if(splitFile.length != 2) {
-            throw new IllegalArgumentException("fileName is invalid");
+        // 확장자(.json) 제거
+        int dotIndex = fileName.lastIndexOf('.');
+        if (dotIndex != -1) {
+            fileName = fileName.substring(0, dotIndex);
         }
-        // when
+        // 첫 번째 하이픈 위치 찾기
+        int hyphenIndex = fileName.indexOf('-');
+        // 첫 번째 하이픈 이후의 모든 문자열을 이름으로 사용 (이름에 하이픈이 포함될 수 있음)
+        fileName.substring(hyphenIndex + 1).trim();
 
-        // then
-        Assertions.assertThat("103607").isEqualTo(splitFile[0]);
-        Assertions.assertThat("James Henry").isEqualTo(splitFile[1]);
+        Assertions.assertThat("James Henry").isEqualTo(fileName);
     }
 }

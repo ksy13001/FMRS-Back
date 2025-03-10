@@ -30,4 +30,9 @@ public class TeamService {
         teamRepository.save(team);
     }
 
+    public Team findByTeamApiId(Integer teamApiId) {
+        return teamRepository.findTeamByTeamApiId(teamApiId)
+                .orElseThrow(()-> new RuntimeException("Team not found teamApiId: " + teamApiId));
+    }
+
 }

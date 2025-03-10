@@ -70,4 +70,8 @@ public class Team {
         this.league = league;
         league.getTeams().add(this);
     }
+
+    public void resetSquad(){
+        this.players = new ArrayList<>();
+    }
 }
