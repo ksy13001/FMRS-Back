@@ -15,7 +15,6 @@ public enum UrlEnum {
     PARAM_SEASON("season="),
     PARAM_ID("id="),
     PARAM_LEAGUE("league="),
-    SEASON_2024_2025("2024"),
     AND("&");
 
     private final String value;
@@ -29,13 +28,11 @@ public enum UrlEnum {
     }
 
     // 선수 통계 API URL을 생성 (playerName, teamApiId, 시즌)
-    public static String buildPlayerStatUrl(String playerName, Integer teamApiId) {
+    public static String buildPlayerStatUrl(Integer playerApiId, int currentSeason) {
         return PLAYER_STATISTICS_URL.getValue() +
-                PARAM_SEARCH.getValue() + playerName +
+                PARAM_ID.getValue() + playerApiId +
                 AND.getValue() +
-                PARAM_TEAM.getValue() + teamApiId +
-                AND.getValue() +
-                PARAM_SEASON.getValue() + SEASON_2024_2025.getValue();
+                PARAM_SEASON.getValue() + currentSeason;
     }
 
     // 팀 API URL을 생성 (teamName)
