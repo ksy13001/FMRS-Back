@@ -9,6 +9,7 @@ import com.querydsl.jpa.impl.JPAQueryFactory;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Repository;
 
+import java.time.LocalDate;
 import java.util.List;
 
 @RequiredArgsConstructor
@@ -28,10 +29,10 @@ public class PlayerRepositoryCustomImpl implements PlayerRepositoryCustom {
 
     // lastName, 나이로 검색
     @Override
-    public List<Player> searchPlayerByLastNameAndAge(String lastName, Integer age) {
+    public List<Player> searchPlayerByLastNameAndBirth(String lastName, LocalDate birth) {
         return jpaQueryFactory
                 .selectFrom(QPlayer.player)
-                .where(eqName(lastName), eqAge(age))
+                .where(eqLastName(lastName), eqBirth(birth))
                 .fetch();
     }
 
@@ -107,12 +108,19 @@ public class PlayerRepositoryCustomImpl implements PlayerRepositoryCustom {
         return QPlayer.player.name.contains(name);
     }
 
-
-    private BooleanExpression eqName(String name){
-        if(name == null || name.isEmpty()){
+    private BooleanExpression eqBirth(LocalDate birth) {
+        if(birth == null) {
             return null;
         }
-        return QPlayer.player.name.eq(name);
+        return QPlayer.player.birth.eq(birth);
+    }
+
+
+    private BooleanExpression eqLastName(String lastName){
+        if(lastName == null || lastName.isEmpty()){
+            return null;
+        }
+        return QPlayer.player.lastName.eq(lastName);
     }
 
     private BooleanExpression eqAge(Integer age) {

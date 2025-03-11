@@ -1,5 +1,8 @@
 package com.ksy.fmrs.util;
 
+import java.time.LocalDate;
+import java.time.format.DateTimeFormatter;
+
 public class StringUtils {
 
     private StringUtils(){}
@@ -34,5 +37,12 @@ public class StringUtils {
         }
         double rating = Double.parseDouble(r);
         return String.format("%.2f", rating);
+    }
+
+    public static LocalDate parseLocalToString(String date) {
+        if (date == null) {
+            return null;
+        }
+        return LocalDate.parse(date, DateTimeFormatter.ISO_LOCAL_DATE);
     }
 }

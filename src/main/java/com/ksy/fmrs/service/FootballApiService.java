@@ -1,6 +1,7 @@
 package com.ksy.fmrs.service;
 
 import com.ksy.fmrs.domain.League;
+import com.ksy.fmrs.domain.Team;
 import com.ksy.fmrs.domain.player.Player;
 import com.ksy.fmrs.domain.player.PlayerStat;
 import com.ksy.fmrs.domain.enums.UrlEnum;
@@ -16,6 +17,7 @@ import com.ksy.fmrs.dto.search.TeamStandingDto;
 import com.ksy.fmrs.repository.LeagueRepository;
 import com.ksy.fmrs.repository.Player.PlayerRepository;
 import com.ksy.fmrs.repository.PlayerStatRepository;
+import com.ksy.fmrs.util.StringUtils;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.ResponseEntity;
@@ -48,18 +50,24 @@ public class FootballApiService {
      * 3. playerName + teamApiId 를 통해 api-football 에서 playerApi + playerRealStat 가져옴
      */
     @Transactional
-    public PlayerStatDto savePlayerRealStat(Long playerId, String playerName, String teamName) {
-
+    public PlayerStatDto savePlayerRealStat(Long playerId, Integer playerApiId) {
+        Player player =  findPlayerById(playerId);
         return getOptionalPlayerStatById(playerId)
                 .map(PlayerStatDto::new)
                 .orElseGet(() -> {
-                    String url = UrlEnum.buildPlayerStatUrl(splitPlayerName(playerName), getTeamApiIdByTeamName(teamName));
+                    String url = UrlEnum.buildPlayerStatUrl(playerApiId, player.getTeam().getCurrentSeason());
                     PlayerStatisticsApiResponseDto response = getApiResponse(url, PlayerStatisticsApiResponseDto.class);
                     PlayerStatDto playerStatDto = convertStatisticsToPlayerStatDto(response);
                     updatePlayerImage(playerId, playerStatDto.getImageUrl());
                     savePlayerStat(convertPlayerStatDtoToPlayerStat(playerId, playerStatDto));
                     return playerStatDto;
                 });
+    }
+
+    public PlayerStatisticsApiResponseDto getSquadStatistics(Integer teamApiId, int currentSeason) {
+        return getApiResponse(
+                UrlEnum.buildPlayerStatisticsUrlByTeamApiId(teamApiId, currentSeason),
+                PlayerStatisticsApiResponseDto.class);
     }
 
     public LeagueStandingDto getLeagueStandings(Integer leagueApiId, int currentSeason) {
@@ -124,13 +132,6 @@ public class FootballApiService {
     }
 
 
-    private String truncateToTwoDecimalsRanging(String r) {
-        if (r == null || r.isEmpty()) {
-            return "0";
-        }
-        double rating = Double.parseDouble(r);
-        return String.format("%.2f", rating);
-    }
 
     private Integer getTeamApiIdByTeamName(String teamName) {
         String url = UrlEnum.buildTeamUrl(teamName);
@@ -222,7 +223,7 @@ public class FootballApiService {
         playerStatDto.setGoal(stat.getGoals().getTotal());
         playerStatDto.setAssist(stat.getGoals().getAssists());
         playerStatDto.setPk(stat.getPenalty().getScored());
-        playerStatDto.setRating(truncateToTwoDecimalsRanging(stat.getGames().getRating()));
+        playerStatDto.setRating(StringUtils.truncateToTwoDecimalsRanging(stat.getGames().getRating()));
         playerStatDto.setImageUrl(response.getResponse().getFirst().getPlayer().getPhoto());
         return playerStatDto;
     }

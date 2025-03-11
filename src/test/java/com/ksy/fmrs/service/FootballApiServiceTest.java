@@ -169,7 +169,7 @@ public class FootballApiServiceTest {
         when(playerStatRepository.findById(playerId)).thenReturn(Optional.of(existingStat));
 
         // when
-        PlayerStatDto result = footballApiService.savePlayerRealStat(playerId, playerName, teamName);
+        PlayerStatDto result = footballApiService.savePlayerRealStat(playerId, 2024);
 
         // then
         assertNotNull(result);

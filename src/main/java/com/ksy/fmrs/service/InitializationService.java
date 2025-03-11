@@ -3,6 +3,7 @@ package com.ksy.fmrs.service;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.ksy.fmrs.domain.enums.LeagueType;
 import com.ksy.fmrs.domain.player.*;
+import com.ksy.fmrs.dto.apiFootball.PlayerStatisticsApiResponseDto;
 import com.ksy.fmrs.dto.league.LeagueStandingDto;
 import com.ksy.fmrs.dto.league.LeagueDetailsRequestDto;
 import com.ksy.fmrs.dto.player.FmPlayerDto;
@@ -12,15 +13,14 @@ import com.ksy.fmrs.repository.Player.PlayerRepository;
 import com.ksy.fmrs.repository.Team.TeamRepository;
 import com.ksy.fmrs.util.StringUtils;
 import com.ksy.fmrs.util.TimeUtils;
-import io.netty.util.internal.StringUtil;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.io.File;
 import java.io.IOException;
+import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -57,17 +57,45 @@ public class InitializationService {
             }
 
             saveInitialLeague(leagueDetailsRequestDto);
-            LeagueStandingDto leagueStandingDto = footballApiService.getLeagueStandings(nowLeagueApiId, leagueDetailsRequestDto.getCurrentSeason());
-
-            if(leagueStandingDto.getStandings().isEmpty()){
-                // leagueApiId = 447 인 경우 leagueInfo 에서 standing=true 인데 실제 standing 요청시 null 인경우 존재
+            LeagueStandingDto leagueStandingDto = getLeagueStandingDto(nowLeagueApiId, leagueDetailsRequestDto.getCurrentSeason());
+            if(leagueStandingDto == null){
                 continue;
             }
-
-            leagueStandingDto.getStandings().forEach(standing -> {
-                saveInitialTeam(leagueDetailsRequestDto.getLeagueApiId(), standing.getTeamApiId(), leagueDetailsRequestDto.getCurrentSeason());
-            });
+            updatePlayerApiId(leagueStandingDto, leagueDetailsRequestDto);
         }
+    }
+
+    private void updatePlayerApiId(LeagueStandingDto leagueStandingDto, LeagueDetailsRequestDto leagueDetailsRequestDto) {
+        leagueStandingDto.getStandings().forEach(standing -> {
+            saveInitialTeam(leagueDetailsRequestDto.getLeagueApiId(), standing.getTeamApiId(), leagueDetailsRequestDto.getCurrentSeason());
+            PlayerStatisticsApiResponseDto response = footballApiService.getSquadStatistics(standing.getTeamApiId(), leagueDetailsRequestDto.getCurrentSeason());
+            response.getResponse().forEach(playerWrapperDto -> {// player, statistics
+                PlayerStatisticsApiResponseDto.PlayerDto squadPlayer = playerWrapperDto.getPlayer();
+                PlayerStatisticsApiResponseDto.StatisticDto statistic = playerWrapperDto.getStatistics().getFirst();
+                String lastName = StringUtils.getLastName(squadPlayer.getName());
+                LocalDate birth = StringUtils.parseLocalToString(squadPlayer.getBirth().getDate());
+                List<Player> findPlayers = playerRepository.searchPlayerByLastNameAndBirth(lastName, birth);
+                if (findPlayers.size() > 1) {
+                    log.info("max_size error----: name:" + squadPlayer.getName());
+                    return;
+                }
+                if (findPlayers.isEmpty()) {
+                    log.info("empty error----: name:" + squadPlayer.getName());
+                    return;
+                }
+                findPlayers.getFirst().updatePlayerApiId(squadPlayer.getId());
+                playerRepository.save(findPlayers.getFirst());
+            });
+        });
+    }
+
+    private LeagueStandingDto getLeagueStandingDto(Integer nowLeagueApiId, int currentSeason){
+        LeagueStandingDto leagueStandingDto  = footballApiService.getLeagueStandings(nowLeagueApiId, currentSeason);
+        if(leagueStandingDto.getStandings().isEmpty()){
+            // leagueApiId = 447 인 경우 leagueInfo 에서 standing=true 인데 실제 standing 요청시 null 인경우 존재
+            return null;
+        }
+        return leagueStandingDto;
     }
 
     private Boolean isLeagueType(LeagueDetailsRequestDto leagueDetailsRequestDto) {

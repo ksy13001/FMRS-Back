@@ -35,7 +35,7 @@ public class Player {
     @Column(name = "nation_name")
     private String nationName;
 
-    @Column(name="nation_logo_url")
+    @Column(name = "nation_logo_url")
     private String nationLogoUrl;
 
     @Column(name = "market_value")

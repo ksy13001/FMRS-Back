@@ -24,8 +24,7 @@ public class AdminController {
         PlayerDetailsDto playerDetailsResponseDto = playerService.getPlayerDetails(playerId);
         return footballApiService.savePlayerRealStat(
                 playerDetailsResponseDto.getId(),
-                playerDetailsResponseDto.getName(),
-                playerDetailsResponseDto.getTeamName()
+                playerDetailsResponseDto.getPlayerApiId()
         );
     }
 

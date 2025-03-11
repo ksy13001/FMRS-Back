@@ -24,8 +24,7 @@ public class PlayerController {
         PlayerDetailsDto playerDetailsResponseDto = playerService.getPlayerDetails(playerId);
         PlayerStatDto playerStatDto = footballApiService.savePlayerRealStat(
                 playerDetailsResponseDto.getId(),
-                playerDetailsResponseDto.getName(),
-                playerDetailsResponseDto.getTeamName()
+                playerDetailsResponseDto.getPlayerApiId()
         );
         model.addAttribute("player", playerDetailsResponseDto);
         model.addAttribute("realFootballStat", playerStatDto);
