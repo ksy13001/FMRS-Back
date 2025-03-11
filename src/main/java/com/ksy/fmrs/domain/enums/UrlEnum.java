@@ -15,6 +15,8 @@ public enum UrlEnum {
     PARAM_SEASON("season="),
     PARAM_ID("id="),
     PARAM_LEAGUE("league="),
+    PARAM_PAGE("page="),
+    PARAM_SCORE("score="),
     AND("&");
 
     private final String value;
@@ -83,11 +85,15 @@ public enum UrlEnum {
                 PARAM_SEASON.getValue() + currentSeason;
     }
 
-    public static String buildPlayerStatisticsUrlByTeamApiId(Integer teamApiId, int currentSeason) {
+    public static String buildPlayerStatisticsUrlByTeamApiId(Integer teamApiId, Integer leagueApiId, int currentSeason, int page) {
         return PLAYER_STATISTICS_URL.getValue() +
                 PARAM_TEAM.getValue() + teamApiId +
                 AND.getValue() +
-                PARAM_SEASON.getValue() + currentSeason;
+                PARAM_SEASON.getValue() + currentSeason+
+                AND.getValue()+
+                PARAM_LEAGUE.getValue() + leagueApiId +
+                AND.getValue() +
+                PARAM_PAGE.getValue() + page;
     }
 }
 //GET /players/topscorers?league=39&season=2019

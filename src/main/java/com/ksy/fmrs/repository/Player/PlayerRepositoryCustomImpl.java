@@ -29,10 +29,10 @@ public class PlayerRepositoryCustomImpl implements PlayerRepositoryCustom {
 
     // lastName, 나이로 검색
     @Override
-    public List<Player> searchPlayerByLastNameAndBirth(String lastName, LocalDate birth) {
+    public List<Player> searchPlayerByLastNameAndBirth(String lastName, LocalDate birth, String firstName) {
         return jpaQueryFactory
                 .selectFrom(QPlayer.player)
-                .where(eqLastName(lastName), eqBirth(birth))
+                .where(eqLastName(lastName), eqBirth(birth),  eqFirstName(firstName))
                 .fetch();
     }
 
@@ -108,6 +108,12 @@ public class PlayerRepositoryCustomImpl implements PlayerRepositoryCustom {
         return QPlayer.player.name.contains(name);
     }
 
+    private BooleanExpression eqFirstName(String first){
+        if (first == null || first.isEmpty()) {
+            return null;
+        }
+        return QPlayer.player.firstName.eq(first);
+    }
     private BooleanExpression eqBirth(LocalDate birth) {
         if(birth == null) {
             return null;

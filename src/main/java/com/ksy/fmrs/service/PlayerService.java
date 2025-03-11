@@ -2,14 +2,20 @@ package com.ksy.fmrs.service;
 
 import com.ksy.fmrs.domain.player.*;
 import com.ksy.fmrs.domain.Team;
+import com.ksy.fmrs.dto.apiFootball.PlayerStatisticsApiResponseDto;
 import com.ksy.fmrs.dto.player.PlayerDetailsDto;
 import com.ksy.fmrs.dto.search.SearchPlayerCondition;
 import com.ksy.fmrs.dto.search.SearchPlayerResponseDto;
 import com.ksy.fmrs.dto.search.TeamPlayersResponseDto;
 import com.ksy.fmrs.repository.Player.PlayerRepository;
+import com.ksy.fmrs.util.StringUtils;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+
+import java.time.LocalDate;
+import java.util.List;
 import java.util.Optional;
 
 @Slf4j
@@ -36,6 +42,25 @@ public class PlayerService {
         return Optional.ofNullable(player.getTeam())
                 .map(Team::getName)
                 .orElse(null);
+    }
+
+    @Transactional
+    public void updatePlayerApiIdByPlayerWrapperDto(PlayerStatisticsApiResponseDto.PlayerWrapperDto playerWrapperDto) {
+        PlayerStatisticsApiResponseDto.PlayerDto squadPlayer = playerWrapperDto.getPlayer();
+        String firstName = StringUtils.getFirstName(squadPlayer.getFirstname());
+        String lastName = StringUtils.getLastName(squadPlayer.getName());
+        LocalDate birth = StringUtils.parseLocalToString(squadPlayer.getBirth().getDate());
+        List<Player> findPlayers = playerRepository.searchPlayerByLastNameAndBirth(lastName, birth, firstName);
+        if (findPlayers.size() > 1) {
+            log.info("------ max_size error----: name:" + squadPlayer.getName()+"  birth:" + birth +  " squadPlayer:" + squadPlayer.getName());
+            return;
+        }
+        if (findPlayers.isEmpty()) {
+            log.info("------ empty error: name:" + squadPlayer.getName()+"  birth:" + birth +  " squadPlayer first:" + squadPlayer.getFirstname());
+            return;
+        }
+        log.info("!!!!!! success name: " + squadPlayer.getName() + " api_idL " + squadPlayer.getId() );
+        findPlayers.getFirst().updatePlayerApiId(squadPlayer.getId());
     }
 
     /**

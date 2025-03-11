@@ -29,42 +29,40 @@ public class SchedulerService {
     private final PlayerRepository playerRepository;
     private final PlayerStatRepository playerStatRepository;
 
-    @Scheduled(cron = "0 0 6 * * ?")  // 초, 분, 시, 일, 월, 요일
-    @Transactional
-    public void updateSquad() {
-        teamRepository.findAll().forEach(this::updateSquadForTeam);
-    }
+//
 
-    @Transactional(propagation = Propagation.REQUIRES_NEW)
-    public void updateSquadForTeam(Team team){
-            // 팀 스쿼드 불러오기
-            PlayerStatisticsApiResponseDto response = footballApiService.getSquadStatistics(
-                    team.getTeamApiId(),
-                    team.getCurrentSeason());
-            if(response==null) {
-                return;
-            }
-            // 팀 초기화
-            team.resetSquad();
 
-            // 스쿼드 player 업데이트, 캐싱
-            response.getResponse().forEach(playerWrapperDto -> {// player, statistics
-                PlayerStatisticsApiResponseDto.PlayerDto squadPlayer = playerWrapperDto.getPlayer();
-                PlayerStatisticsApiResponseDto.StatisticDto statistic = playerWrapperDto.getStatistics().getFirst();
-                String lastName = StringUtils.getLastName(squadPlayer.getName());
-                LocalDate birth = StringUtils.parseLocalToString(squadPlayer.getBirth().getDate());
-
-                List<Player> findPlayers = playerRepository.searchPlayerByLastNameAndBirth(lastName, birth);
-                if (findPlayers.size() > 1) {
-                    log.info("max_size error----: name:" + squadPlayer.getName());
-                    return;
-                }
-                if (findPlayers.isEmpty()) {
-                    log.info("empty error----: name:" + squadPlayer.getName()+ " team = " + team.getTeamApiId() + " " + team.getName());
-                    return;
-                }
-                findPlayers.getFirst().updateTeam(team);
-                log.info("success-----: name : "+squadPlayer.getName()+" team = "+team.getTeamApiId()+" "+team.getName());
-            });
-    }
+//    @Transactional(propagation = Propagation.REQUIRES_NEW)
+//    public void updateSquadForTeam(Team team){
+//            // 팀 스쿼드 불러오기
+//            PlayerStatisticsApiResponseDto response = footballApiService.getSquadStatistics(
+//                    team.getTeamApiId(),
+//                    team.getCurrentSeason());
+//
+//            if(response==null) {
+//                return;
+//            }
+//            // 팀 초기화
+//            team.resetSquad();
+//
+//            // 스쿼드 player 업데이트, 캐싱
+//            response.getResponse().forEach(playerWrapperDto -> {// player, statistics
+//                PlayerStatisticsApiResponseDto.PlayerDto squadPlayer = playerWrapperDto.getPlayer();
+//                PlayerStatisticsApiResponseDto.StatisticDto statistic = playerWrapperDto.getStatistics().getFirst();
+//                String lastName = StringUtils.getLastName(squadPlayer.getName());
+//                LocalDate birth = StringUtils.parseLocalToString(squadPlayer.getBirth().getDate());
+//                String firstChar = StringUtils.getFirstChar(squadPlayer.getName());
+//                List<Player> findPlayers = playerRepository.searchPlayerByLastNameAndBirth(lastName, birth, firstChar);
+//                if (findPlayers.size() > 1) {
+//                    log.info("max_size error----: name:" + squadPlayer.getName());
+//                    return;
+//                }
+//                if (findPlayers.isEmpty()) {
+//                    log.info("empty error----: name:" + squadPlayer.getName()+ " team = " + team.getTeamApiId() + " " + team.getName());
+//                    return;
+//                }
+//                findPlayers.getFirst().updateTeam(team);
+//                log.info("success-----: name : "+squadPlayer.getName()+" team = "+team.getTeamApiId()+" "+team.getName());
+//            });
+//    }
 }

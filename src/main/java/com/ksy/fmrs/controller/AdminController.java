@@ -40,12 +40,12 @@ public class AdminController {
     @ResponseBody
     @PostMapping("/api/admin/insert-league-team-data")
     public void insertInitialLeagueTeamData() {
-        initializationService.createInitialLeague();
+        initializationService.createInitialData();
     }
 
-    @ResponseBody
-    @PostMapping("/api/admin/update-squad")
-    public void updateSquad() {
-        schedulerService.updateSquad();
-    }
+//    @ResponseBody
+//    @PostMapping("/api/admin/update-squad")
+//    public void updateSquad() {
+//        schedulerService.updateSquad();
+//    }
 }

@@ -12,6 +12,11 @@ public class StringUtils {
         return split[split.length-1];
     }
 
+    public static String getFirstName(String name){
+        String[] split = name.split(" ");
+        return split[0];
+    }
+
     public static String getPlayerNameFromFileName(String fileName) {
         if(fileName == null) {
             throw new IllegalArgumentException("fileName is null");
@@ -44,5 +49,12 @@ public class StringUtils {
             return null;
         }
         return LocalDate.parse(date, DateTimeFormatter.ISO_LOCAL_DATE);
+    }
+
+    public static String getFirstChar(String name){
+        if (name == null) {
+            return null;
+        }
+        return name.substring(0, 1);
     }
 }

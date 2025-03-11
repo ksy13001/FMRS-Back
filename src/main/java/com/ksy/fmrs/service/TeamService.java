@@ -7,6 +7,9 @@ import com.ksy.fmrs.repository.LeagueRepository;
 import com.ksy.fmrs.repository.Team.TeamRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+
+import java.util.List;
 
 @RequiredArgsConstructor
 @Service
@@ -14,20 +17,29 @@ public class TeamService {
     private final TeamRepository teamRepository;
     private final LeagueRepository leagueRepository;
 
-    public void saveByTeamDetails(TeamDetailsDto teamDetailsDto) {
-        Team team = Team.builder()
-                .name(teamDetailsDto.getTeamName())
-                .teamApiId(teamDetailsDto.getTeamApiId())
-                .logoUrl(teamDetailsDto.getLogoImageUrl())
-                .nationName(teamDetailsDto.getNationName())
-                .nationLogoImageUrl(teamDetailsDto.getNationLogoImageUrl())
-                .currentSeason(teamDetailsDto.getCurrentSeason())
-                .build();
+    @Transactional
+    public void saveAllByTeamDetails(List<TeamDetailsDto> teamDetailsDto) {
+        List<Team> teams = teamDetailsDto.stream().map(dto->{
+            Team team = Team.builder()
+                    .name(dto.getTeamName())
+                    .teamApiId(dto.getTeamApiId())
+                    .logoUrl(dto.getLogoImageUrl())
+                    .nationName(dto.getNationName())
+                    .nationLogoImageUrl(dto.getNationLogoImageUrl())
+                    .currentSeason(dto.getCurrentSeason())
+                    .build();
+            League league = leagueRepository.findLeagueByLeagueApiId(dto.getLeagueApiId())
+                    .orElseThrow(()-> new RuntimeException("League not found leagueApiId: " + dto.getLeagueApiId()));
+            team.updateLeague(league);
+            return team;
+        }).toList();
 
-        League league = leagueRepository.findLeagueByLeagueApiId(teamDetailsDto.getLeagueApiId())
-                .orElseThrow(()-> new RuntimeException("League not found leagueApiId: " + teamDetailsDto.getLeagueApiId()));
-        team.updateLeague(league);
-        teamRepository.save(team);
+        teamRepository.saveAll(teams);
+    }
+
+    @Transactional
+    public void saveAll(List<Team> teams) {
+        teamRepository.saveAll(teams);
     }
 
     public Team findByTeamApiId(Integer teamApiId) {

@@ -22,6 +22,10 @@ public class Player {
 
     private String name;
 
+    @Column(name = "first_name")
+    private String firstName;
+
+    @Column(name = "last_name")
     private String lastName;
 
     private LocalDate birth;
@@ -90,6 +94,7 @@ public class Player {
     @Builder
     public Player(
             String name,
+            String firstName,
             String lastName,
             LocalDate birth,
             int age,
@@ -109,6 +114,7 @@ public class Player {
     ) {
         this.name = name;
         this.age = age;
+        this.firstName = firstName;
         this.lastName = lastName;
         this.birth = birth;
         this.height = height;

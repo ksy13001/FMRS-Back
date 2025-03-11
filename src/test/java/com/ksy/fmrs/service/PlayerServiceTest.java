@@ -10,6 +10,7 @@ import com.ksy.fmrs.dto.search.SearchPlayerResponseDto;
 import com.ksy.fmrs.dto.search.TeamPlayersResponseDto;
 import com.ksy.fmrs.dto.search.SearchPlayerCondition;
 import com.ksy.fmrs.repository.Player.PlayerRepository;
+import com.ksy.fmrs.util.StringUtils;
 import org.assertj.core.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -199,5 +200,18 @@ public class PlayerServiceTest {
         fileName.substring(hyphenIndex + 1).trim();
 
         Assertions.assertThat("James Henry").isEqualTo(fileName);
+    }
+
+    @Test
+    @DisplayName("이름 한 단어인 경우 테스트")
+    void oneNameTest(){
+        // given
+        String name = "ronaldo";
+        // when
+        String lastName = StringUtils.getLastName(name);
+        String firstName = StringUtils.getFirstName(name);
+        // then
+        Assertions.assertThat("ronaldo").isEqualTo(firstName);
+        Assertions.assertThat("ronaldo").isEqualTo(lastName);
     }
 }

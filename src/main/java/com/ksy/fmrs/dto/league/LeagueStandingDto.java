@@ -11,5 +11,9 @@ import java.util.List;
 @Setter
 @Builder
 public class LeagueStandingDto {
+    private Integer leagueApiId;
+    private String leagueName;
+    private String leagueLogo;
+    private int currentSeason;
     private List<TeamStandingDto> standings;
 }

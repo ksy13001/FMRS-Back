@@ -64,9 +64,9 @@ public class FootballApiService {
                 });
     }
 
-    public PlayerStatisticsApiResponseDto getSquadStatistics(Integer teamApiId, int currentSeason) {
+    public PlayerStatisticsApiResponseDto getSquadStatistics(Integer teamApiId, Integer leagueApiId, int currentSeason, int page) {
         return getApiResponse(
-                UrlEnum.buildPlayerStatisticsUrlByTeamApiId(teamApiId, currentSeason),
+                UrlEnum.buildPlayerStatisticsUrlByTeamApiId(teamApiId, leagueApiId, currentSeason, page),
                 PlayerStatisticsApiResponseDto.class);
     }
 
@@ -240,6 +240,9 @@ public class FootballApiService {
                 .map(this::convertStandingToTeamStandingDto)
                 .toList();
         return LeagueStandingDto.builder()
+                .leagueApiId(league.getId())
+                .leagueName(league.getName())
+                .leagueLogo(league.getLogo())
                 .standings(teamStandingDtos)
                 .build();
     }
