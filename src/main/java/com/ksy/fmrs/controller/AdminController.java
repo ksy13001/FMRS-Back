@@ -7,7 +7,9 @@ import com.ksy.fmrs.service.InitializationService;
 import com.ksy.fmrs.service.PlayerService;
 import com.ksy.fmrs.service.SchedulerService;
 import lombok.RequiredArgsConstructor;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import reactor.core.publisher.Mono;
 
 @RequiredArgsConstructor
 @RestController
@@ -16,6 +18,8 @@ public class AdminController {
     private final FootballApiService footballApiService;
     private final InitializationService initializationService;
     private final SchedulerService  schedulerService;
+    private static final int LAST_LEAGUE_ID = 1172;
+    private static final int FIRST_LEAGUE_ID = 1;
 
     // 실축스탯 테스트용 api
     @ResponseBody
@@ -35,12 +39,32 @@ public class AdminController {
     }
 
     /**
-     *  league, team 초기 데이터 insert
+     *  league 초기 데이터 insert
      * */
     @ResponseBody
-    @PostMapping("/api/admin/insert-league-team-data")
-    public void insertInitialLeagueTeamData() {
-        initializationService.createInitialData();
+    @PostMapping("/api/admin/insert-league-data")
+    public  Mono<ResponseEntity<Void>> insertInitialLeagueData() {
+        return initializationService.saveInitialLeague()
+                .then(Mono.just(ResponseEntity.ok().build()));
+    }
+
+    /**
+     * team 초기 데이터 insert
+     * */
+    @ResponseBody
+    @PostMapping("/api/admin/insert-team-data")
+    public Mono<ResponseEntity<Void>> insertInitialTeamData() {
+        return initializationService.saveInitialTeams()
+                .then(Mono.just(ResponseEntity.ok().build()));
+    }
+
+    /**
+     * player - playerApiId 매핑
+     **/
+    @ResponseBody
+    @PostMapping("/api/admin/update-squad")
+    public void updateAllPlayerApiIds() {
+        initializationService.updateAllPlayerApiIds();
     }
 
 //    @ResponseBody

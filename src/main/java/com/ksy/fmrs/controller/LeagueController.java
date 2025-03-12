@@ -26,7 +26,7 @@ public class LeagueController {
         Integer leagueApiId = leagueDetailsResponseDto.getLeagueApiId();
         LeagueStandingDto leagueStandingDto = footballApiService.getLeagueStandings(
                 leagueApiId,
-                leagueDetailsResponseDto.getCurrentSeason());
+                leagueDetailsResponseDto.getCurrentSeason()).block();
         List<PlayerSimpleDto> topScorers = footballApiService.getLeagueTopScorers(leagueApiId);
         List<PlayerSimpleDto> topAssistants = footballApiService.getLeagueTopAssists(leagueApiId);
 

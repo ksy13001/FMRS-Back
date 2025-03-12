@@ -1,31 +1,29 @@
 package com.ksy.fmrs.service;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.ksy.fmrs.domain.League;
-import com.ksy.fmrs.domain.Team;
 import com.ksy.fmrs.domain.enums.LeagueType;
 import com.ksy.fmrs.domain.player.*;
 import com.ksy.fmrs.dto.apiFootball.PlayerStatisticsApiResponseDto;
-import com.ksy.fmrs.dto.league.LeagueStandingDto;
 import com.ksy.fmrs.dto.league.LeagueDetailsRequestDto;
 import com.ksy.fmrs.dto.player.FmPlayerDto;
-import com.ksy.fmrs.dto.search.TeamDetailsDto;
 import com.ksy.fmrs.repository.LeagueRepository;
 import com.ksy.fmrs.repository.Player.PlayerRepository;
 import com.ksy.fmrs.repository.Team.TeamRepository;
+import com.ksy.fmrs.service.apiClient.WebClientService;
 import com.ksy.fmrs.util.StringUtils;
 import com.ksy.fmrs.util.TimeUtils;
-import jakarta.persistence.EntityManager;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import reactor.core.publisher.Flux;
+import reactor.core.publisher.Mono;
+import reactor.core.scheduler.Schedulers;
 
 import java.io.File;
 import java.io.IOException;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
+import java.time.Duration;
+import java.util.*;
 
 @Slf4j
 @RequiredArgsConstructor
@@ -39,11 +37,13 @@ public class InitializationService {
     private final LeagueService leagueService;
     private final TeamService teamService;
     private final PlayerService playerService;
-    private final EntityManager em;
-    private static final int Last_LEAGUE_ID = 1172;
-    private static final int FIRST_LEAGUE_ID = 1;
+    private final WebClientService webClientService;
+    private static final int LAST_LEAGUE_ID = 1172; //1172
+    private static final int FIRST_LEAGUE_ID = 1;   //1
     private static final int SEASON_2024 = 2024;
     private static final int default_page = 1;
+    //각 요청 사이에 약 133ms 딜레이 (450회/분 ≒ 7.5회/초)
+    private static final int DELAY_MS = 133;
 
 
     /**
@@ -51,61 +51,127 @@ public class InitializationService {
      * 2. 외부 api로 리그마다 standing 가져와서 팀 정보 다 가져옴
      * 3. 외부 api로 팀 마다 statisitcs 가져와서 선수 정보 다 가져옴(player_api_id 매핑하기 위함)
      * 4. bulk insert
-     * **/
-    public void createInitialData(){
-        // 리그 데이터 전부 저장
-        List<LeagueStandingDto> leagueStandingDtos = createInitialLeague();
-        // 팀 데이터 전부 저장
-        saveInitialTeams(leagueStandingDtos);
-        // 선수 매핑
+     **/
+//     리그 초기 데이터 생성
+//    public void saveInitialLeague() {
+//        CountDownLatch countDownLatch = new CountDownLatch(554);
+//        List<LeagueDetailsRequestDto>  leagues = new ArrayList<>();
+//        for(int nowLeagueApiId = FIRST_LEAGUE_ID; nowLeagueApiId <= LAST_LEAGUE_ID; nowLeagueApiId++){
+//            footballApiService.getLeagueInfo(nowLeagueApiId).subscribe(leagueDetailsRequestDto -> {
+//                if(isLeagueType(leagueDetailsRequestDto) && leagueRepository.findLeagueByLeagueApiId(leagueDetailsRequestDto.getLeagueApiId()).isEmpty()) {
+//                    leagues.add(leagueDetailsRequestDto);
+//                }
+//            });
+//        }
+////            LeagueDetailsRequestDto leagueDetailsRequestDto = footballApiService.getLeagueInfo(nowLeagueApiId).block();
+////            if(isLeagueType(leagueDetailsRequestDto) &&
+////                    leagueRepository.findLeagueByLeagueApiId(leagueDetailsRequestDto.getLeagueApiId()).isEmpty()){
+////                    leagues.add(leagueDetailsRequestDto);
+////                }
+////        }
+//        try {
+//            countDownLatch.await();
+//        } catch (InterruptedException e) {
+//            e.printStackTrace();
+//        }
+//        saveInitialLeagues(leagues);
+//    }
+    public Mono<Void> saveInitialLeague() {
+        List<Integer> leagueApiIds = createAllLeagueApiIds();
+        return Flux.fromIterable(leagueApiIds)
+                // 각 요청 사이에 약 133ms 딜레이 (450회/분 ≒ 7.5회/초)
+                .delayElements(Duration.ofMillis(DELAY_MS))
+                .flatMap(leagueApiId ->
+                        footballApiService.getLeagueInfo(leagueApiId)
+                                .publishOn(Schedulers.boundedElastic())
+                                .doOnNext(response -> {
+                                    if (response.isPresent()) {
+                                        log.info("leagueApiId {}: 응답 있음", leagueApiId);
+                                    } else {
+                                        log.info("leagueApiId {}: 응답 없음", leagueApiId);
+                                    }
+                                })
+                                .onErrorResume(e -> {
+                                    log.error("leagueApiId {} 에러 발생: {}", leagueApiId, e.getMessage());
+                                    return Mono.empty();
+                                })
+                )
+                .filter(response -> response.isPresent() && isLeagueType(response.get()))
+                .map(Optional::get)
+                .collectList()
+                .doOnNext(leagues -> log.info("최종 저장할 리그 개수: {}", leagues.size()))
+                .flatMap(leagues -> Mono.fromRunnable(() -> saveInitialLeagues(leagues)))
+                .then();
     }
 
-    private List<LeagueStandingDto> createInitialLeague() {
-        List<LeagueDetailsRequestDto>  leagues = new ArrayList<>();
-        List<LeagueStandingDto> leagueStandingDtos = new ArrayList<>();
-        for(int nowLeagueApiId = FIRST_LEAGUE_ID; nowLeagueApiId <= Last_LEAGUE_ID; nowLeagueApiId++){
-            LeagueDetailsRequestDto leagueDetailsRequestDto = footballApiService.getLeagueInfo(nowLeagueApiId);
-            if(!isLeagueType(leagueDetailsRequestDto)){
-                continue;
-            }
-            LeagueStandingDto leagueStandingDto = getLeagueStandingDto(nowLeagueApiId, leagueDetailsRequestDto.getCurrentSeason());
-            if(leagueStandingDto == null){
-                continue;
-            }
-            if(leagueRepository.findLeagueByLeagueApiId(leagueDetailsRequestDto.getLeagueApiId()).isEmpty()){
-                leagues.add(leagueDetailsRequestDto);
-            }
-            leagueStandingDtos.add(leagueStandingDto);
-        }
-        saveInitialLeagues(leagues);
-        return leagueStandingDtos;
+
+//    //팀 초기 데이터 생성
+//    public void saveInitialTeams() {
+//        List<TeamStatisticsDto> teams = new ArrayList<>();
+//        leagueRepository.findAll().forEach(league -> {
+//            footballApiService.getLeagueStandings(league.getLeagueApiId(), league.getCurrentSeason()).block()
+//                    .getStandings().forEach(standing -> {
+//                        if(standing==null){
+//                            return;
+//                        }
+//                        TeamStatisticsDto teamStatisticsDto = footballApiService.getTeamStatistics(
+//                                league.getLeagueApiId(), standing.getTeamApiId(), league.getCurrentSeason());
+//                        teams.add(teamStatisticsDto);
+//                    });
+//        });
+//        teamService.saveAllByTeamDetails(teams);
+//    }
+
+    public Mono<Void> saveInitialTeams() {
+        return Mono.fromCallable(() -> leagueRepository.findAll())
+                .subscribeOn(Schedulers.boundedElastic()) // blocking repository 호출을 별도 스레드에서 실행
+                .flatMapMany(Flux::fromIterable)           // List<League>를 Flux<League>로 변환
+                .flatMap(league ->
+                        footballApiService.getLeagueStandings(league.getLeagueApiId(), league.getCurrentSeason())
+                                .flatMapMany(leagueStanding -> Flux.fromIterable(leagueStanding.getStandings()))
+                                .filter(Objects::nonNull)
+                                .flatMap(standing ->
+                                        // blocking 메서드인 getTeamStatistics를 Mono로 감싸서 처리
+                                        Mono.fromCallable(() -> footballApiService.getTeamStatistics(
+                                                        league.getLeagueApiId(),
+                                                        standing.getTeamApiId(),
+                                                        league.getCurrentSeason()))
+                                                .subscribeOn(Schedulers.boundedElastic())
+                                )
+                )
+                .collectList() // 모든 TeamStatisticsDto를 리스트로 수집
+                .flatMap(teams ->
+                        // teamService.saveAllByTeamDetails(teams)가 void를 반환하므로, 이를 Mono로 감싼다.
+                        Mono.fromRunnable(() -> teamService.saveAllByTeamDetails(teams))
+                )
+                .then(); // 최종적으로 Mono<Void> 반환
     }
 
-    private void saveInitialTeams(List<LeagueStandingDto> leagueStandingDtos) {
-        List<TeamDetailsDto> teams = new ArrayList<>();
-        List<PlayerStatisticsApiResponseDto>  playerStatistics = new ArrayList<>();
-        leagueStandingDtos.forEach(leagueStandingDto -> {
-            leagueStandingDto.getStandings().forEach(standingDto -> {
-                TeamDetailsDto teamDetailsDto = footballApiService.getTeamDetails(
-                        leagueStandingDto.getLeagueApiId(),
-                        standingDto.getTeamApiId(),
-                        leagueStandingDto.getCurrentSeason());;
-                teams.add(teamDetailsDto);
-            });
+
+    // 선수 player_api_id 매칭
+    public void updateAllPlayerApiIds() {
+        teamRepository.findAll().forEach(team -> {
+            int nowPage = 1;
+            while (true) {
+                PlayerStatisticsApiResponseDto dto = footballApiService.getSquadStatistics(
+                        team.getTeamApiId(), team.getLeague().getLeagueApiId(), team.getCurrentSeason(), nowPage);
+                if (dto == null) {
+                    break;
+                }
+                if (dto.getPaging().getTotal() <= nowPage) {
+                    break;
+                }
+                dto.getResponse().forEach(playerService::updatePlayerApiIdByPlayerWrapperDto);
+            }
         });
-        teamService.saveAllByTeamDetails(teams);
     }
 
-//
-
-
-    private LeagueStandingDto getLeagueStandingDto(Integer nowLeagueApiId, int currentSeason){
-        LeagueStandingDto leagueStandingDto  = footballApiService.getLeagueStandings(nowLeagueApiId, currentSeason);
-        if(leagueStandingDto.getStandings().isEmpty()){
-            // leagueApiId = 447 인 경우 leagueInfo 에서 standing=true 인데 실제 standing 요청시 null 인경우 존재
-            return null;
+    private List<Integer> createAllLeagueApiIds() {
+        List<Integer> urls = new ArrayList<>();
+        for (int i = FIRST_LEAGUE_ID; i <= LAST_LEAGUE_ID; i++) {
+            urls.add(i);
         }
-        return leagueStandingDto;
+        return urls;
     }
 
     private Boolean isLeagueType(LeagueDetailsRequestDto leagueDetailsRequestDto) {
@@ -119,15 +185,8 @@ public class InitializationService {
         leagueService.saveAllByLeagueDetails(leagueDetailsRequestDto);
     }
 
-//    private void saveInitialTeam(Integer leagueId, Integer teamId, Integer currentSeason) {
-//        if(teamRepository.findTeamByTeamApiId(teamId).isEmpty()){
-//            TeamDetailsDto teamDetailsDto = footballApiService.getTeamDetails(leagueId, teamId, currentSeason);
-//            teamService.saveAllByTeamDetails(teamDetailsDto);
-//        }
-//    }
-
     @Transactional
-    public void savePlayersFromFmPlayers(String dirPath){
+    public void savePlayersFromFmPlayers(String dirPath) {
         playerRepository.saveAll(getPlayersFromFmPlayers(dirPath));
     }
 

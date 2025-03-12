@@ -1,7 +1,6 @@
 package com.ksy.fmrs.service;
 
 import com.ksy.fmrs.domain.League;
-import com.ksy.fmrs.domain.Team;
 import com.ksy.fmrs.domain.player.Player;
 import com.ksy.fmrs.domain.player.PlayerStat;
 import com.ksy.fmrs.domain.enums.UrlEnum;
@@ -12,21 +11,28 @@ import com.ksy.fmrs.dto.league.LeagueStandingDto;
 import com.ksy.fmrs.dto.player.PlayerSimpleDto;
 import com.ksy.fmrs.dto.player.PlayerStatDto;
 import com.ksy.fmrs.dto.player.SquadPlayerDto;
-import com.ksy.fmrs.dto.search.TeamDetailsDto;
+import com.ksy.fmrs.dto.search.TeamStatisticsDto;
 import com.ksy.fmrs.dto.search.TeamStandingDto;
 import com.ksy.fmrs.repository.LeagueRepository;
 import com.ksy.fmrs.repository.Player.PlayerRepository;
 import com.ksy.fmrs.repository.PlayerStatRepository;
+import com.ksy.fmrs.service.apiClient.ApiClientService;
+import com.ksy.fmrs.service.apiClient.RestClientService;
+import com.ksy.fmrs.service.apiClient.WebClientService;
 import com.ksy.fmrs.util.StringUtils;
 import lombok.RequiredArgsConstructor;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.client.RestClient;
+import org.springframework.web.reactive.function.client.WebClient;
+import reactor.core.publisher.Mono;
 
 import java.util.Collections;
 import java.util.List;
+import java.util.Objects;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
@@ -35,14 +41,10 @@ import java.util.stream.Collectors;
 public class FootballApiService {
 
     private final LeagueRepository leagueRepository;
-
-    @Value("${api-football.key}")
-    private String apiFootballKey;
-    @Value("${api-football.host}")
-    private String apiFootballHost;
-
     private final PlayerStatRepository playerStatRepository;
     private final PlayerRepository playerRepository;
+    private final RestClientService restClientService;
+    private final WebClientService  webClientService;
 
     /**
      * 1. playerDetailDto 에서 playerName, teamName 가져옴
@@ -56,7 +58,7 @@ public class FootballApiService {
                 .map(PlayerStatDto::new)
                 .orElseGet(() -> {
                     String url = UrlEnum.buildPlayerStatUrl(playerApiId, player.getTeam().getCurrentSeason());
-                    PlayerStatisticsApiResponseDto response = getApiResponse(url, PlayerStatisticsApiResponseDto.class);
+                    PlayerStatisticsApiResponseDto response = restClientService.getApiResponse(url, PlayerStatisticsApiResponseDto.class);
                     PlayerStatDto playerStatDto = convertStatisticsToPlayerStatDto(response);
                     updatePlayerImage(playerId, playerStatDto.getImageUrl());
                     savePlayerStat(convertPlayerStatDtoToPlayerStat(playerId, playerStatDto));
@@ -65,49 +67,50 @@ public class FootballApiService {
     }
 
     public PlayerStatisticsApiResponseDto getSquadStatistics(Integer teamApiId, Integer leagueApiId, int currentSeason, int page) {
-        return getApiResponse(
+        return webClientService.getApiResponse(
                 UrlEnum.buildPlayerStatisticsUrlByTeamApiId(teamApiId, leagueApiId, currentSeason, page),
-                PlayerStatisticsApiResponseDto.class);
+                PlayerStatisticsApiResponseDto.class).block();
     }
 
-    public LeagueStandingDto getLeagueStandings(Integer leagueApiId, int currentSeason) {
-        StandingsAPIResponseDto response = getApiResponse(
+    public Mono<LeagueStandingDto> getLeagueStandings(Integer leagueApiId, int currentSeason) {
+        return webClientService.getApiResponse(
                 UrlEnum.buildStandingUrl(leagueApiId, currentSeason),
-                StandingsAPIResponseDto.class);
-        return getValidatedLeagueDetails(response);
+                StandingsAPIResponseDto.class).map(this::getValidatedLeagueDetails);
     }
 
     public List<PlayerSimpleDto> getLeagueTopScorers(Integer leagueApiId) {
         League league = findLeagueByLeagueApiId(leagueApiId);
-        LeagueApiTopPlayerResponseDto response = getApiResponse(
+        LeagueApiTopPlayerResponseDto response = webClientService.getApiResponse(
                 UrlEnum.buildTopScorersUrl(leagueApiId, league.getCurrentSeason()),
-                LeagueApiTopPlayerResponseDto.class);
+                LeagueApiTopPlayerResponseDto.class).block();
         return convertToPlayerSimpleDtoList(response);
     }
 
     public List<PlayerSimpleDto> getLeagueTopAssists(Integer leagueApiId) {
         League league = findLeagueByLeagueApiId(leagueApiId);
-        LeagueApiTopPlayerResponseDto response = getApiResponse(
+        LeagueApiTopPlayerResponseDto response = webClientService.getApiResponse(
                 UrlEnum.buildTopAssistsUrl(leagueApiId, league.getCurrentSeason()),
-                LeagueApiTopPlayerResponseDto.class);
+                LeagueApiTopPlayerResponseDto.class).block();
         return convertToPlayerSimpleDtoList(response);
     }
 
-    public TeamDetailsDto getTeamDetails(Integer leagueApiId, Integer teamApiId, int currentSeason) {
-        TeamStatisticsApiResponseDto response = getApiResponse(
+    public TeamStatisticsDto getTeamStatistics(Integer leagueApiId, Integer teamApiId, int currentSeason) {
+        TeamStatisticsApiResponseDto response = webClientService.getApiResponse(
                 UrlEnum.buildTeamStatisticsUrl(teamApiId, leagueApiId, currentSeason),
-                TeamStatisticsApiResponseDto.class);
+                TeamStatisticsApiResponseDto.class).block();
         return convertStatisticsToTeamDetailsDto(response, currentSeason);
     }
 
-    public LeagueDetailsRequestDto getLeagueInfo(Integer leagueApiId) {
-        return convertToLeagueInfoDto(getApiResponse(UrlEnum.buildLeagueUrl(leagueApiId), LeagueApiResponseDto.class));
+    public Mono<Optional<LeagueDetailsRequestDto>> getLeagueInfo(Integer leagueApiId) {
+        return Objects.requireNonNull(webClientService.
+                getApiResponse(UrlEnum.buildLeagueUrl(leagueApiId), LeagueApiResponseDto.class))
+                .map(this::convertToLeagueInfoDto);
     }
 
     public List<SquadPlayerDto> getSquadPlayers(Integer teamApiId) {
-        List<SquadApiResponseDto.ResponseItem> response = getApiResponse(
+        List<SquadApiResponseDto.ResponseItem> response = Objects.requireNonNull(webClientService.getApiResponse(
                 UrlEnum.buildSquadUrl(teamApiId),
-                SquadApiResponseDto.class).getResponse();
+                SquadApiResponseDto.class).block()).getResponse();
         if (response == null || response.isEmpty() || response.get(0) == null) {
             return Collections.emptyList();
         }
@@ -115,65 +118,11 @@ public class FootballApiService {
                 .stream().map(this::convertToSquadPlayerDto).collect(Collectors.toList());
     }
 
-//    private LeagueType validateLeagueType(LeagueApiResponseDto response) {
-//        if(response.getResponse().getFirst().getLeague().getType().equals(LeagueType.CUP.getValue())) {
-//            return LeagueType.CUP;
-//        }
-//        return LeagueType.LEAGUE;
-//    }
-
-
-    private String splitPlayerName(String fullName) {
-        String[] tokens = fullName.trim().split("\\s+");
-        if (tokens.length > 1) {
-            return tokens[1];
-        }
-        return tokens[tokens.length - 1];
-    }
-
-
-
-    private Integer getTeamApiIdByTeamName(String teamName) {
-        String url = UrlEnum.buildTeamUrl(teamName);
-
-        TeamApiResponseDto teamApiResponseDto = getApiResponse(url, TeamApiResponseDto.class);
-        return teamApiResponseDto
-                .getResponse()
-                .getFirst()
-                .getTeam()
-                .getId();
-    }
-
-    // API 호출 공통 로직
-    private <T> T getApiResponse(String url, Class<T> responseType) {
-        ResponseEntity<T> responseEntity = createAPIFootballRestClient()
-                .get()
-                .uri(url)
-                .retrieve()
-                .toEntity(responseType);
-
-        return validateResponse(responseEntity, url);
-    }
-
-    private <T> T validateResponse(ResponseEntity<T> responseEntity, String url) {
-        if (!responseEntity.getStatusCode().is2xxSuccessful() || responseEntity.getBody() == null) {
-            throw new IllegalArgumentException("API 호출 결과가 없습니다. URL: " + url);
-        }
-        return responseEntity.getBody();
-    }
-
     private LeagueStandingDto getValidatedLeagueDetails(StandingsAPIResponseDto response) {
         if (response.getResults() <= 0) {
             return convertNullStandingDto();
         }
         return convertStandingToLeagueDetailsDto(response);
-    }
-
-    private RestClient createAPIFootballRestClient() {
-        return RestClient.builder()
-                .defaultHeader("X-RapidAPI-Key", apiFootballKey)
-                .defaultHeader("X-RapidAPI-Host", apiFootballHost)
-                .build();
     }
 
 
@@ -282,11 +231,11 @@ public class FootballApiService {
                         .build()).toList();
     }
 
-    private TeamDetailsDto convertStatisticsToTeamDetailsDto(TeamStatisticsApiResponseDto response, int currentSeason) {
+    private TeamStatisticsDto convertStatisticsToTeamDetailsDto(TeamStatisticsApiResponseDto response, int currentSeason) {
         TeamStatisticsApiResponseDto.Team team = response.getResponse().getTeam();
         TeamStatisticsApiResponseDto.League league = response.getResponse().getLeague();
         TeamStatisticsApiResponseDto.Fixtures fixtures = response.getResponse().getFixtures();
-        return TeamDetailsDto.builder()
+        return TeamStatisticsDto.builder()
                 .teamName(team.getName())
                 .teamApiId(team.getId())
                 .logoImageUrl(team.getLogo())
@@ -305,22 +254,35 @@ public class FootballApiService {
                 .build();
     }
 
-    private LeagueDetailsRequestDto convertToLeagueInfoDto(LeagueApiResponseDto response) {
-        LeagueApiResponseDto.League league = response.getResponse().getFirst().getLeague();
-        LeagueApiResponseDto.Country country = response.getResponse().getFirst().getCountry();
+    private Optional<LeagueDetailsRequestDto> convertToLeagueInfoDto(LeagueApiResponseDto leagueApiResponseDto) {
+        // 응답 리스트가 null이거나 비어 있으면 Optional.empty() 반환
+        if (leagueApiResponseDto.response() == null || leagueApiResponseDto.response().isEmpty()) {
+            return Optional.empty();
+        }
 
-        LeagueApiResponseDto.Season season = response.getResponse().getFirst().getSeasons().getLast();
-        return LeagueDetailsRequestDto.builder()
-                .leagueApiId(league.getId())
-                .currentSeason(season.getYear())
-                .leagueName(league.getName())
-                .leagueType(league.getType())
-                .logoImageUrl(league.getLogo())
-                .nationName(country.getName())
-                .nationImageUrl(country.getFlag())
-                .Standing(season.getCoverage().isStandings())
+        LeagueApiResponseDto.ResponseItem firstResponse = leagueApiResponseDto.response().getFirst();
+        // 시즌 리스트가 null이거나 비어 있으면 Optional.empty() 반환
+        if (firstResponse.seasons() == null || firstResponse.seasons().isEmpty()) {
+            return Optional.empty();
+        }
+        LeagueApiResponseDto.League league = firstResponse.league();
+        LeagueApiResponseDto.Country country = firstResponse.country();
+        List<LeagueApiResponseDto.Season> seasons = firstResponse.seasons();
+        LeagueApiResponseDto.Season season = seasons.getLast();
+        LeagueDetailsRequestDto dto = LeagueDetailsRequestDto.builder()
+                .leagueApiId(league.id())
+                .currentSeason(season.year())
+                .leagueName(league.name())
+                .leagueType(league.type())
+                .logoImageUrl(league.logo())
+                .nationName(country.name())
+                .nationImageUrl(country.flag())
+                .Standing(season.coverage().standings())
                 .build();
+        return Optional.of(dto);
     }
+
+
 
     private SquadPlayerDto convertToSquadPlayerDto(SquadApiResponseDto.Player player) {
         return SquadPlayerDto.builder()

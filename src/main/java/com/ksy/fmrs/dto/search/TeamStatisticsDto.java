@@ -7,7 +7,7 @@ import lombok.Setter;
 @Getter
 @Setter
 @Builder
-public class TeamDetailsDto {
+public class TeamStatisticsDto {
     String teamName;
     Integer teamApiId;
     String logoImageUrl;

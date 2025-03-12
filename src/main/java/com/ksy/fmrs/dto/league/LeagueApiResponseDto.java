@@ -1,11 +1,14 @@
 package com.ksy.fmrs.dto.league;
 
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+
 import java.util.List;
 
+@JsonIgnoreProperties(ignoreUnknown = true)
 public record LeagueApiResponseDto(
         String get,
-        Parameters parameters,
-        List<Object> errors,
+//        Parameters parameters,
+//        List<Object> errors,
         int results,
         Paging paging,
         List<ResponseItem> response
