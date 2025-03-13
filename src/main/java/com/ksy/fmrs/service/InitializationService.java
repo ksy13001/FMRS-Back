@@ -44,7 +44,8 @@ public class InitializationService {
     private static final int default_page = 1;
     //각 요청 사이에 약 133ms 딜레이 (450회/분 ≒ 7.5회/초)
     private static final int DELAY_MS = 133;
-
+    private static final int TIME_OUT = 10;
+    private static final int buffer = 100;
 
     /**
      * 1. 외부 api로 전체 리그 정보 다 가져옴
@@ -52,109 +53,74 @@ public class InitializationService {
      * 3. 외부 api로 팀 마다 statisitcs 가져와서 선수 정보 다 가져옴(player_api_id 매핑하기 위함)
      * 4. bulk insert
      **/
-//     리그 초기 데이터 생성
-//    public void saveInitialLeague() {
-//        CountDownLatch countDownLatch = new CountDownLatch(554);
-//        List<LeagueDetailsRequestDto>  leagues = new ArrayList<>();
-//        for(int nowLeagueApiId = FIRST_LEAGUE_ID; nowLeagueApiId <= LAST_LEAGUE_ID; nowLeagueApiId++){
-//            footballApiService.getLeagueInfo(nowLeagueApiId).subscribe(leagueDetailsRequestDto -> {
-//                if(isLeagueType(leagueDetailsRequestDto) && leagueRepository.findLeagueByLeagueApiId(leagueDetailsRequestDto.getLeagueApiId()).isEmpty()) {
-//                    leagues.add(leagueDetailsRequestDto);
-//                }
-//            });
-//        }
-////            LeagueDetailsRequestDto leagueDetailsRequestDto = footballApiService.getLeagueInfo(nowLeagueApiId).block();
-////            if(isLeagueType(leagueDetailsRequestDto) &&
-////                    leagueRepository.findLeagueByLeagueApiId(leagueDetailsRequestDto.getLeagueApiId()).isEmpty()){
-////                    leagues.add(leagueDetailsRequestDto);
-////                }
-////        }
-//        try {
-//            countDownLatch.await();
-//        } catch (InterruptedException e) {
-//            e.printStackTrace();
-//        }
-//        saveInitialLeagues(leagues);
-//    }
     public Mono<Void> saveInitialLeague() {
         List<Integer> leagueApiIds = createAllLeagueApiIds();
         return Flux.fromIterable(leagueApiIds)
-                // 각 요청 사이에 약 133ms 딜레이 (450회/분 ≒ 7.5회/초)
-                .delayElements(Duration.ofMillis(DELAY_MS))
-                .flatMap(leagueApiId ->
-                        footballApiService.getLeagueInfo(leagueApiId)
-                                .publishOn(Schedulers.boundedElastic())
-                                .doOnNext(response -> {
-                                    if (response.isPresent()) {
-                                        log.info("leagueApiId {}: 응답 있음", leagueApiId);
-                                    } else {
-                                        log.info("leagueApiId {}: 응답 없음", leagueApiId);
-                                    }
-                                })
-                                .onErrorResume(e -> {
-                                    log.error("leagueApiId {} 에러 발생: {}", leagueApiId, e.getMessage());
-                                    return Mono.empty();
-                                })
-                )
+                .buffer(buffer)
+                .concatMap(batch -> Flux.fromIterable(batch)
+                        .delayElements(Duration.ofMillis(DELAY_MS))
+                        .timeout(Duration.ofSeconds(TIME_OUT))
+                        .flatMap(leagueApiId ->
+                                footballApiService.getLeagueInfo(leagueApiId)
+                                        .publishOn(Schedulers.boundedElastic())
+                                        .doOnNext(response -> {
+                                            if (response.isPresent()) {
+                                                log.info("leagueApiId {}: 응답 있음", leagueApiId);
+                                            } else {
+                                                log.info("leagueApiId {}: 응답 없음", leagueApiId);
+                                            }
+                                        })
+                                        .onErrorResume(e -> {
+                                            log.error("leagueApiId {} 에러 발생: {}", leagueApiId, e.getMessage());
+                                            return Mono.empty();
+                                        })
+                        ))
                 .filter(response -> response.isPresent() && isLeagueType(response.get()))
                 .map(Optional::get)
                 .collectList()
                 .doOnNext(leagues -> log.info("최종 저장할 리그 개수: {}", leagues.size()))
-                .flatMap(leagues -> Mono.fromRunnable(() -> saveInitialLeagues(leagues)))
+                .flatMap(leagues ->
+                        Mono.fromRunnable(() -> saveInitialLeagues(leagues)))
                 .then();
     }
 
-
-//    //팀 초기 데이터 생성
-//    public void saveInitialTeams() {
-//        List<TeamStatisticsDto> teams = new ArrayList<>();
-//        leagueRepository.findAll().forEach(league -> {
-//            footballApiService.getLeagueStandings(league.getLeagueApiId(), league.getCurrentSeason()).block()
-//                    .getStandings().forEach(standing -> {
-//                        if(standing==null){
-//                            return;
-//                        }
-//                        TeamStatisticsDto teamStatisticsDto = footballApiService.getTeamStatistics(
-//                                league.getLeagueApiId(), standing.getTeamApiId(), league.getCurrentSeason());
-//                        teams.add(teamStatisticsDto);
-//                    });
-//        });
-//        teamService.saveAllByTeamDetails(teams);
-//    }
-
+    // league standing에서 team 생성
     public Mono<Void> saveInitialTeams() {
-        return Mono.fromCallable(() -> leagueRepository.findAll())
-                .subscribeOn(Schedulers.boundedElastic()) // blocking repository 호출을 별도 스레드에서 실행
-                .flatMapMany(Flux::fromIterable)           // List<League>를 Flux<League>로 변환
+        return Mono.fromCallable(leagueRepository::findAll)
+                .subscribeOn(Schedulers.boundedElastic())
+                .flatMapMany(Flux::fromIterable)
+                .delayElements(Duration.ofMillis(DELAY_MS))
+                .timeout(Duration.ofSeconds(TIME_OUT))
                 .flatMap(league ->
                         footballApiService.getLeagueStandings(league.getLeagueApiId(), league.getCurrentSeason())
-                                .flatMapMany(leagueStanding -> Flux.fromIterable(leagueStanding.getStandings()))
-                                .filter(Objects::nonNull)
-                                .flatMap(standing ->
-                                        // blocking 메서드인 getTeamStatistics를 Mono로 감싸서 처리
-                                        Mono.fromCallable(() -> footballApiService.getTeamStatistics(
-                                                        league.getLeagueApiId(),
-                                                        standing.getTeamApiId(),
-                                                        league.getCurrentSeason()))
-                                                .subscribeOn(Schedulers.boundedElastic())
-                                )
                 )
-                .collectList() // 모든 TeamStatisticsDto를 리스트로 수집
-                .flatMap(teams ->
-                        // teamService.saveAllByTeamDetails(teams)가 void를 반환하므로, 이를 Mono로 감싼다.
-                        Mono.fromRunnable(() -> teamService.saveAllByTeamDetails(teams))
+                .doOnNext(response -> {
+                    if (!response.isEmpty()) {
+                        log.info("leagueApiId {}: 응답 있음", response.getFirst().getLeagueApiId());
+                    } else {
+                        log.info("leagueApiId {}: 응답 있음", response.getFirst().getLeagueApiId());
+                    }
+                })
+                .onErrorResume(e -> {
+                    log.error("leagueApiId {} 에러 발생: {}", e.getMessage());
+                    return Mono.empty();
+                })
+                .flatMap(Flux::fromIterable)
+                .collectList()
+                .flatMap(teamStandingDtos ->
+                        Mono.fromRunnable(() -> teamService.saveAllByTeamStanding(teamStandingDtos))
                 )
-                .then(); // 최종적으로 Mono<Void> 반환
+                .then();
     }
 
 
     // 선수 player_api_id 매칭
     public void updateAllPlayerApiIds() {
-        teamRepository.findAll().forEach(team -> {
+        teamRepository.findAllTeamsWithLeague().forEach(team -> {
             int nowPage = 1;
             while (true) {
                 PlayerStatisticsApiResponseDto dto = footballApiService.getSquadStatistics(
-                        team.getTeamApiId(), team.getLeague().getLeagueApiId(), team.getCurrentSeason(), nowPage);
+                        team.getTeamApiId(), team.getLeague().getLeagueApiId(), team.getLeague().getCurrentSeason(), nowPage);
                 if (dto == null) {
                     break;
                 }

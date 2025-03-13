@@ -8,6 +8,7 @@ import lombok.Setter;
 @Setter
 @Builder
 public class TeamStandingDto {
+    Integer LeagueApiId;
     Integer rank;
     Integer teamApiId;
     String teamName;

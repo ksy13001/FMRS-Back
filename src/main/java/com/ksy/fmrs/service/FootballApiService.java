@@ -11,23 +11,17 @@ import com.ksy.fmrs.dto.league.LeagueStandingDto;
 import com.ksy.fmrs.dto.player.PlayerSimpleDto;
 import com.ksy.fmrs.dto.player.PlayerStatDto;
 import com.ksy.fmrs.dto.player.SquadPlayerDto;
-import com.ksy.fmrs.dto.search.TeamStatisticsDto;
-import com.ksy.fmrs.dto.search.TeamStandingDto;
+import com.ksy.fmrs.dto.team.TeamStatisticsDto;
+import com.ksy.fmrs.dto.team.TeamStandingDto;
 import com.ksy.fmrs.repository.LeagueRepository;
 import com.ksy.fmrs.repository.Player.PlayerRepository;
 import com.ksy.fmrs.repository.PlayerStatRepository;
-import com.ksy.fmrs.service.apiClient.ApiClientService;
 import com.ksy.fmrs.service.apiClient.RestClientService;
 import com.ksy.fmrs.service.apiClient.WebClientService;
 import com.ksy.fmrs.util.StringUtils;
 import lombok.RequiredArgsConstructor;
-import org.springframework.beans.factory.annotation.Qualifier;
-import org.springframework.beans.factory.annotation.Value;
-import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import org.springframework.web.client.RestClient;
-import org.springframework.web.reactive.function.client.WebClient;
 import reactor.core.publisher.Mono;
 
 import java.util.Collections;
@@ -57,7 +51,7 @@ public class FootballApiService {
         return getOptionalPlayerStatById(playerId)
                 .map(PlayerStatDto::new)
                 .orElseGet(() -> {
-                    String url = UrlEnum.buildPlayerStatUrl(playerApiId, player.getTeam().getCurrentSeason());
+                    String url = UrlEnum.buildPlayerStatUrl(playerApiId, player.getTeam().getLeague().getCurrentSeason());
                     PlayerStatisticsApiResponseDto response = restClientService.getApiResponse(url, PlayerStatisticsApiResponseDto.class);
                     PlayerStatDto playerStatDto = convertStatisticsToPlayerStatDto(response);
                     updatePlayerImage(playerId, playerStatDto.getImageUrl());
@@ -72,10 +66,10 @@ public class FootballApiService {
                 PlayerStatisticsApiResponseDto.class).block();
     }
 
-    public Mono<LeagueStandingDto> getLeagueStandings(Integer leagueApiId, int currentSeason) {
+    public Mono<List<TeamStandingDto>> getLeagueStandings(Integer leagueApiId, int currentSeason) {
         return webClientService.getApiResponse(
                 UrlEnum.buildStandingUrl(leagueApiId, currentSeason),
-                StandingsAPIResponseDto.class).map(this::getValidatedLeagueDetails);
+                StandingsAPIResponseDto.class).mapNotNull(this::getValidatedLeagueDetails);
     }
 
     public List<PlayerSimpleDto> getLeagueTopScorers(Integer leagueApiId) {
@@ -118,9 +112,9 @@ public class FootballApiService {
                 .stream().map(this::convertToSquadPlayerDto).collect(Collectors.toList());
     }
 
-    private LeagueStandingDto getValidatedLeagueDetails(StandingsAPIResponseDto response) {
+    private List<TeamStandingDto> getValidatedLeagueDetails(StandingsAPIResponseDto response) {
         if (response.getResults() <= 0) {
-            return convertNullStandingDto();
+            return null;
         }
         return convertStandingToLeagueDetailsDto(response);
     }
@@ -177,27 +171,29 @@ public class FootballApiService {
         return playerStatDto;
     }
 
-    private LeagueStandingDto convertNullStandingDto(){
-        return LeagueStandingDto.builder()
-                .standings(null)
-                .build();
-    }
-
-    private LeagueStandingDto convertStandingToLeagueDetailsDto(StandingsAPIResponseDto response) {
-        StandingsAPIResponseDto.League league = response.getResponse().getFirst().getLeague();
-        List<TeamStandingDto> teamStandingDtos = league.getStandings().getFirst().stream()
-                .map(this::convertStandingToTeamStandingDto)
-                .toList();
-        return LeagueStandingDto.builder()
-                .leagueApiId(league.getId())
-                .leagueName(league.getName())
-                .leagueLogo(league.getLogo())
-                .standings(teamStandingDtos)
-                .build();
-    }
-
-    private TeamStandingDto convertStandingToTeamStandingDto(StandingsAPIResponseDto.Standing standing) {
+    private TeamStandingDto convertNullStandingDto(){
         return TeamStandingDto.builder()
+                .build();
+    }
+
+    private List<TeamStandingDto> convertStandingToLeagueDetailsDto(StandingsAPIResponseDto response) {
+        StandingsAPIResponseDto.League league = response.getResponse().getFirst().getLeague();
+        return league.getStandings().getFirst().stream()
+                .map(teamStandingDto ->{
+                    return convertStandingToTeamStandingDto(teamStandingDto, league.getId());
+                })
+                .toList();
+//        return LeagueStandingDto.builder()
+//                .leagueApiId(league.getId())
+//                .leagueName(league.getName())
+//                .leagueLogo(league.getLogo())
+//                .standings(teamStandingDtos)
+//                .build();
+    }
+
+    private TeamStandingDto convertStandingToTeamStandingDto(StandingsAPIResponseDto.Standing standing, Integer leagueApiId) {
+        return TeamStandingDto.builder()
+                .LeagueApiId(leagueApiId)
                 .rank(standing.getRank())
                 .teamApiId(standing.getTeam().getId())
                 .teamName(standing.getTeam().getName())

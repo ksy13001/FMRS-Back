@@ -1,6 +1,6 @@
 package com.ksy.fmrs.dto.league;
 
-import com.ksy.fmrs.dto.search.TeamStandingDto;
+import com.ksy.fmrs.dto.team.TeamStandingDto;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.Setter;

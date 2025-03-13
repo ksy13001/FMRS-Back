@@ -24,14 +24,14 @@ public class LeagueController {
     public String getLeagueDetails(Model model, @PathVariable Long leagueId) {
         LeagueDetailsResponseDto leagueDetailsResponseDto = leagueService.getLeagueDetails(leagueId);
         Integer leagueApiId = leagueDetailsResponseDto.getLeagueApiId();
-        LeagueStandingDto leagueStandingDto = footballApiService.getLeagueStandings(
-                leagueApiId,
-                leagueDetailsResponseDto.getCurrentSeason()).block();
+//        LeagueStandingDto leagueStandingDto = footballApiService.getLeagueStandings(
+//                leagueApiId,
+//                leagueDetailsResponseDto.getCurrentSeason()).block();
         List<PlayerSimpleDto> topScorers = footballApiService.getLeagueTopScorers(leagueApiId);
         List<PlayerSimpleDto> topAssistants = footballApiService.getLeagueTopAssists(leagueApiId);
 
         model.addAttribute("league", leagueDetailsResponseDto);
-        model.addAttribute("standing", leagueStandingDto);
+//        model.addAttribute("standing", leagueStandingDto);
         model.addAttribute("topScorers", topScorers);
         model.addAttribute("topAssistants", topAssistants);
         return "league-detail";

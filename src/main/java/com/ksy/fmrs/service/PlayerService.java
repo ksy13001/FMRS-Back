@@ -6,7 +6,7 @@ import com.ksy.fmrs.dto.apiFootball.PlayerStatisticsApiResponseDto;
 import com.ksy.fmrs.dto.player.PlayerDetailsDto;
 import com.ksy.fmrs.dto.search.SearchPlayerCondition;
 import com.ksy.fmrs.dto.search.SearchPlayerResponseDto;
-import com.ksy.fmrs.dto.search.TeamPlayersResponseDto;
+import com.ksy.fmrs.dto.team.TeamPlayersResponseDto;
 import com.ksy.fmrs.repository.Player.PlayerRepository;
 import com.ksy.fmrs.util.StringUtils;
 import lombok.RequiredArgsConstructor;
