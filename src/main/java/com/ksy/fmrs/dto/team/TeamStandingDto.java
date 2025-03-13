@@ -1,4 +1,4 @@
-package com.ksy.fmrs.dto.search;
+package com.ksy.fmrs.dto.team;
 
 import lombok.Builder;
 import lombok.Getter;
@@ -22,5 +22,4 @@ public class TeamStandingDto {
     Integer points;
     Integer goalsDifference;
     String description;
-
 }
