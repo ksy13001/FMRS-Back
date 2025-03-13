@@ -19,18 +19,23 @@ public class League {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
+    @Column(name = "league_api_id", unique = true)
     Integer leagueApiId;
 
     private String name;
 
+    @Column(name = "nation_name")
     private String nationName;
 
+    @Column(name = "nation_logo_url")
     private String nationLogoUrl;
 
+    @Column(name = "current_season")
     private Integer currentSeason;
 
     private String logoUrl;
 
+    @Column(name = "league_type")
     @Enumerated(EnumType.STRING)
     private LeagueType leagueType;
 

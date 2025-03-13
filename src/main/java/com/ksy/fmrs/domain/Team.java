@@ -19,19 +19,13 @@ public class Team {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @Column(name = "team_api_id")
+    @Column(name = "team_api_id",  unique = true)
     private Integer teamApiId;
 
     private String name;
 
     @Column(name = "logo_url")
     private String logoUrl;
-
-    private String nationName;
-
-    private String nationLogoUrl;
-
-    private int currentSeason;
 
     private Integer played;
 
@@ -59,13 +53,10 @@ public class Team {
     private League league;
 
     @Builder
-    public Team(String name, Integer teamApiId, String logoUrl, String nationName, String nationLogoImageUrl, int currentSeason) {
+    public Team(String name, Integer teamApiId, String logoUrl) {
         this.name = name;
         this.teamApiId = teamApiId;
         this.logoUrl = logoUrl;
-        this.nationName = nationName;
-        this.nationLogoUrl = nationLogoImageUrl;
-        this.currentSeason = currentSeason;
     }
 
     public void updateLeague(League league) {
