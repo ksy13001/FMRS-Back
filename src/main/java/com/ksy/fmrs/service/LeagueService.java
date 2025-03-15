@@ -2,12 +2,14 @@ package com.ksy.fmrs.service;
 
 import com.ksy.fmrs.domain.League;
 import com.ksy.fmrs.domain.enums.LeagueType;
-import com.ksy.fmrs.dto.LeagueDetailsRequestDto;
-import com.ksy.fmrs.dto.LeagueDetailsResponseDto;
+import com.ksy.fmrs.dto.league.LeagueDetailsRequestDto;
+import com.ksy.fmrs.dto.league.LeagueDetailsResponseDto;
 import com.ksy.fmrs.repository.LeagueRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+
+import java.util.List;
 
 @RequiredArgsConstructor
 @Service
@@ -16,19 +18,21 @@ public class LeagueService {
     private final LeagueRepository leagueRepository;
 
     @Transactional
-    public void saveByLeagueDetails(LeagueDetailsRequestDto leagueDetailsRequestDto) {
-        League league = League.builder()
-                .leagueApiId(leagueDetailsRequestDto.getLeagueApiId())
-                .name(leagueDetailsRequestDto.getLeagueName())
-                .nationName(leagueDetailsRequestDto.getNationName())
-                .nationLogoUrl(leagueDetailsRequestDto.getNationImageUrl())
-                .currentSeason(leagueDetailsRequestDto.getCurrentSeason())
-                .logoUrl(leagueDetailsRequestDto.getLogoImageUrl())
-                .leagueType(validateLeagueType(leagueDetailsRequestDto.getLeagueType()))
-                .standing(leagueDetailsRequestDto.getStanding())
-                .build();
+    public void saveAllByLeagueDetails(List<LeagueDetailsRequestDto> leagueDetailsRequestDto) {
+        List<League> allLeague = leagueDetailsRequestDto.stream().map(dto->{
+            return League.builder()
+                    .leagueApiId(dto.getLeagueApiId())
+                    .name(dto.getLeagueName())
+                    .nationName(dto.getNationName())
+                    .nationLogoUrl(dto.getNationImageUrl())
+                    .currentSeason(dto.getCurrentSeason())
+                    .logoUrl(dto.getLogoImageUrl())
+                    .leagueType(validateLeagueType(dto.getLeagueType()))
+                    .standing(dto.getStanding())
+                    .build();
+        }).toList();
 
-        leagueRepository.save(league);
+        leagueRepository.saveAll(allLeague);
     }
 
     public LeagueDetailsResponseDto getLeagueDetails(Long leagueId) {

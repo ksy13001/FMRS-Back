@@ -1,9 +1,8 @@
 package com.ksy.fmrs.controller;
 
-import com.ksy.fmrs.dto.LeagueDetailsRequestDto;
-import com.ksy.fmrs.dto.LeagueDetailsResponseDto;
-import com.ksy.fmrs.dto.LeagueStandingDto;
-import com.ksy.fmrs.dto.PlayerSimpleDto;
+import com.ksy.fmrs.dto.league.LeagueDetailsResponseDto;
+import com.ksy.fmrs.dto.league.LeagueStandingDto;
+import com.ksy.fmrs.dto.player.PlayerSimpleDto;
 import com.ksy.fmrs.service.FootballApiService;
 import com.ksy.fmrs.service.LeagueService;
 import lombok.RequiredArgsConstructor;
@@ -25,14 +24,14 @@ public class LeagueController {
     public String getLeagueDetails(Model model, @PathVariable Long leagueId) {
         LeagueDetailsResponseDto leagueDetailsResponseDto = leagueService.getLeagueDetails(leagueId);
         Integer leagueApiId = leagueDetailsResponseDto.getLeagueApiId();
-        LeagueStandingDto leagueStandingDto = footballApiService.getLeagueStandings(
-                leagueApiId,
-                leagueDetailsResponseDto.getCurrentSeason());
+//        LeagueStandingDto leagueStandingDto = footballApiService.getLeagueStandings(
+//                leagueApiId,
+//                leagueDetailsResponseDto.getCurrentSeason()).block();
         List<PlayerSimpleDto> topScorers = footballApiService.getLeagueTopScorers(leagueApiId);
         List<PlayerSimpleDto> topAssistants = footballApiService.getLeagueTopAssists(leagueApiId);
 
         model.addAttribute("league", leagueDetailsResponseDto);
-        model.addAttribute("standing", leagueStandingDto);
+//        model.addAttribute("standing", leagueStandingDto);
         model.addAttribute("topScorers", topScorers);
         model.addAttribute("topAssistants", topAssistants);
         return "league-detail";

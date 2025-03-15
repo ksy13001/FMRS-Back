@@ -1,14 +1,24 @@
 package com.ksy.fmrs.service;
 
-import com.ksy.fmrs.domain.Player;
+import com.ksy.fmrs.domain.player.*;
 import com.ksy.fmrs.domain.Team;
-import com.ksy.fmrs.dto.*;
+import com.ksy.fmrs.dto.apiFootball.PlayerStatisticsApiResponseDto;
+import com.ksy.fmrs.dto.player.PlayerDetailsDto;
+import com.ksy.fmrs.dto.search.SearchPlayerCondition;
+import com.ksy.fmrs.dto.search.SearchPlayerResponseDto;
+import com.ksy.fmrs.dto.team.TeamPlayersResponseDto;
 import com.ksy.fmrs.repository.Player.PlayerRepository;
+import com.ksy.fmrs.util.StringUtils;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
+import java.time.LocalDate;
+import java.util.List;
 import java.util.Optional;
 
+@Slf4j
 @RequiredArgsConstructor
 @Service
 public class PlayerService {
@@ -34,11 +44,17 @@ public class PlayerService {
                 .orElse(null);
     }
 
-//    private String getNationNameByPlayer(Player player) {
-//        return Optional.ofNullable(player.getNation())
-//                .map(Nation::getName)
-//                .orElse(null);
-//    }
+    @Transactional
+    public void updatePlayerApiIdByPlayerWrapperDto(Integer playerApiId, String firstName, String lastName, LocalDate birth) {
+        List<Player> findPlayers = playerRepository.searchPlayerByLastNameAndBirth(firstName, lastName, birth);
+        if (findPlayers.size() > 1) {
+            return;
+        }
+        if (findPlayers.isEmpty()) {
+            return;
+        }
+        findPlayers.getFirst().updatePlayerApiId(playerApiId);
+    }
 
     /**
      * 팀 소속 선수들 모두 조회
@@ -80,4 +96,5 @@ public class PlayerService {
                 .map(this::convertPlayerToPlayerDetailsResponseDto)
                 .toList());
     }
+
 }

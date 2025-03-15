@@ -1,86 +1,68 @@
 package com.ksy.fmrs.service;
 
-import com.ksy.fmrs.domain.enums.LeagueType;
-import com.ksy.fmrs.dto.LeagueStandingDto;
-import com.ksy.fmrs.dto.LeagueDetailsRequestDto;
-import com.ksy.fmrs.dto.TeamDetailsDto;
-import com.ksy.fmrs.repository.LeagueRepository;
+
+import com.ksy.fmrs.domain.Team;
+import com.ksy.fmrs.domain.player.Player;
+import com.ksy.fmrs.dto.apiFootball.PlayerStatisticsApiResponseDto;
+import com.ksy.fmrs.repository.Player.PlayerRepository;
+import com.ksy.fmrs.repository.PlayerStatRepository;
 import com.ksy.fmrs.repository.Team.TeamRepository;
+import com.ksy.fmrs.util.StringUtils;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Propagation;
+import org.springframework.transaction.annotation.Transactional;
+
+import java.time.LocalDate;
+import java.time.format.DateTimeFormatter;
+import java.util.List;
 
 @RequiredArgsConstructor
+@Slf4j
 @Service
 public class SchedulerService {
-    private final LeagueRepository leagueRepository;
-    private final TeamRepository teamRepository;
-    private final FootballApiService footballApiService;
-    private final LeagueService leagueService;
     private final TeamService teamService;
-    private static final int Last_LEAGUE_ID = 1172;
-    private static final int FIRST_LEAGUE_ID = 1;
-    private static final int SEASON_2024 = 2024;
+    private final FootballApiService footballApiService;
+    private final TeamRepository teamRepository;
+    private final PlayerRepository playerRepository;
+    private final PlayerStatRepository playerStatRepository;
 
-
-    /**
-     * 0. 리그 탐색 전 리그 정보에서 type 확인해야함 - type = League 인 경우만 저장
-     * 1. Api-football 에 등록된 league id 불러와서 db에 저장
-     * 2. 각 리그에 team 정보 불러와서 db에 저장
-     * 3. 각 리그에 squad 요청으로 선수 - 팀 업데이트 (선수 데이터 미리 등록 필요함)
-     * **/
-    public void createInitialLeague() {
-        for(int nowLeagueApiId = FIRST_LEAGUE_ID; nowLeagueApiId <= Last_LEAGUE_ID; nowLeagueApiId++){
-            if(leagueRepository.findLeagueByLeagueApiId(nowLeagueApiId).isPresent()){
-                continue;
-            }
-            LeagueDetailsRequestDto leagueDetailsRequestDto = footballApiService.getLeagueInfo(nowLeagueApiId);
-            if(!isLeagueType(leagueDetailsRequestDto)){
-                continue;
-            }
-
-            saveInitialLeague(leagueDetailsRequestDto);
-            LeagueStandingDto leagueStandingDto = footballApiService.getLeagueStandings(nowLeagueApiId, leagueDetailsRequestDto.getCurrentSeason());
-
-            if(leagueStandingDto.getStandings().isEmpty()){
-                // leagueApiId = 447 인 경우 leagueInfo 에서 standing=true 인데 실제 standing 요청시 null 인경우 존재
-                continue;
-            }
-
-            leagueStandingDto.getStandings().forEach(standing -> {
-                saveInitialTeam(leagueDetailsRequestDto.getLeagueApiId(), standing.getTeamApiId(), leagueDetailsRequestDto.getCurrentSeason());
-            });
-        }
-    }
-
-    private Boolean isLeagueType(LeagueDetailsRequestDto leagueDetailsRequestDto) {
-        return leagueDetailsRequestDto != null &&
-                leagueDetailsRequestDto.getLeagueType().equals(LeagueType.LEAGUE.getValue()) &&
-                leagueDetailsRequestDto.getCurrentSeason() >= SEASON_2024 &&
-                leagueDetailsRequestDto.getStanding();
-    }
-
-    private void saveInitialLeague(LeagueDetailsRequestDto leagueDetailsRequestDto) {
-        leagueService.saveByLeagueDetails(leagueDetailsRequestDto);
-    }
-
-    private void saveInitialTeam(Integer leagueId, Integer teamId, Integer currentSeason) {
-        if(teamRepository.findTeamByTeamApiId(teamId).isPresent()){
-            return;
-        }
-        TeamDetailsDto teamDetailsDto = footballApiService.getTeamDetails(leagueId, teamId, currentSeason);
-        teamService.saveByTeamDetails(teamDetailsDto);
-    }
-
-//    @Scheduled(cron = "0 0 16 * * ?")    // 초, 분, 시, 일, 월, 요일
-//    public void updateLeagueStanding(){
-//        for(Integer i = firstLeagueId; i<lastLeagueId+1; i++){
-//            LeagueDetailsDto leagueDetailsDto = footballApiService.getLeagueDetails(lastLeagueId);
-////            if(leagueRepository.findLeagueByLeagueApiId(leagueDetailsDto.getLeagueApiId()).isEmpty()){
-////
-////            }
-////          leagueDetailsDto.getStandings().stream().map(()
-//        }
 //
-//    }
 
+
+//    @Transactional(propagation = Propagation.REQUIRES_NEW)
+//    public void updateSquadForTeam(Team team){
+//            // 팀 스쿼드 불러오기
+//            PlayerStatisticsApiResponseDto response = footballApiService.getSquadStatistics(
+//                    team.getTeamApiId(),
+//                    team.getCurrentSeason());
+//
+//            if(response==null) {
+//                return;
+//            }
+//            // 팀 초기화
+//            team.resetSquad();
+//
+//            // 스쿼드 player 업데이트, 캐싱
+//            response.getResponse().forEach(playerWrapperDto -> {// player, statistics
+//                PlayerStatisticsApiResponseDto.PlayerDto squadPlayer = playerWrapperDto.getPlayer();
+//                PlayerStatisticsApiResponseDto.StatisticDto statistic = playerWrapperDto.getStatistics().getFirst();
+//                String lastName = StringUtils.getLastName(squadPlayer.getName());
+//                LocalDate birth = StringUtils.parseLocalToString(squadPlayer.getBirth().getDate());
+//                String firstChar = StringUtils.getFirstChar(squadPlayer.getName());
+//                List<Player> findPlayers = playerRepository.searchPlayerByLastNameAndBirth(lastName, birth, firstChar);
+//                if (findPlayers.size() > 1) {
+//                    log.info("max_size error----: name:" + squadPlayer.getName());
+//                    return;
+//                }
+//                if (findPlayers.isEmpty()) {
+//                    log.info("empty error----: name:" + squadPlayer.getName()+ " team = " + team.getTeamApiId() + " " + team.getName());
+//                    return;
+//                }
+//                findPlayers.getFirst().updateTeam(team);
+//                log.info("success-----: name : "+squadPlayer.getName()+" team = "+team.getTeamApiId()+" "+team.getName());
+//            });
+//    }
 }

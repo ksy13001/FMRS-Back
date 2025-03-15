@@ -1,8 +1,8 @@
 package com.ksy.fmrs.controller;
 
-import com.ksy.fmrs.dto.SearchPlayerResponseDto;
+import com.ksy.fmrs.dto.search.SearchPlayerResponseDto;
 import com.ksy.fmrs.service.PlayerService;
-import com.ksy.fmrs.service.SchedulerService;
+import com.ksy.fmrs.service.InitializationService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
@@ -14,7 +14,7 @@ import org.springframework.web.bind.annotation.ResponseBody;
 @Controller
 public class HomeController {
     private final PlayerService playerService;
-    private final SchedulerService schedulerService;
+    private final InitializationService initializationService;
 
     @GetMapping("/home")
     public String home(Model model) {
@@ -24,9 +24,4 @@ public class HomeController {
         return "home";
     }
 
-    @ResponseBody
-    @PostMapping("/api/insert-league-team-data")
-    public void insertInitialLeagueTeamData() {
-        schedulerService.createInitialLeague();
-    }
 }

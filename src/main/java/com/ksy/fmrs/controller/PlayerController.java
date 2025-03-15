@@ -1,6 +1,10 @@
 package com.ksy.fmrs.controller;
 
-import com.ksy.fmrs.dto.*;
+import com.ksy.fmrs.dto.player.PlayerDetailsDto;
+import com.ksy.fmrs.dto.player.PlayerStatDto;
+import com.ksy.fmrs.dto.search.SearchPlayerCondition;
+import com.ksy.fmrs.dto.search.SearchPlayerResponseDto;
+import com.ksy.fmrs.dto.team.TeamPlayersResponseDto;
 import com.ksy.fmrs.service.FootballApiService;
 import com.ksy.fmrs.service.PlayerService;
 import lombok.RequiredArgsConstructor;
@@ -20,8 +24,7 @@ public class PlayerController {
         PlayerDetailsDto playerDetailsResponseDto = playerService.getPlayerDetails(playerId);
         PlayerStatDto playerStatDto = footballApiService.savePlayerRealStat(
                 playerDetailsResponseDto.getId(),
-                playerDetailsResponseDto.getName(),
-                playerDetailsResponseDto.getTeamName()
+                playerDetailsResponseDto.getPlayerApiId()
         );
         model.addAttribute("player", playerDetailsResponseDto);
         model.addAttribute("realFootballStat", playerStatDto);
@@ -61,17 +64,4 @@ public class PlayerController {
         return "players-detail-search";
     }
 
-
-    // 실축스탯 테스트용 api
-    @ResponseBody
-    @GetMapping("/api/player/{playerId}")
-    public PlayerStatDto getPlayerRealFootBallStatTest(@PathVariable Long playerId) {
-        PlayerDetailsDto playerDetailsResponseDto = playerService.getPlayerDetails(playerId);
-        PlayerStatDto playerRealFootballStatDto = footballApiService.savePlayerRealStat(
-                playerDetailsResponseDto.getId(),
-                playerDetailsResponseDto.getName(),
-                playerDetailsResponseDto.getTeamName()
-        );
-        return playerRealFootballStatDto;
-    }
 }

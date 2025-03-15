@@ -3,8 +3,8 @@ package com.ksy.fmrs.service;
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.*;
 
-import com.ksy.fmrs.domain.PlayerStat;
-import com.ksy.fmrs.dto.PlayerStatDto;
+import com.ksy.fmrs.domain.player.PlayerStat;
+import com.ksy.fmrs.dto.player.PlayerStatDto;
 import com.ksy.fmrs.repository.Player.PlayerRepository;
 import com.ksy.fmrs.repository.PlayerStatRepository;
 
@@ -169,7 +169,7 @@ public class FootballApiServiceTest {
         when(playerStatRepository.findById(playerId)).thenReturn(Optional.of(existingStat));
 
         // when
-        PlayerStatDto result = footballApiService.savePlayerRealStat(playerId, playerName, teamName);
+        PlayerStatDto result = footballApiService.savePlayerRealStat(playerId, 2024);
 
         // then
         assertNotNull(result);

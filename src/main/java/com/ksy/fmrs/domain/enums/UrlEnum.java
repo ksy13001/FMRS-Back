@@ -2,20 +2,21 @@ package com.ksy.fmrs.domain.enums;
 
 public enum UrlEnum {
     TEAM_URL("https://v3.football.api-sports.io/teams?"),
-    PLAYER_STAT_URL("https://v3.football.api-sports.io/players?"),
+    PLAYER_STATISTICS_URL("https://v3.football.api-sports.io/players?"),
     LEAGUE_URL("https://v3.football.api-sports.io/leagues?"),
     STANDING_URL("https://v3.football.api-sports.io/standings?"),
     TOPSCORERS_URL("https://v3.football.api-sports.io/players/topscorers?"),
     TOPASSISTS_URL("https://v3.football.api-sports.io/players/topassists?"),
     SQUAD_URL("https://v3.football.api-sports.io/players/squads?"),
-    TEAM_STATISTICS("https://v3.football.api-sports.io/teams/statistics?"),
+    TEAM_STATISTICS_URL("https://v3.football.api-sports.io/teams/statistics?"),
     PARAM_NAME("name="),
     PARAM_SEARCH("search="),
     PARAM_TEAM("team="),
     PARAM_SEASON("season="),
     PARAM_ID("id="),
     PARAM_LEAGUE("league="),
-    SEASON_2024_2025("2024"),
+    PARAM_PAGE("page="),
+    PARAM_SCORE("score="),
     AND("&");
 
     private final String value;
@@ -29,13 +30,11 @@ public enum UrlEnum {
     }
 
     // 선수 통계 API URL을 생성 (playerName, teamApiId, 시즌)
-    public static String buildPlayerStatUrl(String playerName, Integer teamApiId) {
-        return PLAYER_STAT_URL.getValue() +
-                PARAM_SEARCH.getValue() + playerName +
+    public static String buildPlayerStatUrl(Integer playerApiId, int currentSeason) {
+        return PLAYER_STATISTICS_URL.getValue() +
+                PARAM_ID.getValue() + playerApiId +
                 AND.getValue() +
-                PARAM_TEAM.getValue() + teamApiId +
-                AND.getValue() +
-                PARAM_SEASON.getValue() + SEASON_2024_2025.getValue();
+                PARAM_SEASON.getValue() + currentSeason;
     }
 
     // 팀 API URL을 생성 (teamName)
@@ -78,12 +77,23 @@ public enum UrlEnum {
     }
 
     public static String buildTeamStatisticsUrl(Integer teamApiId, Integer leagueApiId, int currentSeason) {
-        return TEAM_STATISTICS.getValue() +
+        return TEAM_STATISTICS_URL.getValue() +
                 PARAM_TEAM.getValue() + teamApiId+
                 AND.getValue()+
                 PARAM_LEAGUE.getValue() + leagueApiId+
                 AND.getValue()+
                 PARAM_SEASON.getValue() + currentSeason;
+    }
+
+    public static String buildPlayerStatisticsUrlByTeamApiId(Integer teamApiId, Integer leagueApiId, int currentSeason, int page) {
+        return PLAYER_STATISTICS_URL.getValue() +
+                PARAM_TEAM.getValue() + teamApiId +
+                AND.getValue() +
+                PARAM_SEASON.getValue() + currentSeason+
+                AND.getValue()+
+                PARAM_LEAGUE.getValue() + leagueApiId +
+                AND.getValue() +
+                PARAM_PAGE.getValue() + page;
     }
 }
 //GET /players/topscorers?league=39&season=2019
