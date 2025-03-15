@@ -213,4 +213,17 @@ public class PlayerServiceTest {
         Assertions.assertThat("ronaldo").isEqualTo(firstName);
         Assertions.assertThat("ronaldo").isEqualTo(lastName);
     }
+
+
+    @Test
+    @DisplayName("파싱 테스트")
+    void parseName(){
+        // given
+        String name = "K. De Bruyne";
+        String firstname = "Kevin";
+        String lastname = "De Bruyne";
+
+        Assertions.assertThat("Kevin").isEqualTo(StringUtils.getFirstName(firstname));
+        Assertions.assertThat("Bruyne").isEqualTo(StringUtils.getLastName(name));
+    }
 }

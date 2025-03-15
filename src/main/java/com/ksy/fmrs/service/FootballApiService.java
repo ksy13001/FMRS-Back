@@ -5,9 +5,8 @@ import com.ksy.fmrs.domain.player.Player;
 import com.ksy.fmrs.domain.player.PlayerStat;
 import com.ksy.fmrs.domain.enums.UrlEnum;
 import com.ksy.fmrs.dto.apiFootball.*;
-import com.ksy.fmrs.dto.league.LeagueApiResponseDto;
+import com.ksy.fmrs.dto.apiFootball.LeagueApiResponseDto;
 import com.ksy.fmrs.dto.league.LeagueDetailsRequestDto;
-import com.ksy.fmrs.dto.league.LeagueStandingDto;
 import com.ksy.fmrs.dto.player.PlayerSimpleDto;
 import com.ksy.fmrs.dto.player.PlayerStatDto;
 import com.ksy.fmrs.dto.player.SquadPlayerDto;
@@ -60,10 +59,10 @@ public class FootballApiService {
                 });
     }
 
-    public PlayerStatisticsApiResponseDto getSquadStatistics(Integer teamApiId, Integer leagueApiId, int currentSeason, int page) {
+    public Mono<PlayerStatisticsApiResponseDto> getSquadStatistics(Integer teamApiId, Integer leagueApiId, int currentSeason, int page) {
         return webClientService.getApiResponse(
                 UrlEnum.buildPlayerStatisticsUrlByTeamApiId(teamApiId, leagueApiId, currentSeason, page),
-                PlayerStatisticsApiResponseDto.class).block();
+                PlayerStatisticsApiResponseDto.class);
     }
 
     public Mono<List<TeamStandingDto>> getLeagueStandings(Integer leagueApiId, int currentSeason) {
@@ -159,15 +158,15 @@ public class FootballApiService {
 
     // 출장경기수, 골, 어시스트, 평점, 선수 이미지
     private PlayerStatDto convertStatisticsToPlayerStatDto(PlayerStatisticsApiResponseDto response) {
-        PlayerStatisticsApiResponseDto.StatisticDto stat = response.getResponse().getFirst().getStatistics().getFirst();
+        PlayerStatisticsApiResponseDto.StatisticDto stat = response.response().getFirst().statistics().getFirst();
         PlayerStatDto playerStatDto = new PlayerStatDto();
-        playerStatDto.setApiFootballId(response.getResponse().getFirst().getPlayer().getId());
-        playerStatDto.setGamesPlayed(stat.getGames().getAppearences());
-        playerStatDto.setGoal(stat.getGoals().getTotal());
-        playerStatDto.setAssist(stat.getGoals().getAssists());
-        playerStatDto.setPk(stat.getPenalty().getScored());
-        playerStatDto.setRating(StringUtils.truncateToTwoDecimalsRanging(stat.getGames().getRating()));
-        playerStatDto.setImageUrl(response.getResponse().getFirst().getPlayer().getPhoto());
+        playerStatDto.setApiFootballId(response.response().getFirst().player().id());
+        playerStatDto.setGamesPlayed(stat.games().appearences());
+        playerStatDto.setGoal(stat.goals().total());
+        playerStatDto.setAssist(stat.goals().assists());
+        playerStatDto.setPk(stat.penalty().scored());
+        playerStatDto.setRating(StringUtils.truncateToTwoDecimalsRanging(stat.games().rating()));
+        playerStatDto.setImageUrl(response.response().getFirst().player().photo());
         return playerStatDto;
     }
 

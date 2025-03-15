@@ -3,7 +3,6 @@ package com.ksy.fmrs.service;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.ksy.fmrs.domain.enums.LeagueType;
 import com.ksy.fmrs.domain.player.*;
-import com.ksy.fmrs.dto.apiFootball.PlayerStatisticsApiResponseDto;
 import com.ksy.fmrs.dto.league.LeagueDetailsRequestDto;
 import com.ksy.fmrs.dto.player.FmPlayerDto;
 import com.ksy.fmrs.repository.LeagueRepository;
@@ -19,6 +18,7 @@ import org.springframework.transaction.annotation.Transactional;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 import reactor.core.scheduler.Schedulers;
+import reactor.util.retry.Retry;
 
 import java.io.File;
 import java.io.IOException;
@@ -41,7 +41,7 @@ public class InitializationService {
     private static final int LAST_LEAGUE_ID = 1172; //1172
     private static final int FIRST_LEAGUE_ID = 1;   //1
     private static final int SEASON_2024 = 2024;
-    private static final int default_page = 1;
+    private static final int DEFAULT_PAGE = 1;
     //각 요청 사이에 약 133ms 딜레이 (450회/분 ≒ 7.5회/초)
     private static final int DELAY_MS = 133;
     private static final int TIME_OUT = 10;
@@ -90,10 +90,10 @@ public class InitializationService {
                 .subscribeOn(Schedulers.boundedElastic())
                 .flatMapMany(Flux::fromIterable)
                 .delayElements(Duration.ofMillis(DELAY_MS))
-                .timeout(Duration.ofSeconds(TIME_OUT))
                 .flatMap(league ->
                         footballApiService.getLeagueStandings(league.getLeagueApiId(), league.getCurrentSeason())
                 )
+                .timeout(Duration.ofSeconds(TIME_OUT))
                 .doOnNext(response -> {
                     if (!response.isEmpty()) {
                         log.info("leagueApiId {}: 응답 있음", response.getFirst().getLeagueApiId());
@@ -113,24 +113,86 @@ public class InitializationService {
                 .then();
     }
 
-
-    // 선수 player_api_id 매칭
-    public void updateAllPlayerApiIds() {
-        teamRepository.findAllTeamsWithLeague().forEach(team -> {
-            int nowPage = 1;
-            while (true) {
-                PlayerStatisticsApiResponseDto dto = footballApiService.getSquadStatistics(
-                        team.getTeamApiId(), team.getLeague().getLeagueApiId(), team.getLeague().getCurrentSeason(), nowPage);
-                if (dto == null) {
-                    break;
-                }
-                if (dto.getPaging().getTotal() <= nowPage) {
-                    break;
-                }
-                dto.getResponse().forEach(playerService::updatePlayerApiIdByPlayerWrapperDto);
-            }
-        });
+    public Mono<Void> updateAllPlayerApiIds() {
+        return Mono.fromCallable(teamRepository::findAllTeamsWithLeague)
+                .subscribeOn(Schedulers.boundedElastic())
+                .flatMapMany(Flux::fromIterable)
+                .delayElements(Duration.ofMillis(DELAY_MS))
+                .flatMap(team -> {
+                    return footballApiService.getSquadStatistics(
+                                    team.getTeamApiId(),
+                                    team.getLeague().getLeagueApiId(),
+                                    SEASON_2024,
+                                    1)  // 첫 페이지 호출
+                            .retryWhen(
+                                    Retry.backoff(3, Duration.ofSeconds(1))
+                                            .doBeforeRetry(rs -> log.warn("팀 {}: 첫 페이지 재시도, 시도 횟수: {}",
+                                                    team.getTeamApiId(), rs.totalRetriesInARow() + 1))
+                            )
+                            .doOnNext(firstPage -> {
+                                if (firstPage != null) {
+                                    log.info("팀 {}: 첫 페이지 응답 받음, 현재 페이지: {} / 총 페이지: {}",
+                                            team.getTeamApiId(), firstPage.paging().current(), firstPage.paging().total());
+                                } else {
+                                    log.warn("팀 {}: 첫 페이지 응답이 null", team.getTeamApiId());
+                                }
+                            })
+                            .expand(response -> {
+                                int currentPage = response.paging().current();
+                                int totalPages = response.paging().total();
+                                if (currentPage < totalPages) {
+                                    int nextPage = currentPage + 1;
+                                    return footballApiService.getSquadStatistics(
+                                                    team.getTeamApiId(),
+                                                    team.getLeague().getLeagueApiId(),
+                                                    SEASON_2024,
+                                                    nextPage)
+                                            .retryWhen(
+                                                    Retry.backoff(3, Duration.ofSeconds(1))
+                                                            .doBeforeRetry(rs -> log.warn("팀 {}: 페이지 {} 재시도, 시도 횟수: {}",
+                                                                    team.getTeamApiId(), nextPage, rs.totalRetriesInARow() + 1))
+                                            );
+                                } else {
+                                    log.debug("팀 {}: 마지막 페이지 도달 (현재 페이지: {})", team.getTeamApiId(), currentPage);
+                                    return Mono.empty();
+                                }
+                            })
+                            .flatMap(dto -> {
+                                if (dto == null) {
+                                    log.warn("팀 {}: 응답 dto가 null", team.getTeamApiId());
+                                    return Flux.empty();
+                                }
+                                log.debug("팀 {}: dto.response() 크기: {}", team.getTeamApiId(), dto.response().size());
+                                return Flux.fromIterable(dto.response());
+                            })
+                            .doOnNext(playerWrapper -> {
+                                log.debug("팀 {}: 선수 {} 업데이트 호출",
+                                        team.getTeamApiId(), playerWrapper.player().name());
+                                try {
+                                    playerService.updatePlayerApiIdByPlayerWrapperDto(
+                                            playerWrapper.player().id(),
+                                            playerWrapper.player().firstname(),
+                                            playerWrapper.player().lastname(),
+                                            StringUtils.parseStringToLocalDate(playerWrapper.player().birth().date()));
+                                    log.debug("팀 {}: 선수 {} 업데이트 성공", team.getTeamApiId(), playerWrapper.player().name());
+                                } catch (Exception ex) {
+                                    log.error("팀 {}: 선수 {} 업데이트 중 예외 발생: {}",
+                                            team.getTeamApiId(), playerWrapper.player().name(), ex.getMessage());
+                                }
+                            })
+                            .onErrorContinue((e, o) -> {
+                                log.error("팀 {} 처리 중 에러 발생: {}. 문제 데이터: {}", team.getTeamApiId(), e.getMessage(), o);
+                            });
+                }, 10)
+                .timeout(Duration.ofSeconds(TIME_OUT))
+                .onErrorResume(e -> {
+                    log.error("전체 처리 중 타임아웃 또는 에러 발생: {}", e.getMessage());
+                    return Mono.empty();
+                })
+                .then();
     }
+
+
 
     private List<Integer> createAllLeagueApiIds() {
         List<Integer> urls = new ArrayList<>();
@@ -151,7 +213,6 @@ public class InitializationService {
         leagueService.saveAllByLeagueDetails(leagueDetailsRequestDto);
     }
 
-    @Transactional
     public void savePlayersFromFmPlayers(String dirPath) {
         playerRepository.saveAll(getPlayersFromFmPlayers(dirPath));
     }
@@ -163,7 +224,6 @@ public class InitializationService {
         List<Player> players = new ArrayList<>();
         Arrays.stream(jsonFiles).forEach(file -> {
             try {
-                // DB에 저장
                 players.add(importPlayerFromJson(file));
             } catch (Exception e) {
                 log.error("Error importing file {}: {}", file.getName(), e.getMessage(), e);

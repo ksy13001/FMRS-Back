@@ -45,22 +45,15 @@ public class PlayerService {
     }
 
     @Transactional
-    public void updatePlayerApiIdByPlayerWrapperDto(PlayerStatisticsApiResponseDto.PlayerWrapperDto playerWrapperDto) {
-        PlayerStatisticsApiResponseDto.PlayerDto squadPlayer = playerWrapperDto.getPlayer();
-        String firstName = StringUtils.getFirstName(squadPlayer.getFirstname());
-        String lastName = StringUtils.getLastName(squadPlayer.getName());
-        LocalDate birth = StringUtils.parseLocalToString(squadPlayer.getBirth().getDate());
-        List<Player> findPlayers = playerRepository.searchPlayerByLastNameAndBirth(lastName, birth, firstName);
+    public void updatePlayerApiIdByPlayerWrapperDto(Integer playerApiId, String firstName, String lastName, LocalDate birth) {
+        List<Player> findPlayers = playerRepository.searchPlayerByLastNameAndBirth(firstName, lastName, birth);
         if (findPlayers.size() > 1) {
-            log.info("------ max_size error----: name:" + squadPlayer.getName()+"  birth:" + birth +  " squadPlayer:" + squadPlayer.getName());
             return;
         }
         if (findPlayers.isEmpty()) {
-            log.info("------ empty error: name:" + squadPlayer.getName()+"  birth:" + birth +  " squadPlayer first:" + squadPlayer.getFirstname());
             return;
         }
-        log.info("!!!!!! success name: " + squadPlayer.getName() + " api_idL " + squadPlayer.getId() );
-        findPlayers.getFirst().updatePlayerApiId(squadPlayer.getId());
+        findPlayers.getFirst().updatePlayerApiId(playerApiId);
     }
 
     /**

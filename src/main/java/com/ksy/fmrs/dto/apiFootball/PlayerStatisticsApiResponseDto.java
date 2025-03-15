@@ -1,171 +1,151 @@
 package com.ksy.fmrs.dto.apiFootball;
 
-import lombok.Data;
 import java.util.List;
 import java.util.Map;
 
-@Data
-public class PlayerStatisticsApiResponseDto {
-    private String get;
-    private ParametersDto parameters;
-    private List<Map<String, Object>> errors;
-    private int results;
-    private PagingDto paging;
-    private List<PlayerWrapperDto> response;
+public record PlayerStatisticsApiResponseDto(
+        String get,
+//        ParametersDto parameters,
+//        List<Map<String, Object>> errors,
+        int results,
+        PagingDto paging,
+        List<PlayerWrapperDto> response
+) {
 
-    @Data
-    public static class ParametersDto {
-        private String id;
-        private String season;
+    public record ParametersDto(
+            String id,
+            String season
+    ) {}
+
+    public record PagingDto(
+            int current,
+            int total
+    ) {}
+
+    public record PlayerWrapperDto(
+            PlayerDto player,
+            List<StatisticDto> statistics
+    ) {}
+
+    public record PlayerDto(
+            int id,
+            String name,
+            String firstname,
+            String lastname,
+            int age,
+            BirthDto birth,
+            String nationality,
+            String height,
+            String weight,
+            boolean injured,
+            String photo
+    ) {}
+
+    public record BirthDto(
+            String date,
+            String place,
+            String country
+    ) {}
+
+    public record StatisticDto(
+            TeamDto team,
+            LeagueDto league,
+            GamesDto games,
+            SubstitutesDto substitutes,
+            ShotsDto shots,
+            GoalsDto goals,
+            PassesDto passes,
+            TacklesDto tackles,
+            DuelsDto duels,
+            DribblesDto dribbles,
+            FoulsDto fouls,
+            CardsDto cards,
+            PenaltyDto penalty
+    ) {
+
+        public record TeamDto(
+                int id,
+                String name,
+                String logo
+        ) {}
+
+        public record LeagueDto(
+                int id,
+                String name,
+                String country,
+                String logo,
+                String flag,
+                String season
+        ) {}
+
+        public record GamesDto(
+                Integer appearences,
+                Integer lineups,
+                Integer minutes,
+                Integer number,
+                String position,
+                String rating,
+                boolean captain
+        ) {}
+
+        public record SubstitutesDto(
+                Integer in,
+                Integer out,
+                Integer bench
+        ) {}
+
+        public record ShotsDto(
+                Integer total,
+                Integer on
+        ) {}
+
+        public record GoalsDto(
+                Integer total,
+                Integer conceded,
+                Integer assists,
+                Integer saves
+        ) {}
+
+        public record PassesDto(
+                Integer total,
+                Integer key,
+                Integer accuracy
+        ) {}
+
+        public record TacklesDto(
+                Integer total,
+                Integer blocks,
+                Integer interceptions
+        ) {}
+
+        public record DuelsDto(
+                Integer total,
+                Integer won
+        ) {}
+
+        public record DribblesDto(
+                Integer attempts,
+                Integer success,
+                Integer past
+        ) {}
+
+        public record FoulsDto(
+                Integer drawn,
+                Integer committed
+        ) {}
+
+        public record CardsDto(
+                Integer yellow,
+                Integer yellowred,
+                Integer red
+        ) {}
+
+        public record PenaltyDto(
+                Integer won,
+                Integer commited,
+                Integer scored,
+                Integer missed,
+                Integer saved
+        ) {}
     }
-
-    @Data
-    public static class PagingDto {
-        private int current;
-        private int total;
-    }
-
-    @Data
-    public static class PlayerWrapperDto {
-        private PlayerDto player;
-        private List<StatisticDto> statistics;
-    }
-
-    @Data
-    public static class PlayerDto {
-        private int id;
-        private String name;
-        private String firstname;
-        private String lastname;
-        private int age;
-        private BirthDto birth;
-        private String nationality;
-        private String height;
-        private String weight;
-        private boolean injured;
-        private String photo;
-    }
-
-    @Data
-    public static class BirthDto {
-        private String date;
-        private String place;
-        private String country;
-    }
-
-    @Data
-    public static class StatisticDto {
-        private TeamDto team;
-        private LeagueDto league;
-        private GamesDto games;
-        private SubstitutesDto substitutes;
-        private ShotsDto shots;
-        private GoalsDto goals;
-        private PassesDto passes;
-        private TacklesDto tackles;
-        private DuelsDto duels;
-        private DribblesDto dribbles;
-        private FoulsDto fouls;
-        private CardsDto cards;
-        private PenaltyDto penalty;
-
-        @Data
-        public static class TeamDto {
-            private int id;
-            private String name;
-            private String logo;
-        }
-
-        @Data
-        public static class LeagueDto {
-            private int id;
-            private String name;
-            private String country;
-            private String logo;
-            private String flag;
-            private String season;
-        }
-
-        @Data
-        public static class GamesDto {
-            private Integer appearences;
-            private Integer lineups;
-            private Integer minutes;
-            private Integer number;
-            private String position;
-            private String rating;
-            private boolean captain;
-        }
-
-        @Data
-        public static class SubstitutesDto {
-            private Integer in;
-            private Integer out;
-            private Integer bench;
-        }
-
-        @Data
-        public static class ShotsDto {
-            private Integer total;
-            private Integer on;
-        }
-
-        @Data
-        public static class GoalsDto {
-            private Integer total;
-            private Integer conceded;
-            private Integer assists;
-            private Integer saves;
-        }
-
-        @Data
-        public static class PassesDto {
-            private Integer total;
-            private Integer key;
-            private Integer accuracy;
-        }
-
-        @Data
-        public static class TacklesDto {
-            private Integer total;
-            private Integer blocks;
-            private Integer interceptions;
-        }
-
-        @Data
-        public static class DuelsDto {
-            private Integer total;
-            private Integer won;
-        }
-
-        @Data
-        public static class DribblesDto {
-            private Integer attempts;
-            private Integer success;
-            private Integer past;
-        }
-
-        @Data
-        public static class FoulsDto {
-            private Integer drawn;
-            private Integer committed;
-        }
-
-        @Data
-        public static class CardsDto {
-            private Integer yellow;
-            private Integer yellowred;
-            private Integer red;
-        }
-
-        @Data
-        public static class PenaltyDto {
-            private Integer won;
-            private Integer commited;
-            private Integer scored;
-            private Integer missed;
-            private Integer saved;
-        }
-    }
-
 }

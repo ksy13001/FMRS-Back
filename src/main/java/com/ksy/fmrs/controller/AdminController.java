@@ -33,7 +33,7 @@ public class AdminController {
     }
 
     @ResponseBody
-    @PostMapping("/api/admin/insert-players/{fm_player}")  //fm_player
+    @PostMapping("/api/admin/insert/players/{fm_player}")  //fm_player
     public void insertPlayers(@PathVariable String fm_player) {
         initializationService.savePlayersFromFmPlayers(fm_player);
     }
@@ -42,7 +42,7 @@ public class AdminController {
      *  league 초기 데이터 insert
      * */
     @ResponseBody
-    @PostMapping("/api/admin/insert-league-data")
+    @PostMapping("/api/admin/insert/league-data")
     public  Mono<ResponseEntity<Void>> insertInitialLeagueData() {
         return initializationService.saveInitialLeague()
                 .then(Mono.just(ResponseEntity.ok().build()));
@@ -52,7 +52,7 @@ public class AdminController {
      * team 초기 데이터 insert
      * */
     @ResponseBody
-    @PostMapping("/api/admin/insert-team-data")
+    @PostMapping("/api/admin/insert/team-data")
     public Mono<ResponseEntity<Void>> insertInitialTeamData() {
         return initializationService.saveInitialTeams()
                 .then(Mono.just(ResponseEntity.ok().build()));
@@ -62,9 +62,9 @@ public class AdminController {
      * player - playerApiId 매핑
      **/
     @ResponseBody
-    @PostMapping("/api/admin/update-squad")
-    public void updateAllPlayerApiIds() {
-        initializationService.updateAllPlayerApiIds();
+    @PostMapping("/api/admin/update/player-api-id")
+    public Mono<Void> updateAllPlayerApiIds() {
+        return initializationService.updateAllPlayerApiIds();
     }
 
 //    @ResponseBody

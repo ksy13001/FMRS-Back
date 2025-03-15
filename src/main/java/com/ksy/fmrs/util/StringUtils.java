@@ -44,7 +44,7 @@ public class StringUtils {
         return String.format("%.2f", rating);
     }
 
-    public static LocalDate parseLocalToString(String date) {
+    public static LocalDate parseStringToLocalDate(String date) {
         if (date == null) {
             return null;
         }

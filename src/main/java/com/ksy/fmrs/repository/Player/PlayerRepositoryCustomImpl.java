@@ -29,10 +29,11 @@ public class PlayerRepositoryCustomImpl implements PlayerRepositoryCustom {
 
     // lastName, 나이로 검색
     @Override
-    public List<Player> searchPlayerByLastNameAndBirth(String lastName, LocalDate birth, String firstName) {
+    public List<Player> searchPlayerByLastNameAndBirth(String firstName, String lastName, LocalDate birth) {
         return jpaQueryFactory
                 .selectFrom(QPlayer.player)
                 .where(eqLastName(lastName), eqBirth(birth),  eqFirstName(firstName))
+                .limit(1)
                 .fetch();
     }
 

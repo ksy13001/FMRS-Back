@@ -1,4 +1,4 @@
-package com.ksy.fmrs.dto.league;
+package com.ksy.fmrs.dto.apiFootball;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 
