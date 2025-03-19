@@ -48,6 +48,13 @@ public class InitializationService {
     private static final int DELAY_MS = 150;
     private static final int TIME_OUT = 10;
     private static final int buffer = 100;
+    /**
+     * api-football 요청 제한 -> 450/m
+     * 1회 요청 시 평균 0.5s 소요
+     *
+     *
+     * */
+
 
     public Mono<Void> saveInitialLeague() {
         List<Integer> leagueApiIds = createAllLeagueApiIds();
@@ -138,71 +145,63 @@ public class InitializationService {
 //                        })
 //    }
 
+    // 각 리그의 시즌 으로 할 경우 시즌 시작하지 않은 리그는 선수가 조회 안되기 때문에 일단 2024 시즌으로 고정
     public Mono<Void> saveInitialPlayers() {
         return Mono.fromCallable(leagueRepository::findAll)
                 .subscribeOn(Schedulers.boundedElastic())
                 .doOnNext(leagues -> log.info("조회된 리그 개수: {}", leagues.size()))
                 .flatMapMany(Flux::fromIterable)
-                .delayElements(Duration.ofMillis(DELAY_MS))
-                .doOnNext(league -> log.info("리그 처리 시작 - leagueApiId={}, leagueName={}", league.getLeagueApiId(), league.getName()))
-                .flatMap(league -> footballApiService.getPlayerStatisticsByLeagueId(
-                                league.getLeagueApiId(),
-                                league.getCurrentSeason(),
-                                1)
-                        .delaySubscription(Duration.ofMillis(DELAY_MS))
-                        .timeout(Duration.ofSeconds(30))
-                        .onErrorResume(e -> {
-                            log.error("리그 {}: page 1 에러 발생: {}", league.getLeagueApiId(), e.getMessage());
-                            return Mono.empty();
-                        })
-                        .retry(3) // 최대 3회 재시도
-                        .expand(dto -> {
-                            int current = dto.paging().current();
-                            int total = dto.paging().total();
-                            if (current < total) {
-                                int nextPage = current + 1;
-                                return footballApiService.getPlayerStatisticsByLeagueId(
-                                                league.getLeagueApiId(),
-                                                league.getCurrentSeason(),
-                                                nextPage)
-                                        .delaySubscription(Duration.ofMillis(DELAY_MS))
-                                        .timeout(Duration.ofSeconds(30))
-                                        .onErrorResume(e -> {
-                                            log.error("리그 {}: page {} 에러 발생: {}", league.getLeagueApiId(), nextPage, e.getMessage());
-                                            return Mono.empty();
-                                        })
-                                        .retry(3); // 최대 3회 재시도
-                            } else {
-                                log.info("리그 {}: 모든 페이지 처리 완료", league.getLeagueApiId());
-                                return Mono.empty();
-                            }
-                        })
-                        .doOnNext(dto -> log.info("리그 {}: 페이지 {} - 플레이어 수: {}", league.getLeagueApiId(), dto.paging().current(), dto.response().size()))
-                        .flatMap(dto -> {
-                            try {
-                                List<Player> players = convertPlayerStatisticsDtoToPlayer(dto);
-                                log.info("리그 {}: 총 플레이어 수: {}", league.getLeagueApiId(), players.size());
-                                return Flux.fromIterable(players);
-                            } catch (Exception ex) {
-                                log.error("리그 {}: DTO -> Player 변환 중 에러 발생: {}", league.getLeagueApiId(), ex.getMessage());
-                                return Flux.empty();
-                            }
-                        }), 5) // 동시에 처리할 리그 수를 5로 제한
-                .collectList()
-                .map(playerList -> {
-                    log.info("중복 제거 전 플레이어 수: {}", playerList.size());
-                    return new ArrayList<>(playerList.stream()
-                            .collect(Collectors.toMap(
-                                    Player::getPlayerApiId,
-                                    Function.identity(),
-                                    (existing, replacement) -> existing
-                            )).values());
-                })
-                .doOnNext(playerList -> log.info("중복 제거 후 플레이어 수: {}", playerList.size()))
-                .flatMap(players -> {
-                    log.info("저장할 플레이어 수: {}", players.size());
-                    return Mono.fromRunnable(() -> playerService.saveAll(players));
-                })
+                .buffer(buffer).concatMap(batch->Flux.fromIterable(batch)
+                        .delayElements(Duration.ofMillis(DELAY_MS)) // 요청 간 150ms 간격 (분당 400회 요청)
+                        .doOnNext(league -> log.info("리그 처리 시작 - leagueApiId={}, leagueName={}", league.getLeagueApiId(), league.getName()))
+                        .flatMap(league -> footballApiService.getPlayerStatisticsByLeagueId(
+                                        league.getLeagueApiId(),
+                                        league.getCurrentSeason(),
+                                        DEFAULT_PAGE)
+                                .delaySubscription(Duration.ofMillis(DELAY_MS)) // 요청 간 150ms 간격
+                                .timeout(Duration.ofSeconds(30)) // 타임아웃 30초
+                                .onErrorResume(e -> {
+                                    log.error("리그 {}: page 1 에러 발생: {}", league.getLeagueApiId(), e.getMessage());
+                                    return Mono.empty();
+                                })
+                                .retry(3) // 최대 3회 재시도
+                                .expand(dto -> {
+                                    int current = dto.paging().current();
+                                    int total = dto.paging().total();
+                                    if (current < total) {
+                                        int nextPage = current + 1;
+                                        return footballApiService.getPlayerStatisticsByLeagueId(
+                                                        league.getLeagueApiId(),
+                                                        league.getCurrentSeason(),
+                                                        nextPage)
+                                                .delaySubscription(Duration.ofMillis(DELAY_MS)) // 요청 간 150ms 간격
+                                                .timeout(Duration.ofSeconds(30)) // 타임아웃 30초
+                                                .onErrorResume(e -> {
+                                                    log.error("리그 {}: page {} 에러 발생: {}", league.getLeagueApiId(), nextPage, e.getMessage());
+                                                    return Mono.empty();
+                                                })
+                                                .retry(3); // 최대 3회 재시도
+                                    } else {
+                                        log.info("리그 {}: 모든 페이지 처리 완료", league.getLeagueApiId());
+                                        return Mono.empty();
+                                    }
+                                })
+                                .doOnNext(dto -> log.info("리그 {}: 페이지 {} - 플레이어 수: {}", league.getLeagueApiId(), dto.paging().current(), dto.response().size()))
+                                .flatMap(dto -> {
+                                    try {
+                                        List<Player> players = convertPlayerStatisticsDtoToPlayer(dto);
+                                        log.info("리그 {}: 총 플레이어 수: {}", league.getLeagueApiId(), players.size());
+                                        return Flux.fromIterable(players);
+                                    } catch (Exception ex) {
+                                        log.error("리그 {}: DTO -> Player 변환 중 에러 발생: {}", league.getLeagueApiId(), ex.getMessage());
+                                        return Flux.empty();
+                                    }
+                                }), 3) //
+                )// 선수 1000명 모일시 saveAll
+                .buffer(1000).concatMap(batch-> Flux.fromIterable(batch)                .flatMap(players -> {
+                    log.info("배치 처리 중 - 플레이어 수: {}", batch.size());
+                    return Mono.fromRunnable(() -> playerService.saveAll(batch));
+                }))
                 .then();
     }
 
@@ -230,6 +229,8 @@ public class InitializationService {
                     fmPlayer.getPotentialAbility());
         });
     }
+
+
 
     private List<Integer> createAllLeagueApiIds() {
         List<Integer> urls = new ArrayList<>();

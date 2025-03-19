@@ -17,7 +17,7 @@ public class Player {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @Column(name = "player_api_id", unique = true)
+    @Column(name = "player_api_id")
     private Integer playerApiId;
 
     @Column(name = "team_api_id")
