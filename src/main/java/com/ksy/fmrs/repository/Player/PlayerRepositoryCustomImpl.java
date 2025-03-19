@@ -27,12 +27,12 @@ public class PlayerRepositoryCustomImpl implements PlayerRepositoryCustom {
 //                .fetch();
 //    }
 
-    // lastName, 나이로 검색
+    // firstName, lastName, 나이, 국가로 검색
     @Override
-    public List<Player> searchPlayerByLastNameAndBirth(String firstName, String lastName, LocalDate birth) {
+    public List<Player> searchPlayerByFm(String firstName, String lastName, LocalDate birth, String nation) {
         return jpaQueryFactory
                 .selectFrom(QPlayer.player)
-                .where(eqLastName(lastName), eqBirth(birth),  eqFirstName(firstName))
+                .where(eqLastName(lastName), eqBirth(birth), eqFirstName(firstName), eqNationName(nation))
                 .limit(1)
                 .fetch();
     }
@@ -109,22 +109,30 @@ public class PlayerRepositoryCustomImpl implements PlayerRepositoryCustom {
         return QPlayer.player.name.contains(name);
     }
 
-    private BooleanExpression eqFirstName(String first){
+    private BooleanExpression eqFirstName(String first) {
         if (first == null || first.isEmpty()) {
             return null;
         }
         return QPlayer.player.firstName.eq(first);
     }
+
+    private BooleanExpression eqNationName(String nation) {
+        if (nation == null || nation.isEmpty()) {
+            return null;
+        }
+        return  QPlayer.player.nationName.eq(nation);
+    }
+
     private BooleanExpression eqBirth(LocalDate birth) {
-        if(birth == null) {
+        if (birth == null) {
             return null;
         }
         return QPlayer.player.birth.eq(birth);
     }
 
 
-    private BooleanExpression eqLastName(String lastName){
-        if(lastName == null || lastName.isEmpty()){
+    private BooleanExpression eqLastName(String lastName) {
+        if (lastName == null || lastName.isEmpty()) {
             return null;
         }
         return QPlayer.player.lastName.eq(lastName);

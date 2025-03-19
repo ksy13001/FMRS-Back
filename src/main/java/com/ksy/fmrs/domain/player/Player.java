@@ -20,6 +20,12 @@ public class Player {
     @Column(name = "player_api_id", unique = true)
     private Integer playerApiId;
 
+    @Column(name = "team_api_id")
+    private Integer teamApiId;
+
+    @Column(name="league_api_id")
+    private Integer leagueApiId;
+
     private String name;
 
     @Column(name = "first_name")
@@ -94,6 +100,7 @@ public class Player {
     @Builder
     public Player(
             String name,
+            Integer playerApiId,
             String firstName,
             String lastName,
             LocalDate birth,
@@ -101,8 +108,12 @@ public class Player {
             int height,
             int weight,
             int marketValue,
+            Integer teamApiId,
+            Integer leagueApiId,
             String imageUrl,
             Position position,
+            String nationName,
+            String nationLogoUrl,
             PersonalityAttributes personalityAttributes,
             TechnicalAttributes technicalAttributes,
             MentalAttributes mentalAttributes,
@@ -113,6 +124,9 @@ public class Player {
             int potentialAbility
     ) {
         this.name = name;
+        this.playerApiId = playerApiId;
+        this.teamApiId = teamApiId;
+        this.leagueApiId = leagueApiId;
         this.age = age;
         this.firstName = firstName;
         this.lastName = lastName;
@@ -122,6 +136,8 @@ public class Player {
         this.marketValue = marketValue;
         this.position = position;
         this.imageUrl = imageUrl;
+        this.nationName = nationName;
+        this.nationLogoUrl = nationLogoUrl;
         this.personalityAttributes = personalityAttributes;
         this.technicalAttributes = technicalAttributes;
         this.mentalAttributes = mentalAttributes;
@@ -148,5 +164,24 @@ public class Player {
 
     public void updateImageUrl(String imageUrl) {
         this.imageUrl = imageUrl;
+    }
+
+    public void updateFmData(
+            PersonalityAttributes personalityAttributes,
+            TechnicalAttributes technicalAttributes,
+            MentalAttributes mentalAttributes,
+            PhysicalAttributes physicalAttributes,
+            GoalKeeperAttributes goalKeeperAttributes,
+            HiddenAttributes hiddenAttributes,
+            int currentAbility,
+            int potentialAbility) {
+        this.personalityAttributes = personalityAttributes;
+        this.technicalAttributes = technicalAttributes;
+        this.mentalAttributes = mentalAttributes;
+        this.physicalAttributes = physicalAttributes;
+        this.goalKeeperAttributes = goalKeeperAttributes;
+        this.hiddenAttributes = hiddenAttributes;
+        this.currentAbility = currentAbility;
+        this.potentialAbility = potentialAbility;
     }
 }

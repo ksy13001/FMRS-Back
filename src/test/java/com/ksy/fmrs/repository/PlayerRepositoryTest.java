@@ -7,10 +7,12 @@ import com.ksy.fmrs.domain.player.QPlayer;
 import com.ksy.fmrs.dto.search.SearchPlayerCondition;
 import com.ksy.fmrs.repository.Player.PlayerRepository;
 import com.ksy.fmrs.repository.Team.TeamRepository;
+import com.ksy.fmrs.util.StringUtils;
 import com.querydsl.jpa.impl.JPAQueryFactory;
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.PersistenceContext;
 import org.assertj.core.api.Assertions;
+import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -20,6 +22,7 @@ import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest;
 import org.springframework.boot.test.context.TestConfiguration;
 import org.springframework.context.annotation.Bean;
 
+import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -45,7 +48,7 @@ class PlayerRepositoryTest {
         }
     }
 
-    @BeforeEach
+    @AfterEach
     void setUp(){
         playerRepository.deleteAll();
     }
@@ -128,6 +131,36 @@ class PlayerRepositoryTest {
         Assertions.assertThat(actual.get(0).getName()).isEqualTo("playerC");
         Assertions.assertThat(actual.get(1).getName()).isEqualTo("playerB");
         Assertions.assertThat(actual.get(2).getName()).isEqualTo("playerA");
+    }
+
+    @Test
+    @DisplayName("fmplayerStat으로 player 찾기")
+    void searchPlayerByFm(){
+        // given
+        String fileName = "98031331-Manuel Akanji";
+        String name = StringUtils.getPlayerNameFromFileName(fileName);
+        String firstName = StringUtils.getFirstName(name).toUpperCase();
+        String lastName = StringUtils.getLastName(name).toUpperCase();
+        LocalDate birthDate = LocalDate.of(1995,7,19);
+        String Nation = "Switzerland".toUpperCase();
+        Player player = Player.builder()
+                .firstName("MANUEL")
+                .lastName("AKANJI")
+                .nationName("SWITZERLAND")
+                .birth(LocalDate.of(1995,7,19))
+                .build();
+        playerRepository.save(player);
+        // when
+        List<Player> result = playerRepository.searchPlayerByFm(firstName, lastName, birthDate, Nation);
+
+        // then
+        Assertions.assertThat(result).hasSize(1);
+        Player actual = result.get(0);
+        Assertions.assertThat(actual.getFirstName()).isEqualTo("MANUEL");
+        Assertions.assertThat(actual.getLastName()).isEqualTo("AKANJI");
+        Assertions.assertThat(actual.getNationName()).isEqualTo("SWITZERLAND");
+        Assertions.assertThat(actual.getBirth()).isEqualTo(LocalDate.of(1995,7,19));
+
     }
 
     private Team createTeam(String name){

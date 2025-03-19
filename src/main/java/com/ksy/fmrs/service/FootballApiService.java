@@ -71,6 +71,12 @@ public class FootballApiService {
                 StandingsAPIResponseDto.class).mapNotNull(this::getValidatedLeagueDetails);
     }
 
+    public Mono<PlayerStatisticsApiResponseDto> getPlayerStatisticsByLeagueId(Integer leagueApiId, int currentSeason, int page) {
+        return webClientService.getApiResponse(
+                UrlEnum.buildPlayersUrlByLeagueApiId(leagueApiId, currentSeason, page),
+                PlayerStatisticsApiResponseDto.class);
+    }
+
     public List<PlayerSimpleDto> getLeagueTopScorers(Integer leagueApiId) {
         League league = findLeagueByLeagueApiId(leagueApiId);
         LeagueApiTopPlayerResponseDto response = webClientService.getApiResponse(
@@ -100,15 +106,8 @@ public class FootballApiService {
                 .map(this::convertToLeagueInfoDto);
     }
 
-    public List<SquadPlayerDto> getSquadPlayers(Integer teamApiId) {
-        List<SquadApiResponseDto.ResponseItem> response = Objects.requireNonNull(webClientService.getApiResponse(
-                UrlEnum.buildSquadUrl(teamApiId),
-                SquadApiResponseDto.class).block()).getResponse();
-        if (response == null || response.isEmpty() || response.get(0) == null) {
-            return Collections.emptyList();
-        }
-        return response.getFirst().getPlayers()
-                .stream().map(this::convertToSquadPlayerDto).collect(Collectors.toList());
+    public Mono<SquadApiResponseDto> getSquadPlayers(Integer teamApiId) {
+        return webClientService.getApiResponse(UrlEnum.buildSquadUrl(teamApiId), SquadApiResponseDto.class);
     }
 
     private List<TeamStandingDto> getValidatedLeagueDetails(StandingsAPIResponseDto response) {
@@ -279,12 +278,12 @@ public class FootballApiService {
 
 
 
-    private SquadPlayerDto convertToSquadPlayerDto(SquadApiResponseDto.Player player) {
-        return SquadPlayerDto.builder()
-                .name(player.getName())
-                .age(player.getAge())
-                .imageUrl(player.getPhoto())
-                .playerApiId(player.getId())
-                .build();
-    }
+//    private SquadPlayerDto convertToSquadPlayerDto(SquadApiResponseDto.Player player) {
+//        return SquadPlayerDto.builder()
+//                .name(player.getName())
+//                .age(player.getAge())
+//                .imageUrl(player.getPhoto())
+//                .playerApiId(player.getId())
+//                .build();
+//    }
 }
