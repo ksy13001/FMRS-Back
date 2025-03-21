@@ -2,11 +2,14 @@ package com.ksy.fmrs.service;
 
 import com.ksy.fmrs.domain.player.*;
 import com.ksy.fmrs.domain.Team;
+import com.ksy.fmrs.dto.apiFootball.PlayerStatisticsApiResponseDto;
 import com.ksy.fmrs.dto.player.PlayerDetailsDto;
 import com.ksy.fmrs.dto.search.SearchPlayerCondition;
 import com.ksy.fmrs.dto.search.SearchPlayerResponseDto;
 import com.ksy.fmrs.dto.team.TeamPlayersResponseDto;
 import com.ksy.fmrs.repository.Player.PlayerRepository;
+import com.ksy.fmrs.repository.Team.TeamRepository;
+import com.ksy.fmrs.util.StringUtils;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -14,6 +17,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDate;
 import java.util.List;
+import java.util.Objects;
 import java.util.Optional;
 
 @Slf4j
@@ -22,6 +26,7 @@ import java.util.Optional;
 public class PlayerService {
 
     private final PlayerRepository playerRepository;
+    private final TeamRepository teamRepository;
 
     /**
      * 선수 상세 정보 조회
@@ -30,6 +35,33 @@ public class PlayerService {
         Player player = playerRepository.findById(playerId)
                 .orElseThrow(() -> new IllegalArgumentException("Player not found: " + playerId));
         return convertPlayerToPlayerDetailsResponseDto(player);
+    }
+
+    public void saveAllByPlayerStatistics(PlayerStatisticsApiResponseDto playerStatisticsApiResponseDto) {
+        List<Player> players = playerStatisticsApiResponseDto.response().stream().filter(Objects::nonNull)
+                .map(dto -> {
+                    PlayerStatisticsApiResponseDto.PlayerDto player = dto.player();
+                    PlayerStatisticsApiResponseDto.StatisticDto.TeamDto teamDto = dto.statistics().getFirst().team();
+                    Team team = teamRepository.findTeamByTeamApiId(teamDto.id())
+                            .orElseThrow(() -> new IllegalArgumentException("Team not found: " + teamDto.id()));
+                    Player newPlayer = Player.builder()
+                            .name(player.name())
+                            .playerApiId(player.id())
+                            .teamApiId(Objects.requireNonNull(dto.statistics()).getFirst().team().id())
+                            .leagueApiId(Objects.requireNonNull(dto.statistics()).getFirst().league().id())
+                            .firstName(StringUtils.getFirstName(player.firstname()).toUpperCase())
+                            .lastName(StringUtils.getLastName(player.lastname()).toUpperCase())
+                            .nationName(player.nationality().toUpperCase())
+                            .nationLogoUrl(Objects.requireNonNull(dto.statistics().getFirst().league().flag()))
+                            .age(player.age())
+                            .birth(player.birth().date())
+                            .height(StringUtils.extractNumber(player.height()))
+                            .weight(StringUtils.extractNumber(player.weight()))
+                            .build();
+                    newPlayer.updateTeam(team);
+                    return newPlayer;
+                }).toList();
+        playerRepository.saveAll(players);
     }
 
     public void saveAll(List<Player> players) {
@@ -98,5 +130,4 @@ public class PlayerService {
                 .map(this::convertPlayerToPlayerDetailsResponseDto)
                 .toList());
     }
-
 }
