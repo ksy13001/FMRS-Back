@@ -39,3 +39,6 @@ application.properties
 !/.gitignore
 
 !/src/querydsl/
+
+src/main/java/com/ksy/fmrs/controller/AdminController.java
+

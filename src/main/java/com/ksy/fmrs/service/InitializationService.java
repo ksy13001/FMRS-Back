@@ -3,6 +3,7 @@ package com.ksy.fmrs.service;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.ksy.fmrs.domain.enums.LeagueType;
 import com.ksy.fmrs.domain.player.*;
+import com.ksy.fmrs.dto.apiFootball.PlayerStatisticsApiResponseDto;
 import com.ksy.fmrs.dto.league.LeagueDetailsRequestDto;
 import com.ksy.fmrs.dto.player.FmPlayerDto;
 import com.ksy.fmrs.repository.LeagueRepository;
@@ -18,12 +19,13 @@ import org.springframework.transaction.annotation.Transactional;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 import reactor.core.scheduler.Schedulers;
-import reactor.util.retry.Retry;
 
 import java.io.File;
 import java.io.IOException;
 import java.time.Duration;
 import java.util.*;
+import java.util.function.Function;
+import java.util.stream.Collectors;
 
 @Slf4j
 @RequiredArgsConstructor
@@ -43,16 +45,16 @@ public class InitializationService {
     private static final int SEASON_2024 = 2024;
     private static final int DEFAULT_PAGE = 1;
     //각 요청 사이에 약 133ms 딜레이 (450회/분 ≒ 7.5회/초)
-    private static final int DELAY_MS = 133;
+    private static final int DELAY_MS = 150;
     private static final int TIME_OUT = 10;
     private static final int buffer = 100;
 
     /**
-     * 1. 외부 api로 전체 리그 정보 다 가져옴
-     * 2. 외부 api로 리그마다 standing 가져와서 팀 정보 다 가져옴
-     * 3. 외부 api로 팀 마다 statisitcs 가져와서 선수 정보 다 가져옴(player_api_id 매핑하기 위함)
-     * 4. bulk insert
-     **/
+     * api-football 요청 제한 -> 450/m
+     * 1회 요청 시 평균 0.5s 소요
+     */
+
+
     public Mono<Void> saveInitialLeague() {
         List<Integer> leagueApiIds = createAllLeagueApiIds();
         return Flux.fromIterable(leagueApiIds)
@@ -80,7 +82,7 @@ public class InitializationService {
                 .collectList()
                 .doOnNext(leagues -> log.info("최종 저장할 리그 개수: {}", leagues.size()))
                 .flatMap(leagues ->
-                        Mono.fromRunnable(() -> saveInitialLeagues(leagues)))
+                        Mono.fromRunnable(() -> leagueService.saveAllByLeagueDetails(leagues)))
                 .then();
     }
 
@@ -113,85 +115,123 @@ public class InitializationService {
                 .then();
     }
 
-    public Mono<Void> updateAllPlayerApiIds() {
-        return Mono.fromCallable(teamRepository::findAllTeamsWithLeague)
+    /**
+     * 1. team 전체 조회
+     * 2. teamApiId 의 squad 조회(외부 api)
+     * 3. squad 순회하면서 playerApi로 저장된 player 조회
+     * 4. player TeamApi 업데이트
+     */
+//    public Mono<Void> updateAllPlayersTeamApiId() {
+//        return Mono.fromCallable(teamRepository::findAllTeamsWithLeague)
+//                .subscribeOn(Schedulers.boundedElastic())
+//                .flatMapMany(Flux::fromIterable)
+//                .delayElements(Duration.ofMillis(DELAY_MS))
+//                .doOnNext(team -> log.info("팀 처리 시작 : teamApiId={} name={}",team.getTeamApiId(), team.getName()))
+//                .flatMap(team -> footballApiService.getSquadPlayers(team.getTeamApiId())
+//                        .delaySubscription(Duration.ofMillis(DELAY_MS))
+//                        .onErrorResume(e -> {
+//                            log.error("팀 id {}: 에러 발생: {}", team.getTeamApiId(), e.getMessage());
+//                            return Mono.empty();
+//                        })
+//                        .flatMap(dto->{
+//                            team.resetSquad();
+//                            dto.response().getFirst().players().stream().flatMap(
+//                                    player -> {
+//                                        Player findPlayer = Mono.fromCallable(()->playerRepository.findByPlayerApiId(player.id())
+//                                                .orElse(null));
+//                                    }
+//                            )
+//                        })
+//    }
+
+    // 각 리그의 시즌 으로 할 경우 시즌 시작하지 않은 리그는 선수가 조회 안되기 때문에 일단 2024 시즌으로 고정
+    public Mono<Void> saveInitialPlayers() {
+        return Mono.fromCallable(leagueRepository::findAll)
                 .subscribeOn(Schedulers.boundedElastic())
+                .doOnNext(leagues -> log.info("조회된 리그 개수: {}", leagues.size()))
                 .flatMapMany(Flux::fromIterable)
-                .delayElements(Duration.ofMillis(DELAY_MS))
-                .flatMap(team -> {
-                    return footballApiService.getSquadStatistics(
-                                    team.getTeamApiId(),
-                                    team.getLeague().getLeagueApiId(),
-                                    SEASON_2024,
-                                    1)  // 첫 페이지 호출
-                            .retryWhen(
-                                    Retry.backoff(3, Duration.ofSeconds(1))
-                                            .doBeforeRetry(rs -> log.warn("팀 {}: 첫 페이지 재시도, 시도 횟수: {}",
-                                                    team.getTeamApiId(), rs.totalRetriesInARow() + 1))
-                            )
-                            .doOnNext(firstPage -> {
-                                if (firstPage != null) {
-                                    log.info("팀 {}: 첫 페이지 응답 받음, 현재 페이지: {} / 총 페이지: {}",
-                                            team.getTeamApiId(), firstPage.paging().current(), firstPage.paging().total());
-                                } else {
-                                    log.warn("팀 {}: 첫 페이지 응답이 null", team.getTeamApiId());
-                                }
-                            })
-                            .expand(response -> {
-                                int currentPage = response.paging().current();
-                                int totalPages = response.paging().total();
-                                if (currentPage < totalPages) {
-                                    int nextPage = currentPage + 1;
-                                    return footballApiService.getSquadStatistics(
-                                                    team.getTeamApiId(),
-                                                    team.getLeague().getLeagueApiId(),
-                                                    SEASON_2024,
-                                                    nextPage)
-                                            .retryWhen(
-                                                    Retry.backoff(3, Duration.ofSeconds(1))
-                                                            .doBeforeRetry(rs -> log.warn("팀 {}: 페이지 {} 재시도, 시도 횟수: {}",
-                                                                    team.getTeamApiId(), nextPage, rs.totalRetriesInARow() + 1))
-                                            );
-                                } else {
-                                    log.debug("팀 {}: 마지막 페이지 도달 (현재 페이지: {})", team.getTeamApiId(), currentPage);
-                                    return Mono.empty();
-                                }
-                            })
-                            .flatMap(dto -> {
-                                if (dto == null) {
-                                    log.warn("팀 {}: 응답 dto가 null", team.getTeamApiId());
-                                    return Flux.empty();
-                                }
-                                log.debug("팀 {}: dto.response() 크기: {}", team.getTeamApiId(), dto.response().size());
-                                return Flux.fromIterable(dto.response());
-                            })
-                            .doOnNext(playerWrapper -> {
-                                log.debug("팀 {}: 선수 {} 업데이트 호출",
-                                        team.getTeamApiId(), playerWrapper.player().name());
-                                try {
-                                    playerService.updatePlayerApiIdByPlayerWrapperDto(
-                                            playerWrapper.player().id(),
-                                            playerWrapper.player().firstname(),
-                                            playerWrapper.player().lastname(),
-                                            StringUtils.parseStringToLocalDate(playerWrapper.player().birth().date()));
-                                    log.debug("팀 {}: 선수 {} 업데이트 성공", team.getTeamApiId(), playerWrapper.player().name());
-                                } catch (Exception ex) {
-                                    log.error("팀 {}: 선수 {} 업데이트 중 예외 발생: {}",
-                                            team.getTeamApiId(), playerWrapper.player().name(), ex.getMessage());
-                                }
-                            })
-                            .onErrorContinue((e, o) -> {
-                                log.error("팀 {} 처리 중 에러 발생: {}. 문제 데이터: {}", team.getTeamApiId(), e.getMessage(), o);
-                            });
-                }, 10)
-                .timeout(Duration.ofSeconds(TIME_OUT))
-                .onErrorResume(e -> {
-                    log.error("전체 처리 중 타임아웃 또는 에러 발생: {}", e.getMessage());
-                    return Mono.empty();
-                })
-                .then();
+                .delayElements(Duration.ofMillis(DELAY_MS)) // 요청 간 150ms 간격 (분당 400회 요청)
+                .doOnNext(league -> log.info("리그 처리 시작 - leagueApiId={}, leagueName={}", league.getLeagueApiId(), league.getName()))
+                .flatMap(league -> footballApiService.getPlayerStatisticsByLeagueId(
+                                league.getLeagueApiId(),
+                                league.getCurrentSeason(),
+                                DEFAULT_PAGE)
+                        .delaySubscription(Duration.ofMillis(DELAY_MS)) // 요청 간 150ms 간격
+                        .timeout(Duration.ofSeconds(30)) // 타임아웃 30초
+                        .onErrorResume(e -> {
+                            log.error("리그 {}: page 1 에러 발생: {}", league.getLeagueApiId(), e.getMessage());
+                            return Mono.empty();
+                        })
+                        .retry(3) // 최대 3회 재시도
+                        .expand(dto -> {
+                            int current = dto.paging().current();
+                            int total = dto.paging().total();
+                            if (current < total) {
+                                int nextPage = current + 1;
+                                return footballApiService.getPlayerStatisticsByLeagueId(
+                                                league.getLeagueApiId(),
+                                                league.getCurrentSeason(),
+                                                nextPage)
+                                        .delaySubscription(Duration.ofMillis(DELAY_MS)) // 요청 간 150ms 간격
+                                        .timeout(Duration.ofSeconds(30)) // 타임아웃 30초
+                                        .onErrorResume(e -> {
+                                            log.error("리그 {}: page {} 에러 발생: {}", league.getLeagueApiId(), nextPage, e.getMessage());
+                                            return Mono.empty();
+                                        })
+                                        .retry(3); // 최대 3회 재시도
+                            } else {
+                                log.info("리그 {}: 모든 페이지 처리 완료", league.getLeagueApiId());
+                                return Mono.empty();
+                            }
+                        })
+                        .doOnNext(dto -> log.info("리그 {}: 페이지 {} - 플레이어 수: {}", league.getLeagueApiId(), dto.paging().current(), dto.response().size()))
+                        .flatMap(dto -> {
+                            try {
+                                List<Player> players = convertPlayerStatisticsDtoToPlayer(dto);
+                                log.info("리그 {}: 총 플레이어 수: {}", league.getLeagueApiId(), players.size());
+                                return Flux.fromIterable(players);
+                            } catch (Exception ex) {
+                                log.error("리그 {}: DTO -> Player 변환 중 에러 발생: {}", league.getLeagueApiId(), ex.getMessage());
+                                return Flux.empty();
+                            }
+                        }), 3) //
+                // 선수 1000명 모일시 saveAll
+                .collectList()
+                .flatMap(players -> {
+                    return Mono.fromRunnable(()->playerService.saveAll(players));
+                }).then();
+//                .buffer(100).concatMap(batch -> Flux.fromIterable(batch)
+//                        .flatMap(players -> {
+//                            log.info("배치 처리 중 - 플레이어 수: {}", batch.size());
+//                            return Mono.fromRunnable(() -> playerService.saveAll(batch));
+//                        }))
+//                .then();
     }
 
+    @Transactional
+    public void updatePlayerFmStat(List<FmPlayerDto> fmPlayers) {
+        fmPlayers.forEach(fmPlayer -> {
+            String name = StringUtils.getPlayerNameFromFileName(fmPlayer.getName());
+            List<Player> findPlayer = playerRepository.searchPlayerByFm(
+                    StringUtils.getFirstName(name).toUpperCase(),
+                    StringUtils.getLastName(name).toUpperCase(),
+                    fmPlayer.getBorn(),
+                    fmPlayer.getNation().getName().toUpperCase()
+            );
+            if (findPlayer == null || findPlayer.isEmpty()) {
+                return;
+            }
+            findPlayer.getFirst().updateFmData(
+                    getPersonalityAttributesFromFmPlayer(fmPlayer),
+                    getTechnicalAttributesFromFmPlayer(fmPlayer),
+                    getMentalAttributesFromFmPlayer(fmPlayer),
+                    getPhysicalAttributesFromFmPlayer(fmPlayer),
+                    getGoalKeeperAttributesFromFmPlayer(fmPlayer),
+                    getHiddenAttributesFromFmPlayer(fmPlayer),
+                    fmPlayer.getCurrentAbility(),
+                    fmPlayer.getPotentialAbility());
+        });
+    }
 
 
     private List<Integer> createAllLeagueApiIds() {
@@ -213,28 +253,56 @@ public class InitializationService {
         leagueService.saveAllByLeagueDetails(leagueDetailsRequestDto);
     }
 
-    public void savePlayersFromFmPlayers(String dirPath) {
-        playerRepository.saveAll(getPlayersFromFmPlayers(dirPath));
-    }
+//    public void savePlayersFromFmPlayers(String dirPath) {
+//        playerRepository.saveAll(getPlayersFromFmPlayers(dirPath));
+//    }
 
-    public List<Player> getPlayersFromFmPlayers(String dirPath) {
+    public List<FmPlayerDto> getPlayersFromFmPlayers(String dirPath) {
         File folder = new File(dirPath);
         File[] jsonFiles = folder.listFiles((dir, name) -> name.toLowerCase().endsWith(".json"));
 
-        List<Player> players = new ArrayList<>();
-        Arrays.stream(jsonFiles).forEach(file -> {
-            try {
-                players.add(importPlayerFromJson(file));
-            } catch (Exception e) {
-                log.error("Error importing file {}: {}", file.getName(), e.getMessage(), e);
-            }
-        });
-        return players;
+        return Arrays.stream(Objects.requireNonNull(jsonFiles))
+                .map(file -> {
+                    try {
+                        // JSON 파일을 FmPlayerDto로 변환
+                        FmPlayerDto dto = objectMapper.readValue(file, FmPlayerDto.class);
+                        dto.setName(file.getName().toUpperCase());
+                        return dto;
+                    } catch (Exception e) {
+                        // 변환에 실패하면 에러 로그 남기고 null 반환 (또는 예외 전파)
+                        e.printStackTrace();
+                        return null;
+                    }
+                })
+                .collect(Collectors.toList());
     }
 
-    private Player importPlayerFromJson(File file) throws IOException {
-        FmPlayerDto fmPlayerDto = objectMapper.readValue(file, FmPlayerDto.class);
-        return convertFmPlayerDtoToPlayer(StringUtils.getPlayerNameFromFileName(file.getName()), fmPlayerDto);
+//    private Player importPlayerFromJson(File file) throws IOException {
+//        FmPlayerDto fmPlayerDto = objectMapper.readValue(file, FmPlayerDto.class);
+//        return convertFmPlayerDtoToPlayer(StringUtils.getPlayerNameFromFileName(file.getName()), fmPlayerDto);
+//    }
+
+    //https://v3.football.api-sports.io/players?league=39&season=2024 한 페이지 선수 정보 리스트
+    private List<Player> convertPlayerStatisticsDtoToPlayer(PlayerStatisticsApiResponseDto playerStatisticsApiResponseDto) {
+        return playerStatisticsApiResponseDto.response().stream().filter(dto -> {
+            return dto != null || dto.statistics() != null || dto.player() != null;
+        }).map(dto -> {
+            PlayerStatisticsApiResponseDto.PlayerDto player = dto.player();
+            return Player.builder()
+                    .name(player.name())
+                    .playerApiId(player.id())
+                    .teamApiId(Objects.requireNonNull(dto.statistics()).getFirst().team().id())
+                    .leagueApiId(Objects.requireNonNull(dto.statistics()).getFirst().league().id())
+                    .firstName(StringUtils.getFirstName(player.firstname()).toUpperCase())
+                    .lastName(StringUtils.getLastName(player.lastname()).toUpperCase())
+                    .nationName(player.nationality().toUpperCase())
+                    .nationLogoUrl(Objects.requireNonNull(dto.statistics().getFirst().league().flag()))
+                    .age(player.age())
+                    .birth(player.birth().date())
+                    .height(StringUtils.extractNumber(player.height()))
+                    .weight(StringUtils.extractNumber(player.weight()))
+                    .build();
+        }).toList();
     }
 
     private Player convertFmPlayerDtoToPlayer(String name, FmPlayerDto fmPlayerDto) {
@@ -261,6 +329,9 @@ public class InitializationService {
 
     private GoalKeeperAttributes getGoalKeeperAttributesFromFmPlayer(FmPlayerDto fmPlayerDto) {
         FmPlayerDto.GoalKeeperAttributesDto goalKeeperAttributesDto = fmPlayerDto.getGoalKeeperAttributes();
+        if (goalKeeperAttributesDto == null) {
+            return null;
+        }
         return GoalKeeperAttributes.builder()
                 .aerialAbility(goalKeeperAttributesDto.getAerialAbility())
                 .commandOfArea(goalKeeperAttributesDto.getCommandOfArea())
@@ -278,6 +349,9 @@ public class InitializationService {
 
     private HiddenAttributes getHiddenAttributesFromFmPlayer(FmPlayerDto fmPlayerDto) {
         FmPlayerDto.HiddenAttributesDto hiddenAttributesDto = fmPlayerDto.getHiddenAttributes();
+        if (hiddenAttributesDto == null) {
+            return null;
+        }
         return HiddenAttributes.builder()
                 .consistency(hiddenAttributesDto.getConsistency())
                 .dirtiness(hiddenAttributesDto.getDirtiness())
@@ -289,6 +363,9 @@ public class InitializationService {
 
     private MentalAttributes getMentalAttributesFromFmPlayer(FmPlayerDto fmPlayerDto) {
         FmPlayerDto.MentalAttributesDto mentalAttributesDto = fmPlayerDto.getMentalAttributes();
+        if (mentalAttributesDto == null) {
+            return null;
+        }
         return MentalAttributes.builder()
                 .aggression(mentalAttributesDto.getAggression())
                 .anticipation(mentalAttributesDto.getAnticipation())
@@ -304,6 +381,9 @@ public class InitializationService {
 
     private PersonalityAttributes getPersonalityAttributesFromFmPlayer(FmPlayerDto fmPlayerDto) {
         FmPlayerDto.PersonalityAttributesDto personalityAttributesDto = fmPlayerDto.getPersonalityAttributes();
+        if (personalityAttributesDto == null) {
+            return null;
+        }
         return PersonalityAttributes.builder()
                 .adaptability(personalityAttributesDto.getAdaptability())
                 .ambition(personalityAttributesDto.getAmbition())
@@ -318,6 +398,9 @@ public class InitializationService {
 
     private PhysicalAttributes getPhysicalAttributesFromFmPlayer(FmPlayerDto fmPlayerDto) {
         FmPlayerDto.PhysicalAttributesDto physicalAttributesDto = fmPlayerDto.getPhysicalAttributes();
+        if (physicalAttributesDto == null) {
+            return null;
+        }
         return PhysicalAttributes.builder()
                 .acceleration(physicalAttributesDto.getAcceleration())
                 .agility(physicalAttributesDto.getAgility())
@@ -332,6 +415,9 @@ public class InitializationService {
 
     private TechnicalAttributes getTechnicalAttributesFromFmPlayer(FmPlayerDto fmPlayerDto) {
         FmPlayerDto.TechnicalAttributesDto technicalAttributesDto = fmPlayerDto.getTechnicalAttributes();
+        if (technicalAttributesDto == null) {
+            return null;
+        }
         return TechnicalAttributes.builder()
                 .corners(technicalAttributesDto.getCorners())
                 .crossing(technicalAttributesDto.getCrossing())
@@ -352,6 +438,9 @@ public class InitializationService {
 
     private Position getPositionFromFmPlayer(FmPlayerDto fmPlayerDto) {
         FmPlayerDto.PositionAttributesDto positionAttributesDto = fmPlayerDto.getPositions();
+        if (positionAttributesDto == null) {
+            return null;
+        }
         return Position.builder()
                 .goalkeeper(positionAttributesDto.getGoalkeeper())
                 .defenderCentral(positionAttributesDto.getDefenderCentral())

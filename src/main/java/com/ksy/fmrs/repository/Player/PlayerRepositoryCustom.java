@@ -13,5 +13,5 @@ public interface PlayerRepositoryCustom {
 
     List<Player> searchPlayerByDetailCondition(SearchPlayerCondition condition);
 
-    List<Player> searchPlayerByLastNameAndBirth(String firstName, String lastName, LocalDate birth);
+    List<Player> searchPlayerByFm(String firstName, String lastName, LocalDate birth, String nation);
 }

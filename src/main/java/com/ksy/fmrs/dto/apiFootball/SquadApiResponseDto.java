@@ -1,48 +1,36 @@
 package com.ksy.fmrs.dto.apiFootball;
 
-import lombok.Data;
 import java.util.List;
 
-@Data
-public class SquadApiResponseDto {
-    private String get;
-    private Parameters parameters;
-    private List<Object> errors;
-    private int results;
-    private Paging paging;
-    private List<ResponseItem> response;
+public record SquadApiResponseDto(
+        String get,
+        int results,
+        Paging paging,
+        List<ResponseItem> response
+) {
 
-    @Data
-    public static class Parameters {
-        private String team;
-    }
+    public static record Paging(
+            int current,
+            int total
+    ) {}
 
-    @Data
-    public static class Paging {
-        private int current;
-        private int total;
-    }
+    public static record ResponseItem(
+            Team team,
+            List<Player> players
+    ) {}
 
-    @Data
-    public static class ResponseItem {
-        private Team team;
-        private List<Player> players;
-    }
+    public static record Team(
+            int id,
+            String name,
+            String logo
+    ) {}
 
-    @Data
-    public static class Team {
-        private int id;
-        private String name;
-        private String logo;
-    }
-
-    @Data
-    public static class Player {
-        private int id;
-        private String name;
-        private int age;
-        private Integer number;  // null 값 가능
-        private String position;
-        private String photo;
-    }
+    public static record Player(
+            int id,
+            String name,
+            int age,
+            Integer number,  // null 값 가능
+            String position,
+            String photo
+    ) {}
 }

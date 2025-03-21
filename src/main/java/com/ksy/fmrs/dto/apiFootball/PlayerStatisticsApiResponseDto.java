@@ -1,5 +1,6 @@
 package com.ksy.fmrs.dto.apiFootball;
 
+import java.time.LocalDate;
 import java.util.List;
 import java.util.Map;
 
@@ -42,7 +43,7 @@ public record PlayerStatisticsApiResponseDto(
     ) {}
 
     public record BirthDto(
-            String date,
+            LocalDate date,
             String place,
             String country
     ) {}

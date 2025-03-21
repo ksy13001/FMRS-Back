@@ -13,6 +13,8 @@ import java.time.LocalDate;
 @JsonIgnoreProperties(ignoreUnknown = true)
 public class FmPlayerDto {
     // 기본 속성
+    private String name;
+
     @JsonProperty("CA")
     private int currentAbility;
 

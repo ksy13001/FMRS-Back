@@ -32,10 +32,16 @@ public class AdminController {
         );
     }
 
+//    @ResponseBody
+//    @PostMapping("/api/admin/insert/players/{fm_player}")  //fm_player
+//    public void insertPlayers(@PathVariable String fm_player) {
+//        initializationService.savePlayersFromFmPlayers(fm_player);
+//    }
+
     @ResponseBody
-    @PostMapping("/api/admin/insert/players/{fm_player}")  //fm_player
-    public void insertPlayers(@PathVariable String fm_player) {
-        initializationService.savePlayersFromFmPlayers(fm_player);
+    @PostMapping("/api/admin/insert/player-data")  //fm_player
+    public Mono<Void> insertInitialPlayerData() {
+        return initializationService.saveInitialPlayers();
     }
 
     /**
@@ -59,12 +65,12 @@ public class AdminController {
     }
 
     /**
-     * player - playerApiId 매핑
+     * player - fmPlayer 매핑
      **/
     @ResponseBody
-    @PostMapping("/api/admin/update/player-api-id")
-    public Mono<Void> updateAllPlayerApiIds() {
-        return initializationService.updateAllPlayerApiIds();
+    @PostMapping("/api/admin/update/player-fm/{fm_dir}")
+    public void updateAllPlayerApiIds(@PathVariable String fm_dir) {
+        initializationService.updatePlayerFmStat(initializationService.getPlayersFromFmPlayers(fm_dir));
     }
 
 //    @ResponseBody

@@ -95,6 +95,15 @@ public enum UrlEnum {
                 AND.getValue() +
                 PARAM_PAGE.getValue() + page;
     }
+
+    public static String buildPlayersUrlByLeagueApiId(Integer leagueApiId, int currentSeason, int page) {
+        return PLAYER_STATISTICS_URL.getValue() +
+                PARAM_LEAGUE.getValue() + leagueApiId +
+                AND.getValue() +
+                PARAM_PAGE.getValue() + page +
+                AND.getValue() +
+                PARAM_SEASON.getValue() + currentSeason;
+    }
 }
 //GET /players/topscorers?league=39&season=2019
 //GET /players/topassists?league=39&season=2019
