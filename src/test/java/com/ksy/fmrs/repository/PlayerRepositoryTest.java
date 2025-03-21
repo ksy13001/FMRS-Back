@@ -1,5 +1,6 @@
 package com.ksy.fmrs.repository;
 
+import com.ksy.fmrs.config.TestQueryDSLConfig;
 import com.ksy.fmrs.domain.player.Player;
 import com.ksy.fmrs.domain.QTeam;
 import com.ksy.fmrs.domain.Team;
@@ -21,11 +22,14 @@ import org.springframework.boot.test.autoconfigure.jdbc.AutoConfigureTestDatabas
 import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest;
 import org.springframework.boot.test.context.TestConfiguration;
 import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Import;
+import org.springframework.test.util.ReflectionTestUtils;
 
 import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
 
+@Import(TestQueryDSLConfig.class)
 @DataJpaTest
 @AutoConfigureTestDatabase(replace = AutoConfigureTestDatabase.Replace.NONE) // default 는 h2 사용
 class PlayerRepositoryTest {
@@ -37,20 +41,43 @@ class PlayerRepositoryTest {
     @Autowired
     private JPAQueryFactory jpaQueryFactory;
 
-    @TestConfiguration
-     static class QueryDslTestConfig {
-        @PersistenceContext
-        private EntityManager entityManager;
-
-        @Bean
-        public JPAQueryFactory jpaQueryFactory() {
-            return new JPAQueryFactory(entityManager);
-        }
-    }
-
     @AfterEach
     void setUp(){
         playerRepository.deleteAll();
+    }
+
+    @Test
+    @DisplayName("save 단건")
+    void save(){
+        // given
+        Player player = createPlayer("p1");
+        // when
+        Player savePlayer = playerRepository.save(player);
+
+        // then
+        Assertions.assertThat(savePlayer).isEqualTo(player);
+    }
+
+    @Test
+    @DisplayName("saveAll 시 select 문 나가는지 테스트")
+    void saveAll(){
+        // given
+        List<Player> playerList = new ArrayList<>();
+        Player player = createPlayer("p1");
+        Player player2 = createPlayer("p2");
+        Team team1 = createTeam("t1");
+        Team team2 = createTeam("t2");
+        player.updateTeam(team1);
+        player2.updateTeam(team2);
+
+        playerList.add(player);
+        playerList.add(player2);
+        // when
+        teamRepository.save(team1);
+        teamRepository.save(team2);
+        playerRepository.saveAll(playerList);
+
+        // then
     }
 
     @Test
