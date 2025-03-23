@@ -18,7 +18,6 @@ public class PlayerDetailsDto {
         this.age = player.getAge();
         this.height = player.getHeight();
         this.weight = player.getWeight();
-        this.marketValue = player.getMarketValue();
         this.teamName = teamName;
         this.nationName = player.getNationName();
         this.nationLogoUrl = player.getNationLogoUrl();

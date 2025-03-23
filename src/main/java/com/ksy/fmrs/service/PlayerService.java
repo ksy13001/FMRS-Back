@@ -100,15 +100,15 @@ public class PlayerService {
                 .toList());
     }
 
-    /**
-     * 모든 선수 몸값순 조회
-     */
-    public SearchPlayerResponseDto getPlayersByMarketValueDesc() {
-        return new SearchPlayerResponseDto(playerRepository.findAllByOrderByMarketValueDesc()
-                .stream()
-                .map(this::convertPlayerToPlayerDetailsResponseDto)
-                .toList());
-    }
+//    /**
+//     * 모든 선수 몸값순 조회
+//     */
+//    public SearchPlayerResponseDto getPlayersByMarketValueDesc() {
+//        return new SearchPlayerResponseDto(playerRepository.findAllByOrderByMarketValueDesc()
+//                .stream()
+//                .map(this::convertPlayerToPlayerDetailsResponseDto)
+//                .toList());
+//    }
 
 
     /**

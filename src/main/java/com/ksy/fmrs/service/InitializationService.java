@@ -314,7 +314,6 @@ public class InitializationService {
                 .birth(fmPlayerDto.getBorn())
                 .height(fmPlayerDto.getHeight())
                 .weight(fmPlayerDto.getWeight())
-                .marketValue(fmPlayerDto.getAskingPrice())
                 .currentAbility(fmPlayerDto.getCurrentAbility())
                 .potentialAbility(fmPlayerDto.getPotentialAbility())
                 .goalKeeperAttributes(getGoalKeeperAttributesFromFmPlayer(fmPlayerDto))

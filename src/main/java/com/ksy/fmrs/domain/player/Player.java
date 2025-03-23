@@ -17,7 +17,7 @@ public class Player {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @Column(name = "player_api_id")
+    @Column(name = "player_api_id", unique = true)
     private Integer playerApiId;
 
     @Column(name = "team_api_id")
@@ -47,9 +47,6 @@ public class Player {
 
     @Column(name = "nation_logo_url")
     private String nationLogoUrl;
-
-    @Column(name = "market_value")
-    private int marketValue;
 
     @ManyToOne
     @JoinColumn(name = "team_id")
@@ -107,7 +104,6 @@ public class Player {
             int age,
             int height,
             int weight,
-            int marketValue,
             Integer teamApiId,
             Integer leagueApiId,
             String imageUrl,
@@ -133,7 +129,6 @@ public class Player {
         this.birth = birth;
         this.height = height;
         this.weight = weight;
-        this.marketValue = marketValue;
         this.position = position;
         this.imageUrl = imageUrl;
         this.nationName = nationName;
@@ -156,10 +151,6 @@ public class Player {
 
     public void updatePlayerApiId(Integer playerApiId) {
         this.playerApiId = playerApiId;
-    }
-
-    public void updateMarketValue(int marketValue) {
-        this.marketValue = marketValue;
     }
 
     public void updateImageUrl(String imageUrl) {
