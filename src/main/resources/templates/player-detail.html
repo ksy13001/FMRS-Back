@@ -43,7 +43,7 @@
 <section class="hero-gradient text-white py-4">
     <div class="w-full max-w-7xl mx-auto px-2">
         <h1 class="text-2xl font-bold mb-0.5" th:text="${player.name}">Player Name</h1>
-        <p class="text-base text-slate-300" th:text="${player.teamName + ' - ' + player.position}">Team - Position</p>
+        <p class="text-base text-slate-300" th:text="${player.teamName}">Team</p>
     </div>
 </section>
 
@@ -63,15 +63,15 @@
                     <div class="sm:flex justify-between items-start mb-2">
                         <div>
                             <h2 class="text-xl font-bold mb-0.5 text-slate-800" th:text="${player.name}">Player Name</h2>
-                            <p class="text-base text-slate-600" th:text="${player.position}">Position</p>
+<!--                            <p class="text-base text-slate-600" th:text="${player.position}">Position</p>-->
                         </div>
                         <div class="mt-1 sm:mt-0">
-                            <div class="px-2 py-1 bg-emerald-100 rounded-lg text-center">
-                                <div class="text-xs text-slate-600">Market Value</div>
-                                <div class="text-sm font-bold text-emerald-600">
-                                    €<span th:text="${#numbers.formatDecimal(player.marketValue / 1000000, 1, 'COMMA', 2, 'POINT')}">50.00</span>M
-                                </div>
-                            </div>
+<!--                            <div class="px-2 py-1 bg-emerald-100 rounded-lg text-center">-->
+<!--&lt;!&ndash;                                <div class="text-xs text-slate-600">Market Value</div>&ndash;&gt;-->
+<!--&lt;!&ndash;                                <div class="text-sm font-bold text-emerald-600">&ndash;&gt;-->
+<!--&lt;!&ndash;                                    €<span th:text="${#numbers.formatDecimal(player.marketValue / 1000000, 1, 'COMMA', 2, 'POINT')}">50.00</span>M&ndash;&gt;-->
+<!--&lt;!&ndash;                                </div>&ndash;&gt;-->
+<!--                            </div>-->
                         </div>
                     </div>
 

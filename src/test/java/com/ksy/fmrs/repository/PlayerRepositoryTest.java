@@ -138,29 +138,6 @@ class PlayerRepositoryTest {
     }
 
     @Test
-    @DisplayName("몸값 순 선수 모두 조회")
-    void findAllOrderByMarketValueDesc(){
-        // given
-        Player playerA = createPlayer("playerA");
-        playerA.updateMarketValue(100);
-        Player playerB = createPlayer("playerB");
-        playerB.updateMarketValue(200);
-        Player playerC = createPlayer("playerC");
-        playerC.updateMarketValue(300);
-        playerRepository.save(playerA);
-        playerRepository.save(playerB);
-        playerRepository.save(playerC);
-
-        // when
-        List<Player> actual = playerRepository.findAllByOrderByMarketValueDesc();
-        // then
-        Assertions.assertThat(actual).hasSize(3);
-        Assertions.assertThat(actual.get(0).getName()).isEqualTo("playerC");
-        Assertions.assertThat(actual.get(1).getName()).isEqualTo("playerB");
-        Assertions.assertThat(actual.get(2).getName()).isEqualTo("playerA");
-    }
-
-    @Test
     @DisplayName("fmplayerStat으로 player 찾기")
     void searchPlayerByFm(){
         // given

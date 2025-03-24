@@ -19,6 +19,8 @@ import java.time.LocalDate;
 import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
+import java.util.function.Function;
+import java.util.stream.Collectors;
 
 @Slf4j
 @RequiredArgsConstructor
@@ -65,7 +67,20 @@ public class PlayerService {
     }
 
     public void saveAll(List<Player> players) {
-        playerRepository.saveAll(players);
+        // 중복 제거된 Player 리스트를 저장
+        playerRepository.saveAll(getDistinctPlayersByPlayerApiId(players));
+    }
+
+    private List<Player> getDistinctPlayersByPlayerApiId(List<Player> players) {
+        return players.stream()
+                .collect(Collectors.toMap(
+                        Player::getPlayerApiId,          // keyMapper: playerApiId를 key 로
+                        Function.identity(),             // valueMapper: Player 객체 자체
+                        (existing, replacement) -> existing // mergeFunction: key 충돌 시 기존 객체 사용
+                ))
+                .values()
+                .stream()
+                .toList();
     }
 
     private PlayerDetailsDto convertPlayerToPlayerDetailsResponseDto(Player player) {

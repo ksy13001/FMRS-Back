@@ -115,40 +115,10 @@ public class InitializationService {
                 .then();
     }
 
-    /**
-     * 1. team 전체 조회
-     * 2. teamApiId 의 squad 조회(외부 api)
-     * 3. squad 순회하면서 playerApi로 저장된 player 조회
-     * 4. player TeamApi 업데이트
-     */
-//    public Mono<Void> updateAllPlayersTeamApiId() {
-//        return Mono.fromCallable(teamRepository::findAllTeamsWithLeague)
-//                .subscribeOn(Schedulers.boundedElastic())
-//                .flatMapMany(Flux::fromIterable)
-//                .delayElements(Duration.ofMillis(DELAY_MS))
-//                .doOnNext(team -> log.info("팀 처리 시작 : teamApiId={} name={}",team.getTeamApiId(), team.getName()))
-//                .flatMap(team -> footballApiService.getSquadPlayers(team.getTeamApiId())
-//                        .delaySubscription(Duration.ofMillis(DELAY_MS))
-//                        .onErrorResume(e -> {
-//                            log.error("팀 id {}: 에러 발생: {}", team.getTeamApiId(), e.getMessage());
-//                            return Mono.empty();
-//                        })
-//                        .flatMap(dto->{
-//                            team.resetSquad();
-//                            dto.response().getFirst().players().stream().flatMap(
-//                                    player -> {
-//                                        Player findPlayer = Mono.fromCallable(()->playerRepository.findByPlayerApiId(player.id())
-//                                                .orElse(null));
-//                                    }
-//                            )
-//                        })
-//    }
-
     // 각 리그의 시즌 으로 할 경우 시즌 시작하지 않은 리그는 선수가 조회 안되기 때문에 일단 2024 시즌으로 고정
     public Mono<Void> saveInitialPlayers() {
         return Mono.fromCallable(leagueRepository::findAll)
                 .subscribeOn(Schedulers.boundedElastic())
-                .doOnNext(leagues -> log.info("조회된 리그 개수: {}", leagues.size()))
                 .flatMapMany(Flux::fromIterable)
                 .delayElements(Duration.ofMillis(DELAY_MS)) // 요청 간 150ms 간격 (분당 400회 요청)
                 .doOnNext(league -> log.info("리그 처리 시작 - leagueApiId={}, leagueName={}", league.getLeagueApiId(), league.getName()))
