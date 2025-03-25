@@ -7,6 +7,7 @@ import com.ksy.fmrs.dto.player.PlayerDetailsDto;
 import com.ksy.fmrs.dto.search.SearchPlayerCondition;
 import com.ksy.fmrs.dto.search.SearchPlayerResponseDto;
 import com.ksy.fmrs.dto.team.TeamPlayersResponseDto;
+import com.ksy.fmrs.repository.BulkRepository;
 import com.ksy.fmrs.repository.Player.PlayerRepository;
 import com.ksy.fmrs.repository.Team.TeamRepository;
 import com.ksy.fmrs.util.StringUtils;
@@ -29,6 +30,7 @@ public class PlayerService {
 
     private final PlayerRepository playerRepository;
     private final TeamRepository teamRepository;
+    private final BulkRepository bulkRepository;
 
     /**
      * 선수 상세 정보 조회
@@ -47,15 +49,15 @@ public class PlayerService {
                     Team team = teamRepository.findTeamByTeamApiId(teamDto.id())
                             .orElseThrow(() -> new IllegalArgumentException("Team not found: " + teamDto.id()));
                     Player newPlayer = Player.builder()
-                            .name(player.name())
+//                            .name(player.name())
                             .playerApiId(player.id())
-                            .teamApiId(Objects.requireNonNull(dto.statistics()).getFirst().team().id())
-                            .leagueApiId(Objects.requireNonNull(dto.statistics()).getFirst().league().id())
+//                            .teamApiId(Objects.requireNonNull(dto.statistics()).getFirst().team().id())
+//                            .leagueApiId(Objects.requireNonNull(dto.statistics()).getFirst().league().id())
                             .firstName(StringUtils.getFirstName(player.firstname()).toUpperCase())
                             .lastName(StringUtils.getLastName(player.lastname()).toUpperCase())
                             .nationName(player.nationality().toUpperCase())
                             .nationLogoUrl(Objects.requireNonNull(dto.statistics().getFirst().league().flag()))
-                            .age(player.age())
+//                            .age(player.age())
                             .birth(player.birth().date())
                             .height(StringUtils.extractNumber(player.height()))
                             .weight(StringUtils.extractNumber(player.weight()))
@@ -66,9 +68,9 @@ public class PlayerService {
         playerRepository.saveAll(players);
     }
 
-    public void saveAll(List<Player> players) {
+    public void bulkInsertPlayers(List<Player> players) {
         // 중복 제거된 Player 리스트를 저장
-        playerRepository.saveAll(getDistinctPlayersByPlayerApiId(players));
+        bulkRepository.bulkInsertPlayers(getDistinctPlayersByPlayerApiId(players));
     }
 
     private List<Player> getDistinctPlayersByPlayerApiId(List<Player> players) {

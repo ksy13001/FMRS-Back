@@ -117,7 +117,7 @@ class PlayerRepositoryTest {
         SearchPlayerCondition condition = new SearchPlayerCondition();
         condition.setTeamName("TOT");
         Team team = Team.builder().name("TOT").build();
-        Player player = Player.builder().name("son").age(32).build();
+        Player player = Player.builder().name("son").build();
         teamRepository.save(team);
         playerRepository.save(player);
         player.updateTeam(team);

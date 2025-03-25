@@ -2,6 +2,7 @@ package com.ksy.fmrs.domain.player;
 
 
 import com.ksy.fmrs.domain.Team;
+import com.ksy.fmrs.util.TimeUtils;
 import jakarta.persistence.*;
 import lombok.*;
 
@@ -20,14 +21,6 @@ public class Player {
     @Column(name = "player_api_id", unique = true)
     private Integer playerApiId;
 
-    @Column(name = "team_api_id")
-    private Integer teamApiId;
-
-    @Column(name="league_api_id")
-    private Integer leagueApiId;
-
-    private String name;
-
     @Column(name = "first_name")
     private String firstName;
 
@@ -40,113 +33,56 @@ public class Player {
 
     private int weight;
 
-    private int age;
-
     @Column(name = "nation_name")
     private String nationName;
 
     @Column(name = "nation_logo_url")
     private String nationLogoUrl;
 
+    @Column(name = "image_url")
+    private String imageUrl;
+
     @ManyToOne
     @JoinColumn(name = "team_id")
     private Team team;
 
-    @Column(name = "image_url")
-    private String imageUrl;
-
-    @Embedded
-    private Position position;
-
-    @Column(name = "current_ability")
-    private int currentAbility;
-
-    @Column(name = "potential_ability")
-    private int potentialAbility;
-
-    // 인성
-    @Column(name = "personality_attributes")
-    @Embedded
-    private PersonalityAttributes personalityAttributes;
-
-    // 기술(Technical) 능력치
-    @Column(name = "technical_attributes")
-    @Embedded
-    private TechnicalAttributes technicalAttributes;
-
-    // 정신(Mental) 능력치
-    @Column(name = "mental_attributes")
-    @Embedded
-    private MentalAttributes mentalAttributes;
-
-    // 신체(Physical) 능력치
-    @Column(name = "physical_attributes")
-    @Embedded
-    private PhysicalAttributes physicalAttributes;
-
-    // 골키퍼 능력치
-    @Column(name = "goalKeeper_attributes")
-    @Embedded
-    private GoalKeeperAttributes goalKeeperAttributes;
-
-    // 히든 능력치
-    @Column(name = "hidden_attributes")
-    @Embedded
-    private HiddenAttributes hiddenAttributes;
+    @OneToOne
+    @JoinColumn(name = "fmplayer_id", unique = true)
+    private FmPlayer fmPlayer;
 
     @Builder
     public Player(
-            String name,
             Integer playerApiId,
             String firstName,
             String lastName,
             LocalDate birth,
-            int age,
             int height,
             int weight,
-            Integer teamApiId,
-            Integer leagueApiId,
             String imageUrl,
-            Position position,
             String nationName,
-            String nationLogoUrl,
-            PersonalityAttributes personalityAttributes,
-            TechnicalAttributes technicalAttributes,
-            MentalAttributes mentalAttributes,
-            PhysicalAttributes physicalAttributes,
-            GoalKeeperAttributes goalKeeperAttributes,
-            HiddenAttributes hiddenAttributes,
-            int currentAbility,
-            int potentialAbility
+            String nationLogoUrl
+
     ) {
-        this.name = name;
         this.playerApiId = playerApiId;
-        this.teamApiId = teamApiId;
-        this.leagueApiId = leagueApiId;
-        this.age = age;
         this.firstName = firstName;
         this.lastName = lastName;
         this.birth = birth;
         this.height = height;
         this.weight = weight;
-        this.position = position;
         this.imageUrl = imageUrl;
         this.nationName = nationName;
         this.nationLogoUrl = nationLogoUrl;
-        this.personalityAttributes = personalityAttributes;
-        this.technicalAttributes = technicalAttributes;
-        this.mentalAttributes = mentalAttributes;
-        this.physicalAttributes = physicalAttributes;
-        this.goalKeeperAttributes = goalKeeperAttributes;
-        this.hiddenAttributes = hiddenAttributes;
-        this.currentAbility = currentAbility;
-        this.potentialAbility = potentialAbility;
+
     }
 
     // 연관관계 설정 메서드
     public void updateTeam(Team team) {
         this.team = team;
         team.getPlayers().add(this);
+    }
+
+    public int getAge(){
+        return TimeUtils.getAge(this.birth);
     }
 
     public void updatePlayerApiId(Integer playerApiId) {
@@ -157,22 +93,11 @@ public class Player {
         this.imageUrl = imageUrl;
     }
 
-    public void updateFmData(
-            PersonalityAttributes personalityAttributes,
-            TechnicalAttributes technicalAttributes,
-            MentalAttributes mentalAttributes,
-            PhysicalAttributes physicalAttributes,
-            GoalKeeperAttributes goalKeeperAttributes,
-            HiddenAttributes hiddenAttributes,
-            int currentAbility,
-            int potentialAbility) {
-        this.personalityAttributes = personalityAttributes;
-        this.technicalAttributes = technicalAttributes;
-        this.mentalAttributes = mentalAttributes;
-        this.physicalAttributes = physicalAttributes;
-        this.goalKeeperAttributes = goalKeeperAttributes;
-        this.hiddenAttributes = hiddenAttributes;
-        this.currentAbility = currentAbility;
-        this.potentialAbility = potentialAbility;
+    public void updateFmPlayer(FmPlayer fmPlayer) {
+        this.fmPlayer = fmPlayer;
+    }
+
+    public String getStringBirth(){
+        return String.valueOf(birth);
     }
 }

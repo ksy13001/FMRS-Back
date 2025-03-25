@@ -1,14 +1,12 @@
 package com.ksy.fmrs.service;
 
 import com.ksy.fmrs.domain.enums.LeagueType;
-import com.ksy.fmrs.domain.player.GoalKeeperAttributes;
 import com.ksy.fmrs.domain.player.Player;
 import com.ksy.fmrs.dto.league.LeagueDetailsRequestDto;
 import com.ksy.fmrs.dto.player.FmPlayerDto;
 import com.ksy.fmrs.repository.LeagueRepository;
 import com.ksy.fmrs.repository.Player.PlayerRepository;
 import com.ksy.fmrs.util.StringUtils;
-import io.micrometer.core.instrument.util.TimeUtils;
 import org.assertj.core.api.Assertions;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -19,7 +17,6 @@ import org.mockito.junit.jupiter.MockitoExtension;
 
 import java.time.LocalDate;
 import java.util.ArrayList;
-import java.util.HashSet;
 import java.util.List;
 
 import static org.mockito.Mockito.when;
@@ -102,7 +99,7 @@ class InitializationServiceTest {
         //when
         when(playerRepository.searchPlayerByFm(firstName, lastName, birthDate, nation))
                 .thenReturn(findPlayer);
-        initializationService.updatePlayerFmStat(fmPlayers);
+        initializationService.saveFmPlayers(fmPlayers);
         //then
         Assertions.assertThat(akanji.getFirstName()).isEqualTo(dbFirstName);
         Assertions.assertThat(akanji.getGoalKeeperAttributes().getAerialAbility()).isEqualTo(10);
