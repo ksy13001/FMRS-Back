@@ -22,8 +22,8 @@ public class BulkRepository {
 
     public void bulkInsertPlayers(List<Player> players) {
         String sql = "INSERT IGNORE INTO PLAYER " +
-                "(player_api_id, first_name, last_name, nation_name, nation_logo_url, birth, height, weight) " +
-                "VALUES (?, ?, ?, ?, ?, ?, ?, ?)";
+                "(player_api_id, first_name, last_name, nation_name, nation_logo_url, birth, height, weight, image_url) " +
+                "VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)";
 
         jdbcTemplate.batchUpdate(sql, new BatchPreparedStatementSetter() {
 
@@ -38,6 +38,7 @@ public class BulkRepository {
                 ps.setObject(6, player.getBirth(), Types.DATE);
                 ps.setInt(7, player.getHeight());
                 ps.setInt(8, player.getWeight());
+                ps.setString(9, player.getImageUrl());
             }
 
             @Override

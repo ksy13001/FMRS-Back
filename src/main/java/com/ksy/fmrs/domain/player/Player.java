@@ -72,7 +72,6 @@ public class Player {
         this.imageUrl = imageUrl;
         this.nationName = nationName;
         this.nationLogoUrl = nationLogoUrl;
-
     }
 
     // 연관관계 설정 메서드

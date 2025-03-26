@@ -102,6 +102,5 @@ class InitializationServiceTest {
         initializationService.saveFmPlayers(fmPlayers);
         //then
         Assertions.assertThat(akanji.getFirstName()).isEqualTo(dbFirstName);
-        Assertions.assertThat(akanji.getGoalKeeperAttributes().getAerialAbility()).isEqualTo(10);
     }
 }

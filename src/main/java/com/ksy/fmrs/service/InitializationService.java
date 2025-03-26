@@ -134,6 +134,7 @@ public class InitializationService {
                                                 league.getLeagueApiId(),
                                                 league.getCurrentSeason(),
                                                 nextPage)
+
                                         .delaySubscription(Duration.ofMillis(DELAY_MS)) // 요청 간 150ms 간격
                                         .timeout(Duration.ofSeconds(30)) // 타임아웃 30초
                                         .onErrorResume(e -> {
@@ -150,7 +151,7 @@ public class InitializationService {
                         .flatMap(dto -> {
                             List<Player> players = convertPlayerStatisticsDtoToPlayer(dto);
                             return Flux.fromIterable(players);
-                        }), 3) //
+                        }), 2) //
                 // 선수 1000명 모일시 bulk insert
                 .buffer(1000)
                 .concatMap(batch -> Mono.fromRunnable(() -> {
