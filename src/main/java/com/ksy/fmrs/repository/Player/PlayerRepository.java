@@ -14,6 +14,4 @@ public interface PlayerRepository extends JpaRepository<Player, Long>, PlayerRep
     List<Player> findAllByTeamId(Long teamId);
 
     Optional<Player> findByPlayerApiId(Integer playerApiId);
-
-    List<Player> findAllByOrderByMarketValueDesc();
 }

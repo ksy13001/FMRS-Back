@@ -1,5 +1,6 @@
 package com.ksy.fmrs.domain.player;
 
+import jakarta.persistence.Column;
 import jakarta.persistence.Embeddable;
 import lombok.*;
 
@@ -9,33 +10,44 @@ import lombok.*;
 @AllArgsConstructor
 @Builder
 public class Position {
-    private int goalkeeper;
-    private int defenderCentral;
-    private int defenderLeft;
-    private int defenderRight;
-    private int wingBackLeft;
-    private int wingBackRight;
-    private int defensiveMidfielder;
-    private int midfielderLeft;
-    private int midfielderRight;
-    private int midfielderCentral;
-    private int attackingMidCentral;
-    private int attackingMidLeft;
-    private int attackingMidRight;
-    private int striker;
 
+    private int goalkeeper;
+
+    @Column(name = "defender_central")
+    private int defenderCentral;
+
+    @Column(name = "defender_left")
+    private int defenderLeft;
+
+    @Column(name = "defender_right")
+    private int defenderRight;
+
+    @Column(name = "wing_back_left")
+    private int wingBackLeft;
+
+    @Column(name = "wing_back_right")
+    private int wingBackRight;
+
+    @Column(name = "defensive_midfielder")
+    private int defensiveMidfielder;
+
+    @Column(name = "midfielder_left")
+    private int midfielderLeft;
+
+    @Column(name = "midfielder_right")
+    private int midfielderRight;
+
+    @Column(name = "midfielder_central")
+    private int midfielderCentral;
+
+    @Column(name = "attacking_mid_central")
+    private int attackingMidCentral;
+
+    @Column(name = "attacking_mid_left")
+    private int attackingMidLeft;
+
+    @Column(name = "attacking_mid_right")
+    private int attackingMidRight;
+
+    private int striker;
 }
-//GK("Goalkeeper"),
-//CB("DefenderCentral"),
-//LB("DefenderLeft"),
-//RB("DefenderRight"),
-//WBL("WingBackLeft"),
-//WBR("WingBackRight"),
-//DM("DefensiveMidfielder"),
-//LM("MidfielderLeft"),
-//RM("MidfielderRight"),
-//CM("MidfielderCentral"),
-//AM("AttackingMidCentral"),
-//LW("AttackingMidLeft"),
-//RW("AttackingMidRight"),
-//ST("Striker");

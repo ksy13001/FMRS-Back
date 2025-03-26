@@ -18,9 +18,8 @@ public class HomeController {
 
     @GetMapping("/home")
     public String home(Model model) {
-        SearchPlayerResponseDto searchPlayerResponseDto = playerService.getPlayersByMarketValueDesc();
-
-        model.addAttribute("featuredPlayers", searchPlayerResponseDto);
+//
+//        model.addAttribute("featuredPlayers", searchPlayerResponseDto);
         return "home";
     }
 
