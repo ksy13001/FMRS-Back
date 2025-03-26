@@ -46,7 +46,7 @@ public class InitializationService {
     private static final int CHUNK_SIZE = 1000;
 
     /**
-     * api-football 요청 제한 -> 450/m
+     * api-football 요청 제한 -> 450/m, 7.5/s
      * 1회 요청 시 평균 0.5s 소요
      */
 
@@ -163,12 +163,6 @@ public class InitializationService {
                     }
                 }))
                 .then();
-//                .buffer(100).concatMap(batch -> Flux.fromIterable(batch)
-//                        .flatMap(players -> {
-//                            log.info("배치 처리 중 - 플레이어 수: {}", batch.size());
-//                            return Mono.fromRunnable(() -> playerService.saveAll(batch));
-//                        }))
-//                .then();
     }
 
     public void saveFmPlayers(List<FmPlayerDto> fmPlayerDtos) {
@@ -180,11 +174,14 @@ public class InitializationService {
         int total = fmPlayers.size();
         // 1000개씩 bulk insert
         for (int i = 0; i < total; i += CHUNK_SIZE) {
-            log.info("now= {} , chunk= {} ", i, CHUNK_SIZE);
             int end = Math.min(i + CHUNK_SIZE, total);
             List<FmPlayer> now = fmPlayers.subList(i, end);
             bulkRepository.bulkInsertFmPlayers(now);
         }
+    }
+
+    public void updateAllPlayersFmData() {
+
     }
 
 
