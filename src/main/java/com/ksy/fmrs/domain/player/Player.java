@@ -44,7 +44,8 @@ public class Player {
     private String imageUrl;
 
     @Enumerated(EnumType.STRING)
-    private PlayerMappingStatus status;
+    @Column(name="mapping_status")
+    private PlayerMappingStatus mappingStatus;
 
     @ManyToOne
     @JoinColumn(name = "team_id")
@@ -65,7 +66,7 @@ public class Player {
             String imageUrl,
             String nationName,
             String nationLogoUrl,
-            PlayerMappingStatus status
+            PlayerMappingStatus mappingStatus
     ) {
         this.playerApiId = playerApiId;
         this.firstName = firstName;
@@ -76,7 +77,7 @@ public class Player {
         this.imageUrl = imageUrl;
         this.nationName = nationName;
         this.nationLogoUrl = nationLogoUrl;
-        this.status = status;
+        this.mappingStatus = mappingStatus;
     }
 
     // 연관관계 설정 메서드
@@ -94,7 +95,7 @@ public class Player {
     }
 
     private void updateStatus(PlayerMappingStatus status) {
-        this.status = status;
+        this.mappingStatus = status;
     }
 
     public int getAge(){
