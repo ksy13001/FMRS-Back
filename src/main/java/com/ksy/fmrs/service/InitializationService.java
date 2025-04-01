@@ -23,6 +23,7 @@ import reactor.core.scheduler.Schedulers;
 
 import java.io.File;
 import java.time.Duration;
+import java.time.LocalDate;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -153,7 +154,7 @@ public class InitializationService {
                         .flatMap(dto -> {
                             List<Player> players = convertPlayerStatisticsDtoToPlayer(dto);
                             return Flux.fromIterable(players);
-                        }), 2) //
+                        }), 3) //
                 // 선수 1000명 모일시 bulk insert
                 .buffer(1000)
                 .concatMap(batch -> Mono.fromRunnable(()->bulkRepository.bulkInsertPlayers(batch)))
