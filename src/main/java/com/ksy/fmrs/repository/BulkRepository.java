@@ -3,6 +3,7 @@ package com.ksy.fmrs.repository;
 
 import com.ksy.fmrs.domain.player.FmPlayer;
 import com.ksy.fmrs.domain.player.Player;
+import com.ksy.fmrs.util.StringUtils;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.jdbc.core.BatchPreparedStatementSetter;
@@ -22,8 +23,8 @@ public class BulkRepository {
 
     public void bulkInsertPlayers(List<Player> players) {
         String sql = "INSERT IGNORE INTO PLAYER " +
-                "(player_api_id, first_name, last_name, nation_name, nation_logo_url, birth, height, weight, image_url) " +
-                "VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)";
+                "(player_api_id, first_name, last_name, nation_name, nation_logo_url, birth, height, weight, image_url, mapping_status) " +
+                "VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
 
         jdbcTemplate.batchUpdate(sql, new BatchPreparedStatementSetter() {
 
@@ -39,6 +40,7 @@ public class BulkRepository {
                 ps.setInt(7, player.getHeight());
                 ps.setInt(8, player.getWeight());
                 ps.setString(9, player.getImageUrl());
+                ps.setString(10, player.getMappingStatus().getValue());
             }
 
             @Override
@@ -49,9 +51,7 @@ public class BulkRepository {
     }
 
     public void bulkInsertFmPlayers(List<FmPlayer> fmPlayers) {
-        log.info("1.전달받은 fmplayer 개수:{}",fmPlayers.size());
-        final List<FmPlayer> chunk = fmPlayers;
-        log.info("2.전달받은 fmplayer 개수:{}",fmPlayers.size());
+        log.info("전달받은 fmplayer 개수:{}",fmPlayers.size());
 
         List<String> columns = List.of(
                 "name", "current_ability", "potential_ability",
@@ -74,7 +74,7 @@ public class BulkRepository {
 
             @Override
             public void setValues(PreparedStatement ps, int i) throws SQLException {
-                FmPlayer fmPlayer = chunk.get(i);
+                FmPlayer fmPlayer = fmPlayers.get(i);
                 ps.setString(1, fmPlayer.getName());
                 ps.setInt(2, fmPlayer.getCurrentAbility());
                 ps.setInt(3, fmPlayer.getPotentialAbility());
@@ -152,17 +152,45 @@ public class BulkRepository {
                 ps.setInt(75, fmPlayer.getPosition().getAttackingMidLeft());
                 ps.setInt(76, fmPlayer.getPosition().getAttackingMidRight());
                 ps.setInt(77, fmPlayer.getPosition().getStriker());
-                ps.setString(78, fmPlayer.getFirstName());
-                ps.setString(79, fmPlayer.getLastName());
+                ps.setString(78, fmPlayer.getFirstName().toUpperCase());
+                ps.setString(79, fmPlayer.getLastName().toUpperCase());
                 ps.setString(80, String.valueOf(fmPlayer.getBirth()));
-                ps.setString(81, fmPlayer.getNationName());
+                ps.setString(81, fmPlayer.getNationName().toUpperCase());
             }
 
             @Override
             public int getBatchSize() {
-                return chunk.size();
+                return fmPlayers.size();
             }
         });
+    }
+
+    public void bulkUpdatePlayersFmData(List<Player> players, List<FmPlayer> fmPlayers) {
+        String sql = "UPDATE player p " +
+                "JOIN fmplayer f " +
+                "ON f.first_name = p.first_name " +
+                "AND f.last_name = p.last_name " +
+                "AND f.birth = p.birth " +
+                "AND f.nation_name = p.nation_name " +
+                "SET " +
+                "p.fmplayer_id = ?, p.mapping_status= 'MATCHED' " +
+                "WHERE p.id=? AND p.mapping_status= 'UNMAPPED' ";
+        jdbcTemplate.batchUpdate(sql, new BatchPreparedStatementSetter() {
+
+            @Override
+            public void setValues(PreparedStatement ps, int i) throws SQLException {
+                Player player = players.get(i);
+                FmPlayer fmPlayer = fmPlayers.get(i);
+                ps.setLong(1, fmPlayer.getId());
+                ps.setLong(2, player.getId());
+            }
+
+            @Override
+            public int getBatchSize() {
+                return players.size();
+            }
+        });
+
     }
 
     private String buildInsertSql(String tableName, List<String> columnNames) {

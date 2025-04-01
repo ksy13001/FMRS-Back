@@ -94,7 +94,7 @@ public class Player {
         this.fmPlayer = fmPlayer;
     }
 
-    private void updateStatus(PlayerMappingStatus status) {
+    public void updateMappingStatus(PlayerMappingStatus status) {
         this.mappingStatus = status;
     }
 

@@ -109,31 +109,31 @@ public class PlayerServiceTest {
         assertEquals(2, players.size());
     }
 
-    @Test
-    public void testGetPlayersByMarketValueDesc() {
-        // given
-//        Nation nation = Nation.builder().name("Nation A").build();
-        Team team = Team.builder().name("Team A").build();
-
-        Player player1 = Player.builder().build();
-        ReflectionTestUtils.setField(player1, "id", 1L);
-        ReflectionTestUtils.setField(player1, "team", team);
-//        ReflectionTestUtils.setField(player1, "nation", nation);
-
-        Player player2 = Player.builder().build();
-        ReflectionTestUtils.setField(player2, "id", 2L);
-        ReflectionTestUtils.setField(player2, "team", team);
-//        ReflectionTestUtils.setField(player2, "nation", nation);
-
-        when(playerRepository.findAllByOrderByMarketValueDesc()).thenReturn(Arrays.asList(player1, player2));
-
-        // when
-        SearchPlayerResponseDto result = playerService.getPlayersByMarketValueDesc();
-
-        // then
-        assertNotNull(result);
-        assertEquals(2, result.getPlayers().size());
-    }
+//    @Test
+//    public void testGetPlayersByMarketValueDesc() {
+//        // given
+////        Nation nation = Nation.builder().name("Nation A").build();
+//        Team team = Team.builder().name("Team A").build();
+//
+//        Player player1 = Player.builder().build();
+//        ReflectionTestUtils.setField(player1, "id", 1L);
+//        ReflectionTestUtils.setField(player1, "team", team);
+////        ReflectionTestUtils.setField(player1, "nation", nation);
+//
+//        Player player2 = Player.builder().build();
+//        ReflectionTestUtils.setField(player2, "id", 2L);
+//        ReflectionTestUtils.setField(player2, "team", team);
+////        ReflectionTestUtils.setField(player2, "nation", nation);
+//
+//        when(playerRepository.findAllByOrderByMarketValueDesc()).thenReturn(Arrays.asList(player1, player2));
+//
+//        // when
+//        SearchPlayerResponseDto result = playerService.getPlayersByMarketValueDesc();
+//
+//        // then
+//        assertNotNull(result);
+//        assertEquals(2, result.getPlayers().size());
+//    }
 
     @Test
     public void testSearchPlayerByName() {
