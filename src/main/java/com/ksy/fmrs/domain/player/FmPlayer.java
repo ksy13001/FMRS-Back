@@ -15,6 +15,9 @@ import java.time.LocalDate;
 @Getter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 @Entity
+@Table(indexes = @Index(name = "idx_first_name_and_last_name_and_birth_and_nation_name",
+        columnList = "first_name, last_name, birth, nation_name"))
+
 public class FmPlayer {
 
     @Id
@@ -112,7 +115,7 @@ public class FmPlayer {
                 .firstName(StringUtils.getFirstName(name))
                 .lastName(StringUtils.getLastName(name))
                 .birth(fmPlayerDto.getBorn())
-                .nationName(fmPlayerDto.getNation().getShortName())
+                .nationName(fmPlayerDto.getNation().getName())
                 .personalityAttributes(FmUtils.getPersonalityAttributesFromFmPlayer(fmPlayerDto))
                 .hiddenAttributes(FmUtils.getHiddenAttributesFromFmPlayer(fmPlayerDto))
                 .mentalAttributes(FmUtils.getMentalAttributesFromFmPlayer(fmPlayerDto))
@@ -123,5 +126,9 @@ public class FmPlayer {
                 .currentAbility(fmPlayerDto.getCurrentAbility())
                 .potentialAbility(fmPlayerDto.getPotentialAbility())
                 .build();
+    }
+
+    public void updateName(String name) {
+        this.name = name;
     }
 }

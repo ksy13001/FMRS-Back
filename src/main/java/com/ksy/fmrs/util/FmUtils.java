@@ -54,6 +54,10 @@ public class FmUtils {
                 .determination(mentalAttributesDto.getDetermination())
                 .flair(mentalAttributesDto.getFlair())
                 .leadership(mentalAttributesDto.getLeadership())
+                .offTheBall(mentalAttributesDto.getOffTheBall())
+                .positioning(mentalAttributesDto.getPositioning())
+                .teamwork(mentalAttributesDto.getTeamwork())
+                .vision(mentalAttributesDto.getVision())
                 .build();
     }
 

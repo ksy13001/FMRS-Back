@@ -68,9 +68,15 @@ public class AdminController {
      * fmPlayer 저장
      **/
     @ResponseBody
-    @PostMapping("/api/admin/insert/fm-player/{fm_dir}")
-    public void updateAllPlayerApiIds(@PathVariable String fm_dir) {
-        initializationService.saveFmPlayers(initializationService.getPlayersFromFmPlayers(fm_dir));
+    @PostMapping("/api/admin/insert/fm-player")
+    public void updateAllPlayerApiIds(@RequestParam("dir") String fm_dir) {
+        initializationService.saveFmPlayers(fm_dir);
+    }
+
+    @ResponseBody
+    @PostMapping("/api/admin/mapping")
+    public void updateAllPlayerApiIds() {
+        initializationService.updateAllPlayersFmData();
     }
 
 //    @ResponseBody

@@ -2,6 +2,7 @@ package com.ksy.fmrs.domain.player;
 
 
 import com.ksy.fmrs.domain.Team;
+import com.ksy.fmrs.domain.enums.PlayerMappingStatus;
 import com.ksy.fmrs.util.TimeUtils;
 import jakarta.persistence.*;
 import lombok.*;
@@ -42,6 +43,10 @@ public class Player {
     @Column(name = "image_url")
     private String imageUrl;
 
+    @Enumerated(EnumType.STRING)
+    @Column(name="mapping_status")
+    private PlayerMappingStatus mappingStatus;
+
     @ManyToOne
     @JoinColumn(name = "team_id")
     private Team team;
@@ -60,8 +65,8 @@ public class Player {
             int weight,
             String imageUrl,
             String nationName,
-            String nationLogoUrl
-
+            String nationLogoUrl,
+            PlayerMappingStatus mappingStatus
     ) {
         this.playerApiId = playerApiId;
         this.firstName = firstName;
@@ -72,12 +77,25 @@ public class Player {
         this.imageUrl = imageUrl;
         this.nationName = nationName;
         this.nationLogoUrl = nationLogoUrl;
+        this.mappingStatus = mappingStatus;
     }
 
     // 연관관계 설정 메서드
     public void updateTeam(Team team) {
         this.team = team;
         team.getPlayers().add(this);
+    }
+
+    public void updateImageUrl(String imageUrl) {
+        this.imageUrl = imageUrl;
+    }
+
+    public void updateFmPlayer(FmPlayer fmPlayer) {
+        this.fmPlayer = fmPlayer;
+    }
+
+    public void updateMappingStatus(PlayerMappingStatus status) {
+        this.mappingStatus = status;
     }
 
     public int getAge(){
@@ -88,13 +106,6 @@ public class Player {
         this.playerApiId = playerApiId;
     }
 
-    public void updateImageUrl(String imageUrl) {
-        this.imageUrl = imageUrl;
-    }
-
-    public void updateFmPlayer(FmPlayer fmPlayer) {
-        this.fmPlayer = fmPlayer;
-    }
 
     public String getStringBirth(){
         return String.valueOf(birth);

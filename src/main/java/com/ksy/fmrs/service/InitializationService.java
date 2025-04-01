@@ -2,16 +2,19 @@ package com.ksy.fmrs.service;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.ksy.fmrs.domain.enums.LeagueType;
+import com.ksy.fmrs.domain.enums.PlayerMappingStatus;
 import com.ksy.fmrs.domain.player.*;
 import com.ksy.fmrs.dto.apiFootball.PlayerStatisticsApiResponseDto;
 import com.ksy.fmrs.dto.league.LeagueDetailsRequestDto;
 import com.ksy.fmrs.dto.player.FmPlayerDto;
 import com.ksy.fmrs.repository.BulkRepository;
 import com.ksy.fmrs.repository.LeagueRepository;
+import com.ksy.fmrs.repository.Player.FmPlayerRepository;
 import com.ksy.fmrs.repository.Player.PlayerRepository;
 import com.ksy.fmrs.util.StringUtils;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
@@ -32,6 +35,7 @@ public class InitializationService {
     private final PlayerRepository playerRepository;
     private final LeagueRepository leagueRepository;
     private final BulkRepository bulkRepository;
+    private final FmPlayerRepository fmPlayerRepository;
     private final FootballApiService footballApiService;
     private final LeagueService leagueService;
     private final TeamService teamService;
@@ -46,7 +50,7 @@ public class InitializationService {
     private static final int CHUNK_SIZE = 1000;
 
     /**
-     * api-football 요청 제한 -> 450/m
+     * api-football 요청 제한 -> 450/m, 7.5/s
      * 1회 요청 시 평균 0.5s 소요
      */
 
@@ -156,22 +160,12 @@ public class InitializationService {
                 .buffer(1000)
                 .concatMap(batch -> Mono.fromRunnable(() -> {
                     bulkRepository.bulkInsertPlayers(batch);
-                    try {
-                        playerService.bulkInsertPlayers(batch);
-                    } catch (Exception e) {
-                        log.error("bulkInsertPlayers 실패", e);
-                    }
                 }))
                 .then();
-//                .buffer(100).concatMap(batch -> Flux.fromIterable(batch)
-//                        .flatMap(players -> {
-//                            log.info("배치 처리 중 - 플레이어 수: {}", batch.size());
-//                            return Mono.fromRunnable(() -> playerService.saveAll(batch));
-//                        }))
-//                .then();
     }
 
-    public void saveFmPlayers(List<FmPlayerDto> fmPlayerDtos) {
+    public void saveFmPlayers(String dirPath) {
+        List<FmPlayerDto> fmPlayerDtos = getPlayersFromFmPlayers(dirPath);
         log.info("fmPlayer 저장 시작: {}", fmPlayerDtos.size());
         List<FmPlayer> fmPlayers = new ArrayList<>();
         fmPlayerDtos.forEach(fmPlayer -> {
@@ -180,12 +174,61 @@ public class InitializationService {
         int total = fmPlayers.size();
         // 1000개씩 bulk insert
         for (int i = 0; i < total; i += CHUNK_SIZE) {
-            log.info("now= {} , chunk= {} ", i, CHUNK_SIZE);
             int end = Math.min(i + CHUNK_SIZE, total);
             List<FmPlayer> now = fmPlayers.subList(i, end);
             bulkRepository.bulkInsertFmPlayers(now);
         }
     }
+
+    public void updateAllPlayersFmData() {
+        List<Player> players = new  ArrayList<>();
+        List<FmPlayer> fmPlayers = new  ArrayList<>();
+        playerRepository.findAll().forEach(player -> {
+            List<FmPlayer> findFmPlayer = fmPlayerRepository.findFmPlayerByFirstNameAndLastNameAndBirthAndNationName(
+                    player.getFirstName(), player.getLastName(), player.getBirth(), player.getNationName()
+            );
+            if (findFmPlayer.isEmpty()) {
+                log.info("Not Exist FmPlayer: {}", player.getId());
+            } else if (findFmPlayer.size() > 1) {
+                log.info("Too Many FmPlayer: {}", player.getId());
+            } else{
+                log.info("Success : FmPlayer: {}", player.getId());
+                FmPlayer fmPlayer = findFmPlayer.getFirst();
+                player.updateFmPlayer(fmPlayer);
+                player.updateMappingStatus(PlayerMappingStatus.MATCHED);
+                players.add(player);
+                fmPlayers.add(fmPlayer);
+            }
+        });
+        int total = fmPlayers.size();
+        for (int i = 0; i < total; i += CHUNK_SIZE) {
+            int end = Math.min(i + CHUNK_SIZE, total);
+            bulkRepository.bulkUpdatePlayersFmData(players.subList(i, end), fmPlayers.subList(i, end));
+        }
+    }
+
+//    public void updateAllPlayersFmDataV2(){
+//        return Mono.fromCallable(playerRepository::findAll)
+//                .subscribeOn(Schedulers.boundedElastic())
+//                .flatMapMany(Flux::fromIterable)
+//                .flatMap(player -> {
+//                    Mono.fromCallable(()->fmPlayerRepository.findFmPlayerByFirstNameAndLastNameAndBirthAndNationName(
+//                            player.getFirstName(), player.getLastName(), player.getBirth(), player.getNationName()
+//                    )).subscribeOn(Schedulers.boundedElastic()).flatMap(
+//                            fmPlayers -> {
+//                                if(fmPlayers.isEmpty()){
+//                                    log.info("Not Exist FmPlayer: {}", player.getId());
+//                                } else if (fmPlayers.size() > 1) {
+//                                    log.info("Too Many FmPlayer: {}", player.getId());
+//                                }else{
+//                                    player.updateFmPlayer(fmPlayers.getFirst());
+//                                }
+//                                return Mono.empty();
+//                            }
+//                    );
+//                }
+//                ).then();
+//    }
 
 
     private List<Integer> createAllLeagueApiIds() {
@@ -203,7 +246,7 @@ public class InitializationService {
                 leagueDetailsRequestDto.getStanding();
     }
 
-    public List<FmPlayerDto> getPlayersFromFmPlayers(String dirPath) {
+    private List<FmPlayerDto> getPlayersFromFmPlayers(String dirPath) {
         log.info("dir 탐색 시작");
         File folder = new File(dirPath);
         File[] jsonFiles = folder.listFiles((dir, name) -> name.toLowerCase().endsWith(".json"));
@@ -228,7 +271,9 @@ public class InitializationService {
     //https://v3.football.api-sports.io/players?league=39&season=2024 한 페이지 선수 정보 리스트
     private List<Player> convertPlayerStatisticsDtoToPlayer(PlayerStatisticsApiResponseDto playerStatisticsApiResponseDto) {
         return playerStatisticsApiResponseDto.response().stream().filter(dto -> {
-            return dto != null || dto.statistics() != null || dto.player() != null;
+            return dto != null || dto.statistics() != null || dto.player() != null
+                    || dto.player().birth().date() != null || dto.player().name() != null
+                    || dto.player().nationality() != null;
         }).map(dto -> {
             PlayerStatisticsApiResponseDto.PlayerDto player = dto.player();
             return Player.builder()
@@ -241,6 +286,7 @@ public class InitializationService {
                     .birth(player.birth().date())
                     .height(StringUtils.extractNumber(player.height()))
                     .weight(StringUtils.extractNumber(player.weight()))
+                    .mappingStatus(PlayerMappingStatus.UNMAPPED)
                     .build();
         }).toList();
     }
