@@ -1,8 +1,10 @@
 package com.ksy.fmrs.repository.Player;
 
 import com.ksy.fmrs.domain.Team;
+import com.ksy.fmrs.domain.enums.PlayerMappingStatus;
 import com.ksy.fmrs.domain.player.Player;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Query;
 import org.springframework.stereotype.Repository;
 
 import java.util.List;
@@ -14,4 +16,6 @@ public interface PlayerRepository extends JpaRepository<Player, Long>, PlayerRep
     List<Player> findAllByTeamId(Long teamId);
 
     Optional<Player> findByPlayerApiId(Integer playerApiId);
+
+    List<Player> findByMappingStatus(PlayerMappingStatus mappingStatus);
 }
