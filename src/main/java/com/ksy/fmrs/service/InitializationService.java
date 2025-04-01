@@ -11,6 +11,7 @@ import com.ksy.fmrs.repository.BulkRepository;
 import com.ksy.fmrs.repository.LeagueRepository;
 import com.ksy.fmrs.repository.Player.FmPlayerRepository;
 import com.ksy.fmrs.repository.Player.PlayerRepository;
+import com.ksy.fmrs.util.NationNormalizer;
 import com.ksy.fmrs.util.StringUtils;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -183,7 +184,7 @@ public class InitializationService {
     public void updateAllPlayersFmData() {
         List<Player> players = new  ArrayList<>();
         List<FmPlayer> fmPlayers = new  ArrayList<>();
-        playerRepository.findAll().forEach(player -> {
+        playerRepository.findByMappingStatus(PlayerMappingStatus.UNMAPPED).forEach(player -> {
             List<FmPlayer> findFmPlayer = fmPlayerRepository.findFmPlayerByFirstNameAndLastNameAndBirthAndNationName(
                     player.getFirstName(), player.getLastName(), player.getBirth(), player.getNationName()
             );
@@ -281,7 +282,7 @@ public class InitializationService {
                     .imageUrl(player.photo())
                     .firstName(StringUtils.getFirstName(player.firstname()).toUpperCase())
                     .lastName(StringUtils.getLastName(player.lastname()).toUpperCase())
-                    .nationName(player.nationality().toUpperCase())
+                    .nationName(NationNormalizer.normalize(player.nationality().toUpperCase()))
                     .nationLogoUrl(Objects.requireNonNull(dto.statistics().getFirst().league().flag()))
                     .birth(player.birth().date())
                     .height(StringUtils.extractNumber(player.height()))

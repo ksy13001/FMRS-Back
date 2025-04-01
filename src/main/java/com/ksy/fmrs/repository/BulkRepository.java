@@ -3,6 +3,7 @@ package com.ksy.fmrs.repository;
 
 import com.ksy.fmrs.domain.player.FmPlayer;
 import com.ksy.fmrs.domain.player.Player;
+import com.ksy.fmrs.util.NationNormalizer;
 import com.ksy.fmrs.util.StringUtils;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -155,7 +156,7 @@ public class BulkRepository {
                 ps.setString(78, fmPlayer.getFirstName().toUpperCase());
                 ps.setString(79, fmPlayer.getLastName().toUpperCase());
                 ps.setString(80, String.valueOf(fmPlayer.getBirth()));
-                ps.setString(81, fmPlayer.getNationName().toUpperCase());
+                ps.setString(81, NationNormalizer.normalize(fmPlayer.getNationName().toUpperCase()));
             }
 
             @Override
