@@ -126,9 +126,8 @@ public class InitializationService {
                                 DEFAULT_PAGE)
                         .delaySubscription(Duration.ofMillis(DELAY_MS)) // 요청 간 150ms 간격
                         .timeout(Duration.ofSeconds(30)) // 타임아웃 30초
-                        .onErrorResume(e -> {
+                        .onErrorContinue((e, o) -> {
                             log.error("리그 {}: page 1 에러 발생: {}", league.getLeagueApiId(), e.getMessage());
-                            return Mono.empty();
                         })
                         .expand(dto -> {
                             int current = dto.paging().current();
@@ -139,12 +138,10 @@ public class InitializationService {
                                                 league.getLeagueApiId(),
                                                 league.getCurrentSeason(),
                                                 nextPage)
-
                                         .delaySubscription(Duration.ofMillis(DELAY_MS)) // 요청 간 150ms 간격
                                         .timeout(Duration.ofSeconds(30)) // 타임아웃 30초
-                                        .onErrorResume(e -> {
+                                        .onErrorContinue((e, ex) -> {
                                             log.error("리그 {}: page {} 에러 발생: {}", league.getLeagueApiId(), nextPage, e.getMessage());
-                                            return Mono.empty();
                                         })
                                         .retry(3); // 최대 3회 재시도
                             } else {
@@ -159,10 +156,10 @@ public class InitializationService {
                         }), 2) //
                 // 선수 1000명 모일시 bulk insert
                 .buffer(1000)
-                .concatMap(batch -> Mono.fromRunnable(() -> {
-                    bulkRepository.bulkInsertPlayers(batch);
-                }))
-                .then();
+                .concatMap(batch -> Mono.fromRunnable(()->bulkRepository.bulkInsertPlayers(batch)))
+                .onErrorContinue((e, o) -> {
+                    log.info("저장 중 애러 발생 : {}", e.getMessage());
+                }).then();
     }
 
     public void saveFmPlayers(String dirPath) {
