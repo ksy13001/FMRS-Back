@@ -23,7 +23,9 @@ import reactor.core.scheduler.Schedulers;
 
 import java.io.File;
 import java.time.Duration;
+import java.time.LocalDate;
 import java.util.*;
+import java.util.concurrent.atomic.AtomicInteger;
 import java.util.stream.Collectors;
 
 import static java.util.stream.Collectors.groupingBy;
@@ -85,6 +87,7 @@ public class InitializationService {
                 .then();
     }
 
+
     // league standing에서 team 생성
     public Mono<Void> saveInitialTeams() {
         return Mono.fromCallable(leagueRepository::findAll)
@@ -115,6 +118,7 @@ public class InitializationService {
     }
 
     public Mono<Void> saveInitialPlayers() {
+        AtomicInteger cnt = new AtomicInteger(0);
         return Mono.fromCallable(leagueRepository::findAll)
                 .subscribeOn(Schedulers.boundedElastic())
                 .flatMapMany(Flux::fromIterable)
@@ -126,9 +130,8 @@ public class InitializationService {
                                 DEFAULT_PAGE)
                         .delaySubscription(Duration.ofMillis(DELAY_MS)) // 요청 간 150ms 간격
                         .timeout(Duration.ofSeconds(30)) // 타임아웃 30초
-                        .onErrorResume(e -> {
+                        .onErrorContinue((e, o) -> {
                             log.error("리그 {}: page 1 에러 발생: {}", league.getLeagueApiId(), e.getMessage());
-                            return Mono.empty();
                         })
                         .expand(dto -> {
                             int current = dto.paging().current();
@@ -139,30 +142,31 @@ public class InitializationService {
                                                 league.getLeagueApiId(),
                                                 league.getCurrentSeason(),
                                                 nextPage)
-
                                         .delaySubscription(Duration.ofMillis(DELAY_MS)) // 요청 간 150ms 간격
                                         .timeout(Duration.ofSeconds(30)) // 타임아웃 30초
-                                        .onErrorResume(e -> {
+                                        .onErrorContinue((e, ex) -> {
                                             log.error("리그 {}: page {} 에러 발생: {}", league.getLeagueApiId(), nextPage, e.getMessage());
-                                            return Mono.empty();
-                                        })
-                                        .retry(3); // 최대 3회 재시도
+                                        });
                             } else {
                                 log.info("리그 {}: 모든 페이지 처리 완료", league.getLeagueApiId());
                                 return Mono.empty();
                             }
                         })
-                        .doOnNext(dto -> log.info("리그 {}: 페이지 {} - 플레이어 수: {}", league.getLeagueApiId(), dto.paging().current(), dto.response().size()))
+                        .doOnNext(dto -> {
+                            log.info("리그 {}: 페이지 {} - 플레이어 수: {}", league.getLeagueApiId(), dto.paging().current(), dto.response().size());
+                            int total = cnt.addAndGet(dto.response().size());
+                            log.info("현재 받아온 총 플레이어 수: {}", total);
+                        })
                         .flatMap(dto -> {
                             List<Player> players = convertPlayerStatisticsDtoToPlayer(dto);
                             return Flux.fromIterable(players);
-                        }), 2) //
+                        }), 3) //
                 // 선수 1000명 모일시 bulk insert
                 .buffer(1000)
-                .concatMap(batch -> Mono.fromRunnable(() -> {
-                    bulkRepository.bulkInsertPlayers(batch);
-                }))
-                .then();
+                .concatMap(batch -> Mono.fromRunnable(() -> bulkRepository.bulkInsertPlayers(batch)))
+                .onErrorContinue((e, o) -> {
+                    log.info("저장 중 애러 발생 : {}", e.getMessage());
+                }).then();
     }
 
     public void saveFmPlayers(String dirPath) {
@@ -182,8 +186,8 @@ public class InitializationService {
     }
 
     public void updateAllPlayersFmData() {
-        List<Player> players = new  ArrayList<>();
-        List<FmPlayer> fmPlayers = new  ArrayList<>();
+        List<Player> players = new ArrayList<>();
+        List<FmPlayer> fmPlayers = new ArrayList<>();
         playerRepository.findByMappingStatus(PlayerMappingStatus.UNMAPPED).forEach(player -> {
             List<FmPlayer> findFmPlayer = fmPlayerRepository.findFmPlayerByFirstNameAndLastNameAndBirthAndNationName(
                     player.getFirstName(), player.getLastName(), player.getBirth(), player.getNationName()
@@ -192,7 +196,7 @@ public class InitializationService {
                 log.info("Not Exist FmPlayer: {}", player.getId());
             } else if (findFmPlayer.size() > 1) {
                 log.info("Too Many FmPlayer: {}", player.getId());
-            } else{
+            } else {
                 log.info("Success : FmPlayer: {}", player.getId());
                 FmPlayer fmPlayer = findFmPlayer.getFirst();
                 player.updateFmPlayer(fmPlayer);
@@ -207,30 +211,6 @@ public class InitializationService {
             bulkRepository.bulkUpdatePlayersFmData(players.subList(i, end), fmPlayers.subList(i, end));
         }
     }
-
-//    public void updateAllPlayersFmDataV2(){
-//        return Mono.fromCallable(playerRepository::findAll)
-//                .subscribeOn(Schedulers.boundedElastic())
-//                .flatMapMany(Flux::fromIterable)
-//                .flatMap(player -> {
-//                    Mono.fromCallable(()->fmPlayerRepository.findFmPlayerByFirstNameAndLastNameAndBirthAndNationName(
-//                            player.getFirstName(), player.getLastName(), player.getBirth(), player.getNationName()
-//                    )).subscribeOn(Schedulers.boundedElastic()).flatMap(
-//                            fmPlayers -> {
-//                                if(fmPlayers.isEmpty()){
-//                                    log.info("Not Exist FmPlayer: {}", player.getId());
-//                                } else if (fmPlayers.size() > 1) {
-//                                    log.info("Too Many FmPlayer: {}", player.getId());
-//                                }else{
-//                                    player.updateFmPlayer(fmPlayers.getFirst());
-//                                }
-//                                return Mono.empty();
-//                            }
-//                    );
-//                }
-//                ).then();
-//    }
-
 
     private List<Integer> createAllLeagueApiIds() {
         List<Integer> urls = new ArrayList<>();
@@ -271,17 +251,13 @@ public class InitializationService {
 
     //https://v3.football.api-sports.io/players?league=39&season=2024 한 페이지 선수 정보 리스트
     private List<Player> convertPlayerStatisticsDtoToPlayer(PlayerStatisticsApiResponseDto playerStatisticsApiResponseDto) {
-        return playerStatisticsApiResponseDto.response().stream().filter(dto -> {
-            return dto != null || dto.statistics() != null || dto.player() != null
-                    || dto.player().birth().date() != null || dto.player().name() != null
-                    || dto.player().nationality() != null;
-        }).map(dto -> {
+        return playerStatisticsApiResponseDto.response().stream().filter(Objects::nonNull).map(dto -> {
             PlayerStatisticsApiResponseDto.PlayerDto player = dto.player();
             return Player.builder()
                     .playerApiId(player.id())
                     .imageUrl(player.photo())
                     .firstName(StringUtils.getFirstName(player.firstname()).toUpperCase())
-                    .lastName(StringUtils.getLastName(player.lastname()).toUpperCase())
+                    .lastName(StringUtils.getLastName(player.name()).toUpperCase())
                     .nationName(NationNormalizer.normalize(player.nationality().toUpperCase()))
                     .nationLogoUrl(Objects.requireNonNull(dto.statistics().getFirst().league().flag()))
                     .birth(player.birth().date())
