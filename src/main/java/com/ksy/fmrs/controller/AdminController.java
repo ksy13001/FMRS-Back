@@ -65,6 +65,16 @@ public class AdminController {
     }
 
     /**
+     * playerRaw 초기 데이터 insert
+     * */
+    @ResponseBody
+    @PostMapping("/api/admin/insert/player-raw-data")
+    public Mono<ResponseEntity<Void>> insertInitialPlayerRawData() {
+        return initializationService.savePlayerRaws()
+                .then(Mono.just(ResponseEntity.ok().build()));
+    }
+
+    /**
      * fmPlayer 저장
      **/
     @ResponseBody
@@ -78,6 +88,7 @@ public class AdminController {
     public void updateAllPlayerApiIds() {
         initializationService.updateAllPlayersFmData();
     }
+
 
 //    @ResponseBody
 //    @PostMapping("/api/admin/update-squad")

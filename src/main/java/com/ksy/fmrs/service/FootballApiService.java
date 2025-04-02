@@ -77,6 +77,12 @@ public class FootballApiService {
                 PlayerStatisticsApiResponseDto.class);
     }
 
+    public Mono<String> getPlayerStatisticsToStringByLeagueId(Integer leagueApiId, int currentSeason, int page) {
+        return webClientService.getApiResponse(
+                UrlEnum.buildPlayersUrlByLeagueApiId(leagueApiId, currentSeason, page),
+                String.class);
+    }
+
     public List<PlayerSimpleDto> getLeagueTopScorers(Integer leagueApiId) {
         League league = findLeagueByLeagueApiId(leagueApiId);
         LeagueApiTopPlayerResponseDto response = webClientService.getApiResponse(

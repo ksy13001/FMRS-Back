@@ -1,5 +1,6 @@
 package com.ksy.fmrs.service;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.ksy.fmrs.domain.enums.LeagueType;
 import com.ksy.fmrs.domain.enums.PlayerMappingStatus;
@@ -17,6 +18,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
+import org.springframework.web.servlet.LocaleResolver;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 import reactor.core.scheduler.Schedulers;
@@ -24,6 +26,7 @@ import reactor.core.scheduler.Schedulers;
 import java.io.File;
 import java.time.Duration;
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.util.*;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.stream.Collectors;
@@ -51,6 +54,7 @@ public class InitializationService {
     private static final int DELAY_MS = 150;
     private static final int TIME_OUT = 10;
     private static final int CHUNK_SIZE = 1000;
+    private final LocaleResolver localeResolver;
 
     /**
      * api-football 요청 제한 -> 450/m, 7.5/s
@@ -185,6 +189,49 @@ public class InitializationService {
         }
     }
 
+    public Mono<Void> savePlayerRaws() {
+        return Mono.fromCallable(leagueRepository::findAll)
+                .subscribeOn(Schedulers.boundedElastic())
+                .flatMapMany(Flux::fromIterable)
+                .flatMap(league -> {
+                    return footballApiService.getPlayerStatisticsToStringByLeagueId(
+                                    league.getLeagueApiId(), league.getCurrentSeason(), DEFAULT_PAGE)
+                            .delaySubscription(Duration.ofMillis(DELAY_MS))
+                            .onErrorContinue((e, o) -> log.info("league 페이지 애러: {}", league.getLeagueApiId()))
+                            .doOnNext(json -> log.info("리그 처리 시작:{}, 페이지:{}", league.getLeagueApiId(), DEFAULT_PAGE))
+                            .expand(response -> {
+                                PlayerStatisticsApiResponseDto dto = null;
+                                try {
+                                    dto = objectMapper
+                                            .readValue(response, PlayerStatisticsApiResponseDto.class);
+                                    log.info("리그 처리 시작:{}, 페이지:{}, 선수 수:{}", league.getLeagueApiId(), dto.paging().current(), dto.response().size());
+                                } catch (JsonProcessingException e) {
+                                    log.info("리그 to dto 애러- id:{}, name:{}", league.getLeagueApiId(), league.getName());
+                                }
+                                int total = dto.paging().total();
+                                int current = dto.paging().current();
+                                if (current < total) {
+                                    int nextPage = current + 1;
+                                    return footballApiService.getPlayerStatisticsToStringByLeagueId(
+                                                    league.getLeagueApiId(), league.getCurrentSeason(), nextPage)
+                                            .delaySubscription(Duration.ofMillis(DELAY_MS))
+                                            .onErrorContinue((e, ex) -> {
+                                                log.info(e.getMessage(), e);
+                                            });
+                                } else {
+                                    log.info("리그 페이지 끝 : {}", league.getLeagueApiId());
+                                    return Mono.empty();
+                                }
+                            });
+                }, 3)
+                .filter(Objects::nonNull)
+                .buffer(100)
+                .concatMap(buffer -> {
+                    log.info("buffer size: {}", buffer.size());
+                    return Mono.fromRunnable(() -> bulkRepository.bulkInsertPlayerRaws(buffer));
+                }).then();
+    }
+
     public void updateAllPlayersFmData() {
         List<Player> players = new ArrayList<>();
         List<FmPlayer> fmPlayers = new ArrayList<>();
@@ -248,6 +295,15 @@ public class InitializationService {
                 .collect(Collectors.toList());
     }
 
+    private List<PlayerRaw> convertPlayerStatisticsDtoToPlayerRaws(List<String> playerStatisticsApiResponseDtos) {
+        return playerStatisticsApiResponseDtos.stream().map(dto -> {
+            return PlayerRaw.builder()
+                    .jsonRaw(dto)
+                    .createdAt(LocalDateTime.now())
+                    .processed(false)
+                    .build();
+        }).toList();
+    }
 
     //https://v3.football.api-sports.io/players?league=39&season=2024 한 페이지 선수 정보 리스트
     private List<Player> convertPlayerStatisticsDtoToPlayer(PlayerStatisticsApiResponseDto playerStatisticsApiResponseDto) {
