@@ -190,6 +190,7 @@ public class InitializationService {
     }
 
     public Mono<Void> savePlayerRaws() {
+        AtomicInteger cnt = new AtomicInteger(0);
         return Mono.fromCallable(leagueRepository::findAll)
                 .subscribeOn(Schedulers.boundedElastic())
                 .flatMapMany(Flux::fromIterable)
@@ -197,6 +198,7 @@ public class InitializationService {
                     return footballApiService.getPlayerStatisticsToStringByLeagueId(
                                     league.getLeagueApiId(), league.getCurrentSeason(), DEFAULT_PAGE)
                             .delaySubscription(Duration.ofMillis(DELAY_MS))
+                            .timeout(Duration.ofSeconds(30))
                             .onErrorContinue((e, o) -> log.info("league 페이지 애러: {}", league.getLeagueApiId()))
                             .doOnNext(json -> log.info("리그 처리 시작:{}, 페이지:{}", league.getLeagueApiId(), DEFAULT_PAGE))
                             .expand(response -> {
@@ -204,7 +206,9 @@ public class InitializationService {
                                 try {
                                     dto = objectMapper
                                             .readValue(response, PlayerStatisticsApiResponseDto.class);
-                                    log.info("리그 처리 시작:{}, 페이지:{}, 선수 수:{}", league.getLeagueApiId(), dto.paging().current(), dto.response().size());
+                                    cnt.addAndGet(dto.paging().total());
+                                    log.info("리그 처리 시작:{}, 페이지:{}, 선수 수:{}, 현재 페이지 수:{}",
+                                            league.getLeagueApiId(), dto.paging().current(), dto.response().size(), cnt.get());
                                 } catch (JsonProcessingException e) {
                                     log.info("리그 to dto 애러- id:{}, name:{}", league.getLeagueApiId(), league.getName());
                                 }
@@ -215,6 +219,7 @@ public class InitializationService {
                                     return footballApiService.getPlayerStatisticsToStringByLeagueId(
                                                     league.getLeagueApiId(), league.getCurrentSeason(), nextPage)
                                             .delaySubscription(Duration.ofMillis(DELAY_MS))
+                                            .timeout(Duration.ofSeconds(30))
                                             .onErrorContinue((e, ex) -> {
                                                 log.info(e.getMessage(), e);
                                             });
@@ -225,12 +230,19 @@ public class InitializationService {
                             });
                 }, 3)
                 .filter(Objects::nonNull)
-                .buffer(100)
-                .concatMap(buffer -> {
-                    log.info("buffer size: {}", buffer.size());
-                    return Mono.fromRunnable(() -> bulkRepository.bulkInsertPlayerRaws(buffer));
+                .collectList()
+                .flatMap(players -> {
+                    log.info("총 저장 수: {}, 실제 저장 수:{}", cnt.get(), players.size());
+                    for (int i = 0; i < players.size(); i += CHUNK_SIZE) {
+                        int end = Math.min(i + CHUNK_SIZE, players.size());
+                        List<String> chunk = players.subList(i, end);
+                        bulkRepository.bulkInsertPlayerRaws(chunk);
+                    }
+                    return Mono.empty();
                 }).then();
     }
+
+
 
     public void updateAllPlayersFmData() {
         List<Player> players = new ArrayList<>();
