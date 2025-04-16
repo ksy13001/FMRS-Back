@@ -1,7 +1,10 @@
 package com.ksy.fmrs.controller;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
 import com.ksy.fmrs.dto.player.PlayerDetailsDto;
 import com.ksy.fmrs.dto.player.PlayerStatDto;
+import com.ksy.fmrs.repository.Player.PlayerRawRepository;
+import com.ksy.fmrs.repository.Player.PlayerRepository;
 import com.ksy.fmrs.service.FootballApiService;
 import com.ksy.fmrs.service.InitializationService;
 import com.ksy.fmrs.service.PlayerService;
@@ -14,12 +17,14 @@ import reactor.core.publisher.Mono;
 @RequiredArgsConstructor
 @RestController
 public class AdminController {
+    private final PlayerRawRepository playerRawRepository;
     private final PlayerService playerService;
     private final FootballApiService footballApiService;
     private final InitializationService initializationService;
     private final SchedulerService  schedulerService;
     private static final int LAST_LEAGUE_ID = 1172;
     private static final int FIRST_LEAGUE_ID = 1;
+    private final PlayerRepository playerRepository;
 
     // 실축스탯 테스트용 api
     @ResponseBody
@@ -72,6 +77,21 @@ public class AdminController {
     public Mono<ResponseEntity<Void>> insertInitialPlayerRawData() {
         return initializationService.savePlayerRaws()
                 .then(Mono.just(ResponseEntity.ok().build()));
+    }
+
+    /**
+     * playerRaw 통해서 player 저장
+     * */
+    @ResponseBody
+    @PostMapping("/api/admin/insert/player")
+    public void insertInitialPlayer() {
+        playerRawRepository.findAll().stream().forEach(playerRaw -> {
+            try {
+                playerService.savePlayersByPlayerRaw(playerRaw);
+            } catch (JsonProcessingException e) {
+                throw new RuntimeException(e);
+            }
+        });
     }
 
     /**

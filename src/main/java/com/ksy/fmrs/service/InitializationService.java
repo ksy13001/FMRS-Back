@@ -5,7 +5,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.ksy.fmrs.domain.enums.LeagueType;
 import com.ksy.fmrs.domain.enums.PlayerMappingStatus;
 import com.ksy.fmrs.domain.player.*;
-import com.ksy.fmrs.dto.apiFootball.PlayerStatisticsApiResponseDto;
+import com.ksy.fmrs.dto.apiFootball.LeagueApiPlayersDto;
 import com.ksy.fmrs.dto.league.LeagueDetailsRequestDto;
 import com.ksy.fmrs.dto.player.FmPlayerDto;
 import com.ksy.fmrs.repository.BulkRepository;
@@ -16,7 +16,6 @@ import com.ksy.fmrs.util.NationNormalizer;
 import com.ksy.fmrs.util.StringUtils;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 import org.springframework.web.servlet.LocaleResolver;
 import reactor.core.publisher.Flux;
@@ -25,7 +24,6 @@ import reactor.core.scheduler.Schedulers;
 
 import java.io.File;
 import java.time.Duration;
-import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.*;
 import java.util.concurrent.atomic.AtomicInteger;
@@ -194,19 +192,20 @@ public class InitializationService {
         return Mono.fromCallable(leagueRepository::findAll)
                 .subscribeOn(Schedulers.boundedElastic())
                 .flatMapMany(Flux::fromIterable)
+                .delayElements(Duration.ofMillis(DELAY_MS))
                 .flatMap(league -> {
                     return footballApiService.getPlayerStatisticsToStringByLeagueId(
                                     league.getLeagueApiId(), league.getCurrentSeason(), DEFAULT_PAGE)
                             .delaySubscription(Duration.ofMillis(DELAY_MS))
-                            .timeout(Duration.ofSeconds(30))
+                            .timeout(Duration.ofSeconds(60))
                             .onErrorContinue((e, o) -> log.info("league 페이지 애러: {}", league.getLeagueApiId()))
                             .doOnNext(json -> log.info("리그 처리 시작:{}, 페이지:{}", league.getLeagueApiId(), DEFAULT_PAGE))
                             .expand(response -> {
-                                PlayerStatisticsApiResponseDto dto = null;
+                                LeagueApiPlayersDto dto = null;
                                 try {
                                     dto = objectMapper
-                                            .readValue(response, PlayerStatisticsApiResponseDto.class);
-                                    cnt.addAndGet(dto.paging().total());
+                                            .readValue(response, LeagueApiPlayersDto.class);
+                                    cnt.addAndGet(dto.response().size());
                                     log.info("리그 처리 시작:{}, 페이지:{}, 선수 수:{}, 현재 페이지 수:{}",
                                             league.getLeagueApiId(), dto.paging().current(), dto.response().size(), cnt.get());
                                 } catch (JsonProcessingException e) {
@@ -219,7 +218,7 @@ public class InitializationService {
                                     return footballApiService.getPlayerStatisticsToStringByLeagueId(
                                                     league.getLeagueApiId(), league.getCurrentSeason(), nextPage)
                                             .delaySubscription(Duration.ofMillis(DELAY_MS))
-                                            .timeout(Duration.ofSeconds(30))
+                                            .timeout(Duration.ofSeconds(60))
                                             .onErrorContinue((e, ex) -> {
                                                 log.info(e.getMessage(), e);
                                             });
@@ -318,9 +317,9 @@ public class InitializationService {
     }
 
     //https://v3.football.api-sports.io/players?league=39&season=2024 한 페이지 선수 정보 리스트
-    private List<Player> convertPlayerStatisticsDtoToPlayer(PlayerStatisticsApiResponseDto playerStatisticsApiResponseDto) {
-        return playerStatisticsApiResponseDto.response().stream().filter(Objects::nonNull).map(dto -> {
-            PlayerStatisticsApiResponseDto.PlayerDto player = dto.player();
+    private List<Player> convertPlayerStatisticsDtoToPlayer(LeagueApiPlayersDto leagueApiPlayersDto) {
+        return leagueApiPlayersDto.response().stream().filter(Objects::nonNull).map(dto -> {
+            LeagueApiPlayersDto.PlayerDto player = dto.player();
             return Player.builder()
                     .playerApiId(player.id())
                     .imageUrl(player.photo())

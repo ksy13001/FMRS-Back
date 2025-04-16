@@ -1,13 +1,16 @@
 package com.ksy.fmrs.service;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.ksy.fmrs.domain.player.*;
 import com.ksy.fmrs.domain.Team;
-import com.ksy.fmrs.dto.apiFootball.PlayerStatisticsApiResponseDto;
+import com.ksy.fmrs.dto.apiFootball.LeagueApiPlayersDto;
 import com.ksy.fmrs.dto.player.PlayerDetailsDto;
 import com.ksy.fmrs.dto.search.SearchPlayerCondition;
 import com.ksy.fmrs.dto.search.SearchPlayerResponseDto;
 import com.ksy.fmrs.dto.team.TeamPlayersResponseDto;
 import com.ksy.fmrs.repository.BulkRepository;
+import com.ksy.fmrs.repository.Player.PlayerRawRepository;
 import com.ksy.fmrs.repository.Player.PlayerRepository;
 import com.ksy.fmrs.repository.Team.TeamRepository;
 import com.ksy.fmrs.util.StringUtils;
@@ -31,6 +34,9 @@ public class PlayerService {
     private final PlayerRepository playerRepository;
     private final TeamRepository teamRepository;
     private final BulkRepository bulkRepository;
+    private final PlayerRawRepository playerRawRepository;
+    private final ObjectMapper objectMapper;
+    private final PlayerMapper playerMapper;
 
     /**
      * 선수 상세 정보 조회
@@ -41,11 +47,11 @@ public class PlayerService {
         return convertPlayerToPlayerDetailsResponseDto(player);
     }
 
-    public void saveAllByPlayerStatistics(PlayerStatisticsApiResponseDto playerStatisticsApiResponseDto) {
-        List<Player> players = playerStatisticsApiResponseDto.response().stream().filter(Objects::nonNull)
+    public void saveAllByPlayerStatistics(LeagueApiPlayersDto leagueApiPlayersDto) {
+        List<Player> players = leagueApiPlayersDto.response().stream().filter(Objects::nonNull)
                 .map(dto -> {
-                    PlayerStatisticsApiResponseDto.PlayerDto player = dto.player();
-                    PlayerStatisticsApiResponseDto.StatisticDto.TeamDto teamDto = dto.statistics().getFirst().team();
+                    LeagueApiPlayersDto.PlayerDto player = dto.player();
+                    LeagueApiPlayersDto.StatisticDto.TeamDto teamDto = dto.statistics().getFirst().team();
                     Team team = teamRepository.findTeamByTeamApiId(teamDto.id())
                             .orElseThrow(() -> new IllegalArgumentException("Team not found: " + teamDto.id()));
                     Player newPlayer = Player.builder()
@@ -71,6 +77,15 @@ public class PlayerService {
     public void bulkInsertPlayers(List<Player> players) {
         // 중복 제거된 Player 리스트를 저장
         bulkRepository.bulkInsertPlayers(getDistinctPlayersByPlayerApiId(players));
+    }
+
+    /**
+     * playerRaw로 선수 저장: 한 페이지 별 저장
+     */
+    public void savePlayersByPlayerRaw(PlayerRaw playerRaw) throws JsonProcessingException {
+        LeagueApiPlayersDto leagueApiPlayersDto = objectMapper.readValue(
+                playerRaw.getJsonRaw(), LeagueApiPlayersDto.class);
+        bulkRepository.bulkInsertPlayers(playerMapper.leaguePlayersToEntities(leagueApiPlayersDto));
     }
 
     private List<Player> getDistinctPlayersByPlayerApiId(List<Player> players) {

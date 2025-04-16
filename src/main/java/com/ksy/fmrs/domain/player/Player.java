@@ -106,7 +106,6 @@ public class Player {
         this.playerApiId = playerApiId;
     }
 
-
     public String getStringBirth(){
         return String.valueOf(birth);
     }

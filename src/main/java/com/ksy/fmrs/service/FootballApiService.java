@@ -9,7 +9,6 @@ import com.ksy.fmrs.dto.apiFootball.LeagueApiResponseDto;
 import com.ksy.fmrs.dto.league.LeagueDetailsRequestDto;
 import com.ksy.fmrs.dto.player.PlayerSimpleDto;
 import com.ksy.fmrs.dto.player.PlayerStatDto;
-import com.ksy.fmrs.dto.player.SquadPlayerDto;
 import com.ksy.fmrs.dto.team.TeamStatisticsDto;
 import com.ksy.fmrs.dto.team.TeamStandingDto;
 import com.ksy.fmrs.repository.LeagueRepository;
@@ -23,11 +22,9 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import reactor.core.publisher.Mono;
 
-import java.util.Collections;
 import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
-import java.util.stream.Collectors;
 
 @RequiredArgsConstructor
 @Service
@@ -51,7 +48,7 @@ public class FootballApiService {
                 .map(PlayerStatDto::new)
                 .orElseGet(() -> {
                     String url = UrlEnum.buildPlayerStatUrl(playerApiId, player.getTeam().getLeague().getCurrentSeason());
-                    PlayerStatisticsApiResponseDto response = restClientService.getApiResponse(url, PlayerStatisticsApiResponseDto.class);
+                    LeagueApiPlayersDto response = restClientService.getApiResponse(url, LeagueApiPlayersDto.class);
                     PlayerStatDto playerStatDto = convertStatisticsToPlayerStatDto(response);
                     updatePlayerImage(playerId, playerStatDto.getImageUrl());
                     savePlayerStat(convertPlayerStatDtoToPlayerStat(playerId, playerStatDto));
@@ -59,10 +56,10 @@ public class FootballApiService {
                 });
     }
 
-    public Mono<PlayerStatisticsApiResponseDto> getSquadStatistics(Integer teamApiId, Integer leagueApiId, int currentSeason, int page) {
+    public Mono<LeagueApiPlayersDto> getSquadStatistics(Integer teamApiId, Integer leagueApiId, int currentSeason, int page) {
         return webClientService.getApiResponse(
                 UrlEnum.buildPlayerStatisticsUrlByTeamApiId(teamApiId, leagueApiId, currentSeason, page),
-                PlayerStatisticsApiResponseDto.class);
+                LeagueApiPlayersDto.class);
     }
 
     public Mono<List<TeamStandingDto>> getLeagueStandings(Integer leagueApiId, int currentSeason) {
@@ -71,10 +68,10 @@ public class FootballApiService {
                 StandingsAPIResponseDto.class).mapNotNull(this::getValidatedLeagueDetails);
     }
 
-    public Mono<PlayerStatisticsApiResponseDto> getPlayerStatisticsByLeagueId(Integer leagueApiId, int currentSeason, int page) {
+    public Mono<LeagueApiPlayersDto> getPlayerStatisticsByLeagueId(Integer leagueApiId, int currentSeason, int page) {
         return webClientService.getApiResponse(
                 UrlEnum.buildPlayersUrlByLeagueApiId(leagueApiId, currentSeason, page),
-                PlayerStatisticsApiResponseDto.class);
+                LeagueApiPlayersDto.class);
     }
 
     public Mono<String> getPlayerStatisticsToStringByLeagueId(Integer leagueApiId, int currentSeason, int page) {
@@ -162,8 +159,8 @@ public class FootballApiService {
     }
 
     // 출장경기수, 골, 어시스트, 평점, 선수 이미지
-    private PlayerStatDto convertStatisticsToPlayerStatDto(PlayerStatisticsApiResponseDto response) {
-        PlayerStatisticsApiResponseDto.StatisticDto stat = response.response().getFirst().statistics().getFirst();
+    private PlayerStatDto convertStatisticsToPlayerStatDto(LeagueApiPlayersDto response) {
+        LeagueApiPlayersDto.StatisticDto stat = response.response().getFirst().statistics().getFirst();
         PlayerStatDto playerStatDto = new PlayerStatDto();
         playerStatDto.setApiFootballId(response.response().getFirst().player().id());
         playerStatDto.setGamesPlayed(stat.games().appearences());
