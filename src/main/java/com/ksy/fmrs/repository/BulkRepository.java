@@ -3,6 +3,7 @@ package com.ksy.fmrs.repository;
 
 import com.ksy.fmrs.domain.player.FmPlayer;
 import com.ksy.fmrs.domain.player.Player;
+import com.ksy.fmrs.domain.player.PlayerRaw;
 import com.ksy.fmrs.util.NationNormalizer;
 import com.ksy.fmrs.util.StringUtils;
 import lombok.RequiredArgsConstructor;
@@ -13,7 +14,10 @@ import org.springframework.stereotype.Repository;
 
 import java.sql.PreparedStatement;
 import java.sql.SQLException;
+import java.sql.Timestamp;
 import java.sql.Types;
+import java.time.LocalDateTime;
+import java.util.Arrays;
 import java.util.List;
 
 @Slf4j
@@ -194,6 +198,28 @@ public class BulkRepository {
 
     }
 
+    public void bulkInsertPlayerRaws(List<String> jsons){
+        List<String> columns = Arrays.asList("json_raw", "created_at", "processed");
+        String sql = buildInsertSql("player_raw", columns);
+
+        jdbcTemplate.batchUpdate(sql, new BatchPreparedStatementSetter() {
+
+            @Override
+            public void setValues(PreparedStatement ps, int i) throws SQLException {
+                String json = jsons.get(i);
+                ps.setString(1, json);
+                ps.setTimestamp(2, Timestamp.valueOf(LocalDateTime.now()));
+                ps.setBoolean(3, false);
+            }
+
+            @Override
+            public int getBatchSize() {
+                return jsons.size();
+            }
+        });
+
+    }
+
     private String buildInsertSql(String tableName, List<String> columnNames) {
         StringBuilder sql = new StringBuilder("INSERT INTO ");
         sql.append(tableName).append(" (");
@@ -216,6 +242,3 @@ public class BulkRepository {
         return sql.toString();
     }
 }
-
-
-

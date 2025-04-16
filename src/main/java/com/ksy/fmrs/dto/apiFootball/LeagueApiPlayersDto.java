@@ -4,10 +4,10 @@ import java.time.LocalDate;
 import java.util.List;
 import java.util.Map;
 
-public record PlayerStatisticsApiResponseDto(
+public record LeagueApiPlayersDto(
         String get,
-//        ParametersDto parameters,
-//        List<Map<String, Object>> errors,
+        ParametersDto parameters,
+        List<Map<String, Object>> errors,
         int results,
         PagingDto paging,
         List<PlayerWrapperDto> response
