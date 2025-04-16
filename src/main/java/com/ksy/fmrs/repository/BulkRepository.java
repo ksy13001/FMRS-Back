@@ -157,10 +157,10 @@ public class BulkRepository {
                 ps.setInt(75, fmPlayer.getPosition().getAttackingMidLeft());
                 ps.setInt(76, fmPlayer.getPosition().getAttackingMidRight());
                 ps.setInt(77, fmPlayer.getPosition().getStriker());
-                ps.setString(78, fmPlayer.getFirstName().toUpperCase());
-                ps.setString(79, fmPlayer.getLastName().toUpperCase());
+                ps.setString(78, fmPlayer.getFirstName());
+                ps.setString(79, fmPlayer.getLastName());
                 ps.setString(80, String.valueOf(fmPlayer.getBirth()));
-                ps.setString(81, NationNormalizer.normalize(fmPlayer.getNationName().toUpperCase()));
+                ps.setString(81, fmPlayer.getNationName());
             }
 
             @Override

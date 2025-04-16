@@ -2,6 +2,7 @@ package com.ksy.fmrs.domain.player;
 
 import com.ksy.fmrs.dto.player.FmPlayerDto;
 import com.ksy.fmrs.util.FmUtils;
+import com.ksy.fmrs.util.NationNormalizer;
 import com.ksy.fmrs.util.StringUtils;
 import jakarta.persistence.*;
 import lombok.AccessLevel;
@@ -112,10 +113,10 @@ public class FmPlayer {
         String name = fmPlayerDto.getName();
         return FmPlayer.builder()
                 .name(name)
-                .firstName(StringUtils.getFirstName(name))
-                .lastName(StringUtils.getLastName(name))
+                .firstName(StringUtils.getFirstName(name).toUpperCase())
+                .lastName(StringUtils.getLastName(name).toUpperCase())
                 .birth(fmPlayerDto.getBorn())
-                .nationName(fmPlayerDto.getNation().getName())
+                .nationName(NationNormalizer.normalize(fmPlayerDto.getNation().getName().toUpperCase()))
                 .personalityAttributes(FmUtils.getPersonalityAttributesFromFmPlayer(fmPlayerDto))
                 .hiddenAttributes(FmUtils.getHiddenAttributesFromFmPlayer(fmPlayerDto))
                 .mentalAttributes(FmUtils.getMentalAttributesFromFmPlayer(fmPlayerDto))
