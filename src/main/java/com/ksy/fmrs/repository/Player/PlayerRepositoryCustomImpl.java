@@ -1,10 +1,12 @@
 package com.ksy.fmrs.repository.Player;
 
+import com.ksy.fmrs.domain.enums.PlayerMappingStatus;
 import com.ksy.fmrs.domain.player.Player;
 import com.ksy.fmrs.domain.QTeam;
 import com.ksy.fmrs.domain.player.QPlayer;
 import com.ksy.fmrs.dto.search.SearchPlayerCondition;
 import com.querydsl.core.types.dsl.BooleanExpression;
+import com.querydsl.jpa.JPAExpressions;
 import com.querydsl.jpa.impl.JPAQueryFactory;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Repository;
@@ -12,11 +14,54 @@ import org.springframework.stereotype.Repository;
 import java.time.LocalDate;
 import java.util.List;
 
+import static com.ksy.fmrs.domain.player.QFmPlayer.fmPlayer;
+import static com.ksy.fmrs.domain.player.QPlayer.player;
+
 @RequiredArgsConstructor
 @Repository
 public class PlayerRepositoryCustomImpl implements PlayerRepositoryCustom {
 
     private final JPAQueryFactory jpaQueryFactory;
+
+    // fmPlayer 에 대응되는 Player 가 하나 이상인 경우 mapping_state = FAILED 처리
+    // 서브쿼리는 JPAExpressions 로 구현, 괄호랑 같은 역할
+    public Long updateDuplicatedUnmappedPlayersToFailed() {
+        return jpaQueryFactory
+                .update(player)
+                .set(player.mappingStatus, PlayerMappingStatus.FAILED)
+                .where(
+                        player.mappingStatus.eq(PlayerMappingStatus.UNMAPPED),
+                        JPAExpressions
+                                .select(fmPlayer.count())
+                                .from(fmPlayer)
+                                .where(
+                                        fmPlayer.firstName.eq(player.firstName),
+                                        fmPlayer.lastName.eq(player.lastName),
+                                        fmPlayer.birth.eq(player.birth),
+                                        fmPlayer.nationName.eq(player.nationName)
+                                ).gt(1L)
+                )
+                .execute();
+    }
+
+    public Long updateDuplicatedUnmappedFMPlayersToFailed() {
+        return jpaQueryFactory
+                .update(player)
+                .set(player.mappingStatus, PlayerMappingStatus.FAILED)
+                .where(
+                        player.mappingStatus.eq(PlayerMappingStatus.UNMAPPED),
+                        JPAExpressions
+                                .select(player.count())
+                                .from(player)
+                                .where(
+                                        player.firstName.eq(fmPlayer.firstName),
+                                        player.lastName.eq(fmPlayer.lastName),
+                                        player.birth.eq(fmPlayer.birth),
+                                        player.nationName.eq(fmPlayer.nationName)
+                                ).gt(1L)
+                )
+                .execute();
+    }
 
 //    // 팀 소속 선수들 조회 기능
 //    @Override
@@ -31,7 +76,7 @@ public class PlayerRepositoryCustomImpl implements PlayerRepositoryCustom {
     @Override
     public List<Player> searchPlayerByFm(String firstName, String lastName, LocalDate birth, String nation) {
         return jpaQueryFactory
-                .selectFrom(QPlayer.player)
+                .selectFrom(player)
                 .where(eqLastName(lastName), eqBirth(birth), eqFirstName(firstName), eqNationName(nation))
                 .limit(1)
                 .fetch();
@@ -41,7 +86,7 @@ public class PlayerRepositoryCustomImpl implements PlayerRepositoryCustom {
     @Override
     public List<Player> searchPlayerByName(String name) {
         return jpaQueryFactory
-                .selectFrom(QPlayer.player)
+                .selectFrom(player)
 //                .where(nameContains(name))
                 .fetch();
     }
@@ -113,21 +158,21 @@ public class PlayerRepositoryCustomImpl implements PlayerRepositoryCustom {
         if (first == null || first.isEmpty()) {
             return null;
         }
-        return QPlayer.player.firstName.eq(first);
+        return player.firstName.eq(first);
     }
 
     private BooleanExpression eqNationName(String nation) {
         if (nation == null || nation.isEmpty()) {
             return null;
         }
-        return  QPlayer.player.nationName.eq(nation);
+        return  player.nationName.eq(nation);
     }
 
     private BooleanExpression eqBirth(LocalDate birth) {
         if (birth == null) {
             return null;
         }
-        return QPlayer.player.birth.eq(birth);
+        return player.birth.eq(birth);
     }
 
 
@@ -135,7 +180,7 @@ public class PlayerRepositoryCustomImpl implements PlayerRepositoryCustom {
         if (lastName == null || lastName.isEmpty()) {
             return null;
         }
-        return QPlayer.player.lastName.eq(lastName);
+        return player.lastName.eq(lastName);
     }
 
 //    private BooleanExpression eqAge(Integer age) {

@@ -14,4 +14,6 @@ public interface PlayerRepositoryCustom {
     List<Player> searchPlayerByDetailCondition(SearchPlayerCondition condition);
 
     List<Player> searchPlayerByFm(String firstName, String lastName, LocalDate birth, String nation);
+
+    Long updateDuplicatedUnmappedPlayersToFailed();
 }

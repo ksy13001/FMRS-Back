@@ -1,6 +1,8 @@
 package com.ksy.fmrs.repository;
 
 import com.ksy.fmrs.config.TestQueryDSLConfig;
+import com.ksy.fmrs.domain.enums.PlayerMappingStatus;
+import com.ksy.fmrs.domain.player.FmPlayer;
 import com.ksy.fmrs.domain.player.Player;
 import com.ksy.fmrs.domain.QTeam;
 import com.ksy.fmrs.domain.Team;
@@ -31,7 +33,6 @@ import java.util.List;
 
 @Import(TestQueryDSLConfig.class)
 @DataJpaTest
-@AutoConfigureTestDatabase(replace = AutoConfigureTestDatabase.Replace.NONE) // default 는 h2 사용
 class PlayerRepositoryTest {
 
     @Autowired
@@ -40,11 +41,8 @@ class PlayerRepositoryTest {
     private TeamRepository teamRepository;
     @Autowired
     private JPAQueryFactory jpaQueryFactory;
-
-    @AfterEach
-    void setUp(){
-        playerRepository.deleteAll();
-    }
+    @Autowired
+    private EntityManager entityManager;
 
     @Test
     @DisplayName("save 단건")
@@ -165,6 +163,43 @@ class PlayerRepositoryTest {
         Assertions.assertThat(actual.getNationName()).isEqualTo("SWITZERLAND");
         Assertions.assertThat(actual.getBirth()).isEqualTo(LocalDate.of(1995,7,19));
 
+    }
+
+    @Test
+    @DisplayName("하나에 player에 매핑되는 fm player가 2명 이상일 경우")
+    void findDuplicatedFmPlayer(){
+        // given
+        FmPlayer fmPlayer1 = FmPlayer.builder()
+                .firstName("MANUEL")
+                .lastName("AKANJI")
+                .nationName("SWITZERLAND")
+                .birth(LocalDate.of(1995,7,19))
+                .build();
+        FmPlayer fmPlayer2 = FmPlayer.builder()
+                .firstName("MANUEL")
+                .lastName("AKANJI")
+                .nationName("SWITZERLAND")
+                .birth(LocalDate.of(1995,7,19))
+                .build();
+        Player player = Player.builder()
+                .firstName("MANUEL")
+                .lastName("AKANJI")
+                .nationName("SWITZERLAND")
+                .birth(LocalDate.of(1995,7,19))
+                .mappingStatus(PlayerMappingStatus.UNMAPPED)
+                .build();
+        entityManager.persist(player);
+        entityManager.persist(fmPlayer1);
+        entityManager.persist(fmPlayer2);
+        entityManager.flush();
+        entityManager.close();
+        // when
+        List<Player> players = playerRepository.findPlayerDuplicatedWithFmPlayer();
+        List<Player> playerAll = playerRepository.findAll();
+        // then
+        Assertions.assertThat(playerAll).hasSize(1);
+        Assertions.assertThat(players).hasSize(1);
+        Assertions.assertThat(players.get(0)).isEqualTo(player);
     }
 
     private Team createTeam(String name){

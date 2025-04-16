@@ -80,6 +80,13 @@ public class PlayerService {
     }
 
     /**
+     *
+     * */
+    public Long updateDuplicatedUnmappedPlayersToFailed(){
+        return playerRepository.updateDuplicatedUnmappedPlayersToFailed();
+    }
+
+    /**
      * playerRaw로 선수 저장: 한 페이지 별 저장
      */
     public void savePlayersByPlayerRaw(PlayerRaw playerRaw) throws JsonProcessingException {
