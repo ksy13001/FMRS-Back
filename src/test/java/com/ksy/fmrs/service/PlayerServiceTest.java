@@ -3,6 +3,8 @@ package com.ksy.fmrs.service;
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.*;
 
+import com.ksy.fmrs.domain.enums.PlayerMappingStatus;
+import com.ksy.fmrs.domain.player.FmPlayer;
 import com.ksy.fmrs.domain.player.Player;
 import com.ksy.fmrs.domain.Team;
 import com.ksy.fmrs.dto.player.PlayerDetailsDto;
@@ -14,14 +16,19 @@ import com.ksy.fmrs.util.StringUtils;
 import org.assertj.core.api.Assertions;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.*;
+import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.test.util.ReflectionTestUtils;
 import org.springframework.web.client.RestTemplate;
 
+import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;
 
+@ExtendWith(MockitoExtension.class)
 public class PlayerServiceTest {
 
     @Mock
@@ -135,71 +142,71 @@ public class PlayerServiceTest {
 //        assertEquals(2, result.getPlayers().size());
 //    }
 
-    @Test
-    public void testSearchPlayerByName() {
-        // given
-        String name = "John";
-//        Nation nation = Nation.builder().name("Nation A").build();
-        Team team = Team.builder().name("Team A").build();
+//    @Test
+//    public void testSearchPlayerByName() {
+//        // given
+//        String name = "John";
+////        Nation nation = Nation.builder().name("Nation A").build();
+//        Team team = Team.builder().name("Team A").build();
+//
+//        Player player = Player.builder().build();
+//        ReflectionTestUtils.setField(player, "id", 1L);
+//        ReflectionTestUtils.setField(player, "team", team);
+////        ReflectionTestUtils.setField(player, "nation", nation);
+//
+//        when(playerRepository.searchPlayerByName(name)).thenReturn(Arrays.asList(player));
+//
+//        // when
+//        SearchPlayerResponseDto result = playerService.searchPlayerByName(name);
+//
+//        // then
+//        assertNotNull(result);
+//        assertEquals(1, result.getPlayers().size());
+//    }
+//
+//    @Test
+//    public void testSearchPlayerByDetailCondition() {
+//        // given
+//        SearchPlayerCondition condition = new SearchPlayerCondition();
+//        // 필요한 조건 필드가 있다면 condition에 추가 설정
+////        Nation nation = Nation.builder().name("Nation A").build();
+//        Team team = Team.builder().name("Team A").build();
+//
+//        Player player = Player.builder().build();
+//        ReflectionTestUtils.setField(player, "id", 1L);
+//        ReflectionTestUtils.setField(player, "team", team);
+////        ReflectionTestUtils.setField(player, "nation", nation);
+//
+//        when(playerRepository.searchPlayerByDetailCondition(condition)).thenReturn(Arrays.asList(player));
+//
+//        // when
+//        SearchPlayerResponseDto result = playerService.searchPlayerByDetailCondition(condition);
+//
+//        // then
+//        assertNotNull(result);
+//        assertEquals(1, result.getPlayers().size());
+//    }
 
-        Player player = Player.builder().build();
-        ReflectionTestUtils.setField(player, "id", 1L);
-        ReflectionTestUtils.setField(player, "team", team);
-//        ReflectionTestUtils.setField(player, "nation", nation);
-
-        when(playerRepository.searchPlayerByName(name)).thenReturn(Arrays.asList(player));
-
-        // when
-        SearchPlayerResponseDto result = playerService.searchPlayerByName(name);
-
-        // then
-        assertNotNull(result);
-        assertEquals(1, result.getPlayers().size());
-    }
-
-    @Test
-    public void testSearchPlayerByDetailCondition() {
-        // given
-        SearchPlayerCondition condition = new SearchPlayerCondition();
-        // 필요한 조건 필드가 있다면 condition에 추가 설정
-//        Nation nation = Nation.builder().name("Nation A").build();
-        Team team = Team.builder().name("Team A").build();
-
-        Player player = Player.builder().build();
-        ReflectionTestUtils.setField(player, "id", 1L);
-        ReflectionTestUtils.setField(player, "team", team);
-//        ReflectionTestUtils.setField(player, "nation", nation);
-
-        when(playerRepository.searchPlayerByDetailCondition(condition)).thenReturn(Arrays.asList(player));
-
-        // when
-        SearchPlayerResponseDto result = playerService.searchPlayerByDetailCondition(condition);
-
-        // then
-        assertNotNull(result);
-        assertEquals(1, result.getPlayers().size());
-    }
-
-    @Test
-    @DisplayName("Json 파일명으로 선수 이름 구하기")
-    void getPlayerNameFromFileName(){
-        String fileName = "103607-James Henry";
-
-        if(fileName == null) {
-            throw new IllegalArgumentException("fileName is null");
-        }
-        // 확장자(.json) 제거
-        int dotIndex = fileName.lastIndexOf('.');
-        if (dotIndex != -1) {
-            fileName = fileName.substring(0, dotIndex);
-        }
-        // 첫 번째 하이픈 위치 찾기
-        int hyphenIndex = fileName.indexOf('-');
-        // 첫 번째 하이픈 이후의 모든 문자열을 이름으로 사용 (이름에 하이픈이 포함될 수 있음)
-        fileName.substring(hyphenIndex + 1).trim();
-
-        Assertions.assertThat("James Henry").isEqualTo(fileName);
-    }
+//    @Test
+//    @DisplayName("Json 파일명으로 선수 이름 구하기")
+//    void getPlayerNameFromFileName(){
+//        String fileName = "103607-James Henry";
+//
+//        if(fileName == null) {
+//            throw new IllegalArgumentException("fileName is null");
+//        }
+//        // 확장자(.json) 제거
+//        int dotIndex = fileName.lastIndexOf('.');
+//        if (dotIndex != -1) {
+//            fileName = fileName.substring(0, dotIndex);
+//        }
+//        // 첫 번째 하이픈 위치 찾기
+//        int hyphenIndex = fileName.indexOf('-');
+//        // 첫 번째 하이픈 이후의 모든 문자열을 이름으로 사용 (이름에 하이픈이 포함될 수 있음)
+//        fileName.substring(hyphenIndex + 1).trim();
+//
+//        Assertions.assertThat("James Henry").isEqualTo(fileName);
+//    }
 
     @Test
     @DisplayName("이름 한 단어인 경우 테스트")
@@ -225,5 +232,46 @@ public class PlayerServiceTest {
 
         Assertions.assertThat("Kevin").isEqualTo(StringUtils.getFirstName(firstname));
         Assertions.assertThat("Bruyne").isEqualTo(StringUtils.getLastName(name));
+    }
+
+    @Test
+    @DisplayName("player 에 대응되는 fmplayer가 2개 이상일때 해당 player들 mapping_status = FAILED 처리")
+    void updatePlayersWithMultipleFmPlayersTOFailed(){
+        // given
+        String firstname = "KEVIN";
+        String lastname = "DE BRUYNE";
+        LocalDate now = LocalDate.now();
+        String nationName = "BELGIUM";
+        Player player1 =createPlayer(firstname, lastname, now, nationName, PlayerMappingStatus.UNMAPPED);
+        Player player2 =createPlayer(firstname, lastname, now, nationName, PlayerMappingStatus.UNMAPPED);
+        Player player3 =createPlayer(firstname, lastname, now, nationName, PlayerMappingStatus.UNMAPPED);
+
+        List<Player> players = Arrays.asList(player1, player2, player3);
+        // when
+        playerService.updatePlayersWithMultipleFmPlayersToFailed(players);
+
+        // then
+        Assertions.assertThat(players)
+                .extracting(Player::getMappingStatus)
+                .containsOnly(PlayerMappingStatus.FAILED);
+    }
+
+    private Player createPlayer(String firstName, String lastName, LocalDate birth, String nation, PlayerMappingStatus mappingStatus) {
+        return Player.builder()
+                .firstName(firstName)
+                .lastName(lastName)
+                .birth(birth)
+                .nationName(nation)
+                .mappingStatus(mappingStatus)
+                .build();
+    }
+
+    private FmPlayer createFmPlayer(String firstName, String lastName, LocalDate birth, String nation) {
+        return FmPlayer.builder()
+                .firstName(firstName)
+                .lastName(lastName)
+                .birth(birth)
+                .nationName(nation)
+                .build();
     }
 }

@@ -1,4 +1,4 @@
-package com.ksy.fmrs.repository;
+package com.ksy.fmrs.repository.Player;
 
 import com.ksy.fmrs.config.TestQueryDSLConfig;
 import com.ksy.fmrs.domain.enums.PlayerMappingStatus;
@@ -8,24 +8,16 @@ import com.ksy.fmrs.domain.QTeam;
 import com.ksy.fmrs.domain.Team;
 import com.ksy.fmrs.domain.player.QPlayer;
 import com.ksy.fmrs.dto.search.SearchPlayerCondition;
-import com.ksy.fmrs.repository.Player.PlayerRepository;
 import com.ksy.fmrs.repository.Team.TeamRepository;
 import com.ksy.fmrs.util.StringUtils;
 import com.querydsl.jpa.impl.JPAQueryFactory;
 import jakarta.persistence.EntityManager;
-import jakarta.persistence.PersistenceContext;
 import org.assertj.core.api.Assertions;
-import org.junit.jupiter.api.AfterEach;
-import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.autoconfigure.jdbc.AutoConfigureTestDatabase;
 import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest;
-import org.springframework.boot.test.context.TestConfiguration;
-import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Import;
-import org.springframework.test.util.ReflectionTestUtils;
 
 import java.time.LocalDate;
 import java.util.ArrayList;
