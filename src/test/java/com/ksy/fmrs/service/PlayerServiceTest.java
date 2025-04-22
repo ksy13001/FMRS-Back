@@ -248,7 +248,7 @@ public class PlayerServiceTest {
 
         List<Player> players = Arrays.asList(player1, player2, player3);
         // when
-        playerService.updatePlayersWithMultipleFmPlayersToFailed(players);
+        playerService.updatePlayersMappingStatusToFailed(players);
 
         // then
         Assertions.assertThat(players)

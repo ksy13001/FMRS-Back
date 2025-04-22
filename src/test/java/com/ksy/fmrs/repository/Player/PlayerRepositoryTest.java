@@ -40,7 +40,7 @@ class PlayerRepositoryTest {
     @DisplayName("save 단건")
     void save(){
         // given
-        Player player = createPlayer("p1");
+        Player player = createPlayer("p1", "p1", LocalDate.now(), "n1", PlayerMappingStatus.UNMAPPED);
         // when
         Player savePlayer = playerRepository.save(player);
 
@@ -53,8 +53,8 @@ class PlayerRepositoryTest {
     void saveAll(){
         // given
         List<Player> playerList = new ArrayList<>();
-        Player player = createPlayer("p1");
-        Player player2 = createPlayer("p2");
+        Player player = createPlayer("p1", "p1", LocalDate.now(), "n1", PlayerMappingStatus.UNMAPPED);
+        Player player2 = createPlayer("p2", "p2", LocalDate.now(), "n2", PlayerMappingStatus.UNMAPPED);
         Team team1 = createTeam("t1");
         Team team2 = createTeam("t2");
         player.updateTeam(team1);
@@ -80,13 +80,13 @@ class PlayerRepositoryTest {
         teamRepository.save(team1);
         teamRepository.save(team2);
         for(int i = 0; i < 10; i++){
-            Player player = createPlayer("player"+i);
+            Player player = createPlayer("player"+i, "p"+i, LocalDate.now(), "n"+i, PlayerMappingStatus.UNMAPPED);
             players.add(player);
             player.updateTeam(team1);
             playerRepository.save(player);
         }
         for(int i = 0; i < 5; i++){
-            Player player = createPlayer("not_player"+i);
+            Player player = createPlayer("not_player"+i, " p"+i, LocalDate.now(), "n"+i, PlayerMappingStatus.UNMAPPED);
             players.add(player);
             player.updateTeam(team2);
             playerRepository.save(player);
@@ -194,11 +194,41 @@ class PlayerRepositoryTest {
         Assertions.assertThat(players.get(0)).isEqualTo(player);
     }
 
+    @Test
+    @DisplayName("매핑 조건이 겹치는 player 조회")
+    void findDuplicatedPlayers(){
+        // given
+        String firstName = "MANUEL";
+        String lastName = "AKANJI";
+        String nationName = "SWITZERLAND";
+        LocalDate birth = LocalDate.of(1995,7,19);
+        for(int i = 0; i < 100; i++){
+            Player player = createPlayer(firstName, lastName, birth, nationName, PlayerMappingStatus.UNMAPPED);
+            entityManager.persist(player);
+        }
+        for(int i = 0; i < 100; i++){
+            Player player = createPlayer("f"+i, "l"+i, LocalDate.now(), "n"+i, PlayerMappingStatus.UNMAPPED);
+            entityManager.persist(player);
+        }
+        entityManager.flush();
+        entityManager.close();
+        // when
+        List<Player> players = playerRepository.findDuplicatedPlayers();
+        // then
+        Assertions.assertThat(players).hasSize(100);
+    }
+
     private Team createTeam(String name){
         return Team.builder().name(name).build();
     }
 
-    private Player createPlayer(String name) {
-        return Player.builder().build();
+    private Player createPlayer(String firstName, String lastName, LocalDate birth, String nationName, PlayerMappingStatus mappingStatus) {
+        return Player.builder()
+                .firstName(firstName)
+                .lastName(lastName)
+                .birth(birth)
+                .nationName(nationName)
+                .mappingStatus(mappingStatus)
+                .build();
     }
 }
