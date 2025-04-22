@@ -2,6 +2,7 @@ package com.ksy.fmrs.service;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.ksy.fmrs.domain.enums.PlayerMappingStatus;
 import com.ksy.fmrs.domain.player.*;
 import com.ksy.fmrs.domain.Team;
 import com.ksy.fmrs.dto.apiFootball.LeagueApiPlayersDto;
@@ -41,12 +42,14 @@ public class PlayerService {
     /**
      * 선수 상세 정보 조회
      */
+    @Transactional(readOnly = true)
     public PlayerDetailsDto getPlayerDetails(Long playerId) {
         Player player = playerRepository.findById(playerId)
                 .orElseThrow(() -> new IllegalArgumentException("Player not found: " + playerId));
         return convertPlayerToPlayerDetailsResponseDto(player);
     }
 
+    @Transactional
     public void saveAllByPlayerStatistics(LeagueApiPlayersDto leagueApiPlayersDto) {
         List<Player> players = leagueApiPlayersDto.response().stream().filter(Objects::nonNull)
                 .map(dto -> {
@@ -74,21 +77,21 @@ public class PlayerService {
         playerRepository.saveAll(players);
     }
 
+    @Transactional
     public void bulkInsertPlayers(List<Player> players) {
         // 중복 제거된 Player 리스트를 저장
         bulkRepository.bulkInsertPlayers(getDistinctPlayersByPlayerApiId(players));
     }
 
-    /**
-     *
-     * */
-    public Long updateDuplicatedUnmappedPlayersToFailed(){
-        return playerRepository.updateDuplicatedUnmappedPlayersToFailed();
-    }
+//    @Transactional
+//    public Long updateDuplicatedUnmappedPlayersToFailed(){
+//        return playerRepository.updateDuplicatedUnmappedPlayersToFailed();
+//    }
 
     /**
      * playerRaw로 선수 저장: 한 페이지 별 저장
      */
+    @Transactional
     public void savePlayersByPlayerRaw(PlayerRaw playerRaw) throws JsonProcessingException {
         LeagueApiPlayersDto leagueApiPlayersDto = objectMapper.readValue(
                 playerRaw.getJsonRaw(), LeagueApiPlayersDto.class);
@@ -132,6 +135,7 @@ public class PlayerService {
     /**
      * 팀 소속 선수들 모두 조회
      */
+    @Transactional(readOnly = true)
     public TeamPlayersResponseDto getTeamPlayersByTeamId(Long teamId) {
         return new TeamPlayersResponseDto(playerRepository.findAllByTeamId(teamId)
                 .stream()
@@ -153,6 +157,7 @@ public class PlayerService {
     /**
      * 선수 이름 검색
      */
+    @Transactional(readOnly = true)
     public SearchPlayerResponseDto searchPlayerByName(String name) {
         return new SearchPlayerResponseDto(playerRepository.searchPlayerByName(name)
                 .stream()
@@ -163,10 +168,26 @@ public class PlayerService {
     /**
      * 선수 상세 조회
      */
+    @Transactional(readOnly = true)
     public SearchPlayerResponseDto searchPlayerByDetailCondition(SearchPlayerCondition condition) {
         return new SearchPlayerResponseDto(playerRepository.searchPlayerByDetailCondition(condition)
                 .stream()
                 .map(this::convertPlayerToPlayerDetailsResponseDto)
                 .toList());
+    }
+
+    /**
+     * 하나의 player 에 대응되는 fmPlayer 가 여러개인 경우 Failed 처리
+     * */
+    @Transactional
+    public void updatePlayersWithMultipleFmPlayersToFailed(List<Player> players) {
+        players.forEach(player -> {
+            player.updateMappingStatus(PlayerMappingStatus.FAILED);
+        });
+    }
+
+    @Transactional(readOnly = true)
+    public List<Player> getPlayersWithMultipleFmPlayers(){
+        return playerRepository.findPlayerDuplicatedWithFmPlayer();
     }
 }

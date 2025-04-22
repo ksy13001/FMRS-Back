@@ -109,6 +109,14 @@ public class AdminController {
         initializationService.updateAllPlayersFmData();
     }
 
+    @ResponseBody
+    @PutMapping("/api/admin/update-mapping-fail")
+    public void updateAllPlayers() {
+        playerService.updatePlayersWithMultipleFmPlayersToFailed(
+                playerService.getPlayersWithMultipleFmPlayers()
+        );
+    }
+
 
 //    @ResponseBody
 //    @PostMapping("/api/admin/update-squad")
