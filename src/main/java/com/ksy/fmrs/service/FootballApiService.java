@@ -50,7 +50,6 @@ public class FootballApiService {
                     String url = UrlEnum.buildPlayerStatUrl(playerApiId, player.getTeam().getLeague().getCurrentSeason());
                     LeagueApiPlayersDto response = restClientService.getApiResponse(url, LeagueApiPlayersDto.class);
                     PlayerStatDto playerStatDto = convertStatisticsToPlayerStatDto(response);
-                    updatePlayerImage(playerId, playerStatDto.getImageUrl());
                     savePlayerStat(convertPlayerStatDtoToPlayerStat(playerId, playerStatDto));
                     return playerStatDto;
                 });
@@ -153,7 +152,6 @@ public class FootballApiService {
                 .assist(playerStatDto.getAssist())
                 .pk(playerStatDto.getPk())
                 .rating(playerStatDto.getRating())
-                .imageUrl(playerStatDto.getImageUrl())
                 .build();
     }
 
@@ -166,7 +164,6 @@ public class FootballApiService {
         playerStatDto.setAssist(stat.goals().assists());
         playerStatDto.setPk(stat.penalty().scored());
         playerStatDto.setRating(StringUtils.truncateToTwoDecimalsRanging(stat.games().rating()));
-        playerStatDto.setImageUrl(response.response().getFirst().player().photo());
         return playerStatDto;
     }
 
