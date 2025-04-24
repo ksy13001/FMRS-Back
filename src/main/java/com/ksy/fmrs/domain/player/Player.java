@@ -55,6 +55,9 @@ public class Player {
     @JoinColumn(name = "fmplayer_id", unique = true)
     private FmPlayer fmPlayer;
 
+    @OneToOne(mappedBy = "player")
+    private PlayerStat playerStat;
+
     @Builder
     public Player(
             Integer playerApiId,
