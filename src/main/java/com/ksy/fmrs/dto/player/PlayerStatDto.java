@@ -7,7 +7,6 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 @Data
 public class PlayerStatDto {
-    private Integer apiFootballId;
     private Integer gamesPlayed;
     private Integer goal;
     private Integer pk;
