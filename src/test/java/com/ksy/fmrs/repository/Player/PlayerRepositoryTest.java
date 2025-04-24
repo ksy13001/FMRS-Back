@@ -38,7 +38,7 @@ class PlayerRepositoryTest {
 
     @Test
     @DisplayName("save 단건")
-    void save(){
+    void save() {
         // given
         Player player = createPlayer("p1", "p1", LocalDate.now(), "n1", PlayerMappingStatus.UNMAPPED);
         // when
@@ -50,7 +50,7 @@ class PlayerRepositoryTest {
 
     @Test
     @DisplayName("saveAll 시 select 문 나가는지 테스트")
-    void saveAll(){
+    void saveAll() {
         // given
         List<Player> playerList = new ArrayList<>();
         Player player = createPlayer("p1", "p1", LocalDate.now(), "n1", PlayerMappingStatus.UNMAPPED);
@@ -72,21 +72,21 @@ class PlayerRepositoryTest {
 
     @Test
     @DisplayName("팀id로 소속 선수들 조회")
-    void getPlayersByTeamId(){
+    void getPlayersByTeamId() {
         // given
         ArrayList<Player> players = new ArrayList<>();
         Team team1 = createTeam("team1");
         Team team2 = createTeam("team2");
         teamRepository.save(team1);
         teamRepository.save(team2);
-        for(int i = 0; i < 10; i++){
-            Player player = createPlayer("player"+i, "p"+i, LocalDate.now(), "n"+i, PlayerMappingStatus.UNMAPPED);
+        for (int i = 0; i < 10; i++) {
+            Player player = createPlayer("player" + i, "p" + i, LocalDate.now(), "n" + i, PlayerMappingStatus.UNMAPPED);
             players.add(player);
             player.updateTeam(team1);
             playerRepository.save(player);
         }
-        for(int i = 0; i < 5; i++){
-            Player player = createPlayer("not_player"+i, " p"+i, LocalDate.now(), "n"+i, PlayerMappingStatus.UNMAPPED);
+        for (int i = 0; i < 5; i++) {
+            Player player = createPlayer("not_player" + i, " p" + i, LocalDate.now(), "n" + i, PlayerMappingStatus.UNMAPPED);
             players.add(player);
             player.updateTeam(team2);
             playerRepository.save(player);
@@ -102,7 +102,7 @@ class PlayerRepositoryTest {
 
     @Test
     @DisplayName("상세 검색 테스트 - 팀")
-    void detail_search_test(){
+    void detail_search_test() {
         // given
         SearchPlayerCondition condition = new SearchPlayerCondition();
         condition.setTeamName("TOT");
@@ -129,19 +129,19 @@ class PlayerRepositoryTest {
 
     @Test
     @DisplayName("fmplayerStat으로 player 찾기")
-    void searchPlayerByFm(){
+    void searchPlayerByFm() {
         // given
         String fileName = "98031331-Manuel Akanji";
         String name = StringUtils.getPlayerNameFromFileName(fileName);
         String firstName = StringUtils.getFirstName(name).toUpperCase();
         String lastName = StringUtils.getLastName(name).toUpperCase();
-        LocalDate birthDate = LocalDate.of(1995,7,19);
+        LocalDate birthDate = LocalDate.of(1995, 7, 19);
         String Nation = "Switzerland".toUpperCase();
         Player player = Player.builder()
                 .firstName("MANUEL")
                 .lastName("AKANJI")
                 .nationName("SWITZERLAND")
-                .birth(LocalDate.of(1995,7,19))
+                .birth(LocalDate.of(1995, 7, 19))
                 .build();
         playerRepository.save(player);
         // when
@@ -153,31 +153,31 @@ class PlayerRepositoryTest {
         Assertions.assertThat(actual.getFirstName()).isEqualTo("MANUEL");
         Assertions.assertThat(actual.getLastName()).isEqualTo("AKANJI");
         Assertions.assertThat(actual.getNationName()).isEqualTo("SWITZERLAND");
-        Assertions.assertThat(actual.getBirth()).isEqualTo(LocalDate.of(1995,7,19));
+        Assertions.assertThat(actual.getBirth()).isEqualTo(LocalDate.of(1995, 7, 19));
 
     }
 
     @Test
     @DisplayName("하나에 player에 매핑되는 fm player가 2명 이상일 경우")
-    void findDuplicatedFmPlayer(){
+    void findDuplicatedFmPlayer() {
         // given
         FmPlayer fmPlayer1 = FmPlayer.builder()
                 .firstName("MANUEL")
                 .lastName("AKANJI")
                 .nationName("SWITZERLAND")
-                .birth(LocalDate.of(1995,7,19))
+                .birth(LocalDate.of(1995, 7, 19))
                 .build();
         FmPlayer fmPlayer2 = FmPlayer.builder()
                 .firstName("MANUEL")
                 .lastName("AKANJI")
                 .nationName("SWITZERLAND")
-                .birth(LocalDate.of(1995,7,19))
+                .birth(LocalDate.of(1995, 7, 19))
                 .build();
         Player player = Player.builder()
                 .firstName("MANUEL")
                 .lastName("AKANJI")
                 .nationName("SWITZERLAND")
-                .birth(LocalDate.of(1995,7,19))
+                .birth(LocalDate.of(1995, 7, 19))
                 .mappingStatus(PlayerMappingStatus.UNMAPPED)
                 .build();
         entityManager.persist(player);
@@ -196,18 +196,18 @@ class PlayerRepositoryTest {
 
     @Test
     @DisplayName("매핑 조건이 겹치는 player 조회")
-    void findDuplicatedPlayers(){
+    void findDuplicatedPlayers() {
         // given
         String firstName = "MANUEL";
         String lastName = "AKANJI";
         String nationName = "SWITZERLAND";
-        LocalDate birth = LocalDate.of(1995,7,19);
-        for(int i = 0; i < 100; i++){
+        LocalDate birth = LocalDate.of(1995, 7, 19);
+        for (int i = 0; i < 100; i++) {
             Player player = createPlayer(firstName, lastName, birth, nationName, PlayerMappingStatus.UNMAPPED);
             entityManager.persist(player);
         }
-        for(int i = 0; i < 100; i++){
-            Player player = createPlayer("f"+i, "l"+i, LocalDate.now(), "n"+i, PlayerMappingStatus.UNMAPPED);
+        for (int i = 0; i < 100; i++) {
+            Player player = createPlayer("f" + i, "l" + i, LocalDate.now(), "n" + i, PlayerMappingStatus.UNMAPPED);
             entityManager.persist(player);
         }
         entityManager.flush();
@@ -216,9 +216,16 @@ class PlayerRepositoryTest {
         List<Player> players = playerRepository.findDuplicatedPlayers();
         // then
         Assertions.assertThat(players).hasSize(100);
+        Assertions.assertThat(players).allSatisfy(p -> {
+                    Assertions.assertThat(p.getFirstName()).isEqualTo(firstName);
+                    Assertions.assertThat(p.getLastName()).isEqualTo(lastName);
+                    Assertions.assertThat(p.getNationName()).isEqualTo(nationName);
+                    Assertions.assertThat(p.getBirth()).isEqualTo(birth);
+                }
+        );
     }
 
-    private Team createTeam(String name){
+    private Team createTeam(String name) {
         return Team.builder().name(name).build();
     }
 

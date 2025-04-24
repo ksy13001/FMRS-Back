@@ -1,6 +1,7 @@
 package com.ksy.fmrs.controller;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
+import com.ksy.fmrs.domain.player.Player;
 import com.ksy.fmrs.dto.player.PlayerDetailsDto;
 import com.ksy.fmrs.dto.player.PlayerStatDto;
 import com.ksy.fmrs.repository.Player.PlayerRawRepository;
@@ -13,6 +14,11 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import reactor.core.publisher.Mono;
+
+import java.util.ArrayList;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
 
 @RequiredArgsConstructor
 @RestController
@@ -112,9 +118,18 @@ public class AdminController {
     @ResponseBody
     @PutMapping("/api/admin/update-mapping-fail")
     public void updateAllPlayers() {
-        playerService.updatePlayersWithMultipleFmPlayersToFailed(
-                playerService.getPlayersWithMultipleFmPlayers()
-        );
+        List<Player> duplicatedPlayers = playerService.getDuplicatePlayers();
+        List<Player> duplicatedPlayersWithFmplayers = playerService.getPlayersWithMultipleFmPlayers();
+//        Set<Player> players = new HashSet<>();
+//        players.addAll(duplicatedPlayersWithFmplayers);
+//        players.addAll(duplicatedPlayers);
+//        if(!players.isEmpty()){
+//            playerService.updatePlayersMappingStatusToFailed(
+//                    new ArrayList<>(players)
+//            );
+//        }
+        playerService.updatePlayersMappingStatusToFailed(duplicatedPlayersWithFmplayers);
+        playerService.updatePlayersMappingStatusToFailed(duplicatedPlayers);
     }
 
 

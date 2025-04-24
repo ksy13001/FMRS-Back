@@ -10,6 +10,7 @@ import com.ksy.fmrs.dto.player.PlayerDetailsDto;
 import com.ksy.fmrs.dto.search.SearchPlayerCondition;
 import com.ksy.fmrs.dto.search.SearchPlayerResponseDto;
 import com.ksy.fmrs.dto.team.TeamPlayersResponseDto;
+import com.ksy.fmrs.mapper.PlayerMapper;
 import com.ksy.fmrs.repository.BulkRepository;
 import com.ksy.fmrs.repository.Player.PlayerRawRepository;
 import com.ksy.fmrs.repository.Player.PlayerRepository;
@@ -180,8 +181,9 @@ public class PlayerService {
      * 하나의 player 에 대응되는 fmPlayer 가 여러개인 경우 Failed 처리
      * */
     @Transactional
-    public void updatePlayersWithMultipleFmPlayersToFailed(List<Player> players) {
+    public void updatePlayersMappingStatusToFailed(List<Player> players) {
         players.forEach(player -> {
+            log.info("id:"+player.getId());
             player.updateMappingStatus(PlayerMappingStatus.FAILED);
         });
     }
@@ -189,5 +191,10 @@ public class PlayerService {
     @Transactional(readOnly = true)
     public List<Player> getPlayersWithMultipleFmPlayers(){
         return playerRepository.findPlayerDuplicatedWithFmPlayer();
+    }
+
+    @Transactional(readOnly = true)
+    public List<Player> getDuplicatePlayers() {
+        return playerRepository.findDuplicatedPlayers();
     }
 }

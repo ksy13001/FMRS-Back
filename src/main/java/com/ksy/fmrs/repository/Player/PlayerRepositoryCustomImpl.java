@@ -5,6 +5,8 @@ import com.ksy.fmrs.domain.player.Player;
 import com.ksy.fmrs.domain.QTeam;
 import com.ksy.fmrs.domain.player.QPlayer;
 import com.ksy.fmrs.dto.search.SearchPlayerCondition;
+import com.querydsl.core.BooleanBuilder;
+import com.querydsl.core.Tuple;
 import com.querydsl.core.types.dsl.BooleanExpression;
 import com.querydsl.jpa.JPAExpressions;
 import com.querydsl.jpa.impl.JPAQueryFactory;
@@ -12,6 +14,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Repository;
 
 import java.time.LocalDate;
+import java.util.Collections;
 import java.util.List;
 
 import static com.ksy.fmrs.domain.player.QFmPlayer.fmPlayer;
@@ -61,6 +64,36 @@ public class PlayerRepositoryCustomImpl implements PlayerRepositoryCustom {
                                 ).gt(1L)
                 )
                 .execute();
+    }
+
+    public List<Player> findDuplicatedPlayers() {
+        QPlayer p = QPlayer.player;
+
+        // 1) 중복 키 추출
+        List<Tuple> keys = jpaQueryFactory
+                .select(p.firstName, p.lastName, p.birth, p.nationName)
+                .from(p)
+                .where(p.mappingStatus.eq(PlayerMappingStatus.UNMAPPED))
+                .groupBy(p.firstName, p.lastName, p.birth, p.nationName)
+                .having(p.count().gt(1))
+                .fetch();
+
+        if (keys.isEmpty()) return Collections.emptyList();
+
+        // 2) OR 조건 조합 (≈ 300개면 부담 없음)
+        BooleanBuilder cond = new BooleanBuilder();
+        keys.forEach(k -> cond.or(
+                p.firstName.eq(k.get(p.firstName))
+                        .and(p.lastName.eq(k.get(p.lastName)))
+                        .and(p.birth.eq(k.get(p.birth)))
+                        .and(p.nationName.eq(k.get(p.nationName)))
+        ));
+
+        return jpaQueryFactory
+                .selectFrom(p)
+                .where(p.mappingStatus.eq(PlayerMappingStatus.UNMAPPED)
+                        .and(cond))
+                .fetch();
     }
 
 //    // 팀 소속 선수들 조회 기능
