@@ -6,12 +6,14 @@ import com.ksy.fmrs.domain.enums.PlayerMappingStatus;
 import com.ksy.fmrs.domain.player.*;
 import com.ksy.fmrs.domain.Team;
 import com.ksy.fmrs.dto.apiFootball.LeagueApiPlayersDto;
+import com.ksy.fmrs.dto.player.FmPlayerDetailsDto;
 import com.ksy.fmrs.dto.player.PlayerDetailsDto;
 import com.ksy.fmrs.dto.search.SearchPlayerCondition;
 import com.ksy.fmrs.dto.search.SearchPlayerResponseDto;
 import com.ksy.fmrs.dto.team.TeamPlayersResponseDto;
 import com.ksy.fmrs.mapper.PlayerMapper;
 import com.ksy.fmrs.repository.BulkRepository;
+import com.ksy.fmrs.repository.Player.FmPlayerRepository;
 import com.ksy.fmrs.repository.Player.PlayerRawRepository;
 import com.ksy.fmrs.repository.Player.PlayerRepository;
 import com.ksy.fmrs.repository.Team.TeamRepository;
@@ -34,6 +36,7 @@ import java.util.stream.Collectors;
 public class PlayerService {
 
     private final PlayerRepository playerRepository;
+    private final FmPlayerRepository fmPlayerRepository;
     private final TeamRepository teamRepository;
     private final BulkRepository bulkRepository;
     private final PlayerRawRepository playerRawRepository;
@@ -48,6 +51,16 @@ public class PlayerService {
         Player player = playerRepository.findById(playerId)
                 .orElseThrow(() -> new IllegalArgumentException("Player not found: " + playerId));
         return convertPlayerToPlayerDetailsResponseDto(player);
+    }
+
+    @Transactional(readOnly = true)
+    public Optional<FmPlayerDetailsDto> getFmPlayerDetails(Long playerId) {
+        Player player = playerRepository.findById(playerId)
+                .orElseThrow(() -> new IllegalArgumentException("Player not found: " + playerId));
+        if (player.getMappingStatus() != PlayerMappingStatus.MATCHED) {
+            return Optional.empty();
+        }
+        return Optional.of(new FmPlayerDetailsDto(player.getFmPlayer()));
     }
 
     @Transactional

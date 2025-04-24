@@ -10,6 +10,7 @@ import java.time.LocalDate;
 @Setter
 public class PlayerDetailsDto {
 
+
     public PlayerDetailsDto(Player player, String teamName) {
         this.id = player.getId();
         this.playerApiId = player.getPlayerApiId();
@@ -118,7 +119,7 @@ public class PlayerDetailsDto {
     private int age;
     private int height;
     private int weight;
-    private int marketValue;
+//    private int marketValue;
     private String teamName;
     private String nationName;
     private String nationLogoUrl;

@@ -148,7 +148,6 @@ public class FootballApiService {
     private PlayerStat convertPlayerStatDtoToPlayerStat(Long playerId, PlayerStatDto playerStatDto) {
         return PlayerStat.builder()
                 .playerId(playerId)
-                .apiFootballId(playerStatDto.getApiFootballId())
                 .gamesPlayed(playerStatDto.getGamesPlayed())
                 .goal(playerStatDto.getGoal())
                 .assist(playerStatDto.getAssist())
@@ -162,7 +161,6 @@ public class FootballApiService {
     private PlayerStatDto convertStatisticsToPlayerStatDto(LeagueApiPlayersDto response) {
         LeagueApiPlayersDto.StatisticDto stat = response.response().getFirst().statistics().getFirst();
         PlayerStatDto playerStatDto = new PlayerStatDto();
-        playerStatDto.setApiFootballId(response.response().getFirst().player().id());
         playerStatDto.setGamesPlayed(stat.games().appearences());
         playerStatDto.setGoal(stat.goals().total());
         playerStatDto.setAssist(stat.goals().assists());
