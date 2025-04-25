@@ -12,7 +12,6 @@ public class PlayerStatDto {
     private Integer pk;
     private Integer assist;
     private String rating;
-    private String imageUrl;
 
     public PlayerStatDto(PlayerStat playerStat) {
         this.gamesPlayed = playerStat.getGamesPlayed();
@@ -20,6 +19,5 @@ public class PlayerStatDto {
         this.goal = playerStat.getGoal();
         this.pk = playerStat.getPk();
         this.rating = playerStat.getRating();
-        this.imageUrl = playerStat.getImageUrl();
     }
 }
