@@ -8,6 +8,7 @@ import com.ksy.fmrs.dto.search.SearchPlayerResponseDto;
 import com.ksy.fmrs.dto.team.TeamPlayersResponseDto;
 import com.ksy.fmrs.service.FootballApiService;
 import com.ksy.fmrs.service.PlayerService;
+import com.ksy.fmrs.service.PlayerStatService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
@@ -19,6 +20,7 @@ import java.util.Optional;
 @Controller
 public class PlayerController {
 
+    private final PlayerStatService playerStatService;
     private final PlayerService playerService;
     private final FootballApiService footballApiService;
 
@@ -32,7 +34,7 @@ public class PlayerController {
 
         PlayerDetailsDto playerDetailsDto = playerService.getPlayerDetails(playerId);
         Optional<FmPlayerDetailsDto> fmPlayerDetailsDto = playerService.getFmPlayerDetails(playerId);
-        PlayerStatDto playerStatDto = footballApiService.savePlayerRealStat(playerId, playerDetailsDto.getPlayerApiId());
+        PlayerStatDto playerStatDto = playerStatService.getPlayerStatByPlayerId(playerId);
 
         model.addAttribute("player", playerDetailsDto);
         model.addAttribute("fmplayer", fmPlayerDetailsDto.orElse(null));

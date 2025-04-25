@@ -6,7 +6,6 @@ import static org.mockito.Mockito.*;
 import com.ksy.fmrs.domain.player.PlayerStat;
 import com.ksy.fmrs.dto.player.PlayerStatDto;
 import com.ksy.fmrs.repository.Player.PlayerRepository;
-import com.ksy.fmrs.repository.PlayerStatRepository;
 
 import java.util.Optional;
 
