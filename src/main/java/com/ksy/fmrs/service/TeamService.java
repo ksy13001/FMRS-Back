@@ -2,10 +2,12 @@ package com.ksy.fmrs.service;
 
 import com.ksy.fmrs.domain.League;
 import com.ksy.fmrs.domain.Team;
+import com.ksy.fmrs.domain.player.Player;
 import com.ksy.fmrs.dto.team.TeamStandingDto;
 import com.ksy.fmrs.repository.LeagueRepository;
 import com.ksy.fmrs.repository.Team.TeamRepository;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -14,6 +16,7 @@ import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
 
+@Slf4j
 @RequiredArgsConstructor
 @Service
 public class TeamService {
@@ -49,4 +52,8 @@ public class TeamService {
                 .orElseThrow(() -> new RuntimeException("Team not found teamApiId: " + teamApiId));
     }
 
+    @Transactional
+    public void updateSquad(Team team, Player player) {
+        player.updateTeam(team);
+    }
 }

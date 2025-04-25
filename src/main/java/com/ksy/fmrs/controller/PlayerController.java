@@ -1,5 +1,6 @@
 package com.ksy.fmrs.controller;
 
+import com.ksy.fmrs.dto.player.FmPlayerDetailsDto;
 import com.ksy.fmrs.dto.player.PlayerDetailsDto;
 import com.ksy.fmrs.dto.player.PlayerStatDto;
 import com.ksy.fmrs.dto.search.SearchPlayerCondition;
@@ -7,26 +8,36 @@ import com.ksy.fmrs.dto.search.SearchPlayerResponseDto;
 import com.ksy.fmrs.dto.team.TeamPlayersResponseDto;
 import com.ksy.fmrs.service.FootballApiService;
 import com.ksy.fmrs.service.PlayerService;
+import com.ksy.fmrs.service.PlayerStatService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.Optional;
+
 @RequiredArgsConstructor
 @Controller
 public class PlayerController {
 
+    private final PlayerStatService playerStatService;
     private final PlayerService playerService;
     private final FootballApiService footballApiService;
 
+    /**
+     * 1. player 상세정보
+     * 2. 매핑된 상태라면 fmplayer 정보
+     * 3. 실제 스탯
+     * */
     @GetMapping("/players/{playerId}")
     public String getPlayerDetail(@PathVariable Long playerId, Model model) {
-        PlayerDetailsDto playerDetailsResponseDto = playerService.getPlayerDetails(playerId);
-        PlayerStatDto playerStatDto = footballApiService.savePlayerRealStat(
-                playerDetailsResponseDto.getId(),
-                playerDetailsResponseDto.getPlayerApiId()
-        );
-        model.addAttribute("player", playerDetailsResponseDto);
+
+        PlayerDetailsDto playerDetailsDto = playerService.getPlayerDetails(playerId);
+        Optional<FmPlayerDetailsDto> fmPlayerDetailsDto = playerService.getFmPlayerDetails(playerId);
+        PlayerStatDto playerStatDto = playerStatService.getPlayerStatByPlayerId(playerId);
+
+        model.addAttribute("player", playerDetailsDto);
+        model.addAttribute("fmplayer", fmPlayerDetailsDto.orElse(null));
         model.addAttribute("realFootballStat", playerStatDto);
         return "player-detail";
     }

@@ -2,7 +2,6 @@ package com.ksy.fmrs.service;
 
 
 import com.ksy.fmrs.repository.Player.PlayerRepository;
-import com.ksy.fmrs.repository.PlayerStatRepository;
 import com.ksy.fmrs.repository.Team.TeamRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -16,7 +15,6 @@ public class SchedulerService {
     private final FootballApiService footballApiService;
     private final TeamRepository teamRepository;
     private final PlayerRepository playerRepository;
-    private final PlayerStatRepository playerStatRepository;
 
 //
 

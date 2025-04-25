@@ -7,7 +7,9 @@ import com.ksy.fmrs.domain.enums.PlayerMappingStatus;
 import com.ksy.fmrs.domain.player.FmPlayer;
 import com.ksy.fmrs.domain.player.Player;
 import com.ksy.fmrs.domain.Team;
+import com.ksy.fmrs.dto.player.FmPlayerDetailsDto;
 import com.ksy.fmrs.dto.player.PlayerDetailsDto;
+import com.ksy.fmrs.dto.player.PlayerStatDto;
 import com.ksy.fmrs.dto.search.SearchPlayerResponseDto;
 import com.ksy.fmrs.dto.team.TeamPlayersResponseDto;
 import com.ksy.fmrs.dto.search.SearchPlayerCondition;
@@ -254,6 +256,37 @@ public class PlayerServiceTest {
         Assertions.assertThat(players)
                 .extracting(Player::getMappingStatus)
                 .containsOnly(PlayerMappingStatus.FAILED);
+    }
+
+    @Test
+    @DisplayName("playerId로 fmPlayer 불러올때 매핑된 fmplayer 가 없으면 null 반환")
+    void getFmPlayerDetails_null(){
+        // given
+        Player player = createPlayer("p1", "p1", LocalDate.now(), "n1",  PlayerMappingStatus.UNMAPPED);
+        ReflectionTestUtils.setField(player, "id", 1L);
+        // when
+        when(playerRepository.findById(player.getId())).thenReturn(Optional.of(player));
+        Optional<FmPlayerDetailsDto> result = playerService.getFmPlayerDetails(player.getId());
+        // then
+        Assertions.assertThat(result).isEmpty();
+    }
+
+    @Test
+    @DisplayName("playerId로 fmPlayer 불러올때 매핑된 fmplayer 있을경우 Optional<FmPlayerDetailsDto> 반환")
+    void getFmPlayerDetails_valid(){
+        // given
+        Player player = createPlayer("p1", "p1", LocalDate.now(), "n1",  PlayerMappingStatus.MATCHED);
+        ReflectionTestUtils.setField(player, "id", 1L);
+        FmPlayer fmPlayer = createFmPlayer("f1", "f1", LocalDate.now(), "n1");
+        player.updateFmPlayer(fmPlayer);
+        ReflectionTestUtils.setField(fmPlayer, "name", "FM");
+        // when
+        when(playerRepository.findById(player.getId())).thenReturn(Optional.of(player));
+        Optional<FmPlayerDetailsDto> result = playerService.getFmPlayerDetails(player.getId());
+        // then
+        Assertions.assertThat(result.isPresent()).isTrue();
+        Assertions.assertThat(result.get().getName()).isEqualTo(fmPlayer.getName());
+
     }
 
     private Player createPlayer(String firstName, String lastName, LocalDate birth, String nation, PlayerMappingStatus mappingStatus) {

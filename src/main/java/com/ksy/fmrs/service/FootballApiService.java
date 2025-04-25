@@ -13,7 +13,7 @@ import com.ksy.fmrs.dto.team.TeamStatisticsDto;
 import com.ksy.fmrs.dto.team.TeamStandingDto;
 import com.ksy.fmrs.repository.LeagueRepository;
 import com.ksy.fmrs.repository.Player.PlayerRepository;
-import com.ksy.fmrs.repository.PlayerStatRepository;
+import com.ksy.fmrs.repository.Player.PlayerStatRepository;
 import com.ksy.fmrs.service.apiClient.RestClientService;
 import com.ksy.fmrs.service.apiClient.WebClientService;
 import com.ksy.fmrs.util.StringUtils;
@@ -50,7 +50,6 @@ public class FootballApiService {
                     String url = UrlEnum.buildPlayerStatUrl(playerApiId, player.getTeam().getLeague().getCurrentSeason());
                     LeagueApiPlayersDto response = restClientService.getApiResponse(url, LeagueApiPlayersDto.class);
                     PlayerStatDto playerStatDto = convertStatisticsToPlayerStatDto(response);
-                    updatePlayerImage(playerId, playerStatDto.getImageUrl());
                     savePlayerStat(convertPlayerStatDtoToPlayerStat(playerId, playerStatDto));
                     return playerStatDto;
                 });
@@ -148,13 +147,11 @@ public class FootballApiService {
     private PlayerStat convertPlayerStatDtoToPlayerStat(Long playerId, PlayerStatDto playerStatDto) {
         return PlayerStat.builder()
                 .playerId(playerId)
-                .apiFootballId(playerStatDto.getApiFootballId())
                 .gamesPlayed(playerStatDto.getGamesPlayed())
                 .goal(playerStatDto.getGoal())
                 .assist(playerStatDto.getAssist())
                 .pk(playerStatDto.getPk())
                 .rating(playerStatDto.getRating())
-                .imageUrl(playerStatDto.getImageUrl())
                 .build();
     }
 
@@ -162,13 +159,11 @@ public class FootballApiService {
     private PlayerStatDto convertStatisticsToPlayerStatDto(LeagueApiPlayersDto response) {
         LeagueApiPlayersDto.StatisticDto stat = response.response().getFirst().statistics().getFirst();
         PlayerStatDto playerStatDto = new PlayerStatDto();
-        playerStatDto.setApiFootballId(response.response().getFirst().player().id());
         playerStatDto.setGamesPlayed(stat.games().appearences());
         playerStatDto.setGoal(stat.goals().total());
         playerStatDto.setAssist(stat.goals().assists());
         playerStatDto.setPk(stat.penalty().scored());
         playerStatDto.setRating(StringUtils.truncateToTwoDecimalsRanging(stat.games().rating()));
-        playerStatDto.setImageUrl(response.response().getFirst().player().photo());
         return playerStatDto;
     }
 
