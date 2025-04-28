@@ -230,15 +230,14 @@ public class InitializationService {
                 }, 3)
                 .filter(Objects::nonNull)
                 .collectList()
-                .flatMap(players -> {
-                    log.info("총 저장 수: {}, 실제 저장 수:{}", cnt.get(), players.size());
-                    for (int i = 0; i < players.size(); i += CHUNK_SIZE) {
-                        int end = Math.min(i + CHUNK_SIZE, players.size());
-                        List<String> chunk = players.subList(i, end);
-                        bulkRepository.bulkInsertPlayerRaws(chunk);
-                    }
-                    return Mono.empty();
-                }).then();
+                .flatMapMany(Flux::fromIterable)
+                .buffer(CHUNK_SIZE)
+                .flatMap(chunk ->
+                                Mono.fromRunnable(() -> bulkRepository.bulkInsertPlayerRaws(chunk))
+                                        .subscribeOn(Schedulers.boundedElastic())
+                                        .doOnError(e -> log.error("bulk insert 실패, size={}", chunk.size(), e))
+                        , 3)
+                .then();
     }
 
 
