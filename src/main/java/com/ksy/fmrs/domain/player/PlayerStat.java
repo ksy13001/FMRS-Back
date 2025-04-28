@@ -1,5 +1,6 @@
 package com.ksy.fmrs.domain.player;
 
+import com.ksy.fmrs.domain.BaseTime;
 import jakarta.persistence.*;
 import lombok.AccessLevel;
 import lombok.Builder;
@@ -10,7 +11,7 @@ import lombok.NoArgsConstructor;
 
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 @Entity
-public class PlayerStat {
+public class PlayerStat extends BaseTime {
 
     @Id
     @Column(name = "player_id")
