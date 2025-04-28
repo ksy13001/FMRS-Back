@@ -9,6 +9,7 @@ import com.ksy.fmrs.repository.Player.PlayerRepository;
 
 import java.util.Optional;
 
+import com.ksy.fmrs.repository.Player.PlayerStatRepository;
 import org.assertj.core.api.Assertions;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -163,7 +164,6 @@ public class FootballApiServiceTest {
                 .assist(3)
                 .pk(2)
                 .rating("7.0")
-                .imageUrl("existingPhotoUrl")
                 .build();
         when(playerStatRepository.findById(playerId)).thenReturn(Optional.of(existingStat));
 
@@ -177,7 +177,6 @@ public class FootballApiServiceTest {
         assertEquals(3, result.getAssist());
         assertEquals(2, result.getPk());
         assertEquals("7.0", result.getRating());
-        assertEquals("existingPhotoUrl", result.getImageUrl());
 
         // 외부 API 호출 없이 바로 반환되었으므로 save() 호출되지 않음
         verify(playerStatRepository, never()).save(any(PlayerStat.class));
