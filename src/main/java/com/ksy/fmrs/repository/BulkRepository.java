@@ -3,9 +3,6 @@ package com.ksy.fmrs.repository;
 
 import com.ksy.fmrs.domain.player.FmPlayer;
 import com.ksy.fmrs.domain.player.Player;
-import com.ksy.fmrs.domain.player.PlayerRaw;
-import com.ksy.fmrs.util.NationNormalizer;
-import com.ksy.fmrs.util.StringUtils;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.jdbc.core.BatchPreparedStatementSetter;
@@ -217,7 +214,24 @@ public class BulkRepository {
                 return jsons.size();
             }
         });
+    }
 
+    public void updatePlayersTeam(List<Integer> playerApiIds, Long teamId) {
+        String sql = "UPDATE Player " +
+                "SET team_id = ? " +
+                "WHERE player_api_id = ?";
+        jdbcTemplate.batchUpdate(sql, new BatchPreparedStatementSetter() {
+            @Override
+            public void setValues(PreparedStatement ps, int i) throws SQLException {
+                ps.setLong(1, teamId);
+                ps.setLong(2, playerApiIds.get(i));
+            }
+
+            @Override
+            public int getBatchSize() {
+                return playerApiIds.size();
+            }
+        });
     }
 
     private String buildInsertSql(String tableName, List<String> columnNames) {
