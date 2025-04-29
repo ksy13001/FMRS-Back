@@ -45,7 +45,7 @@ public class Team {
 
     private String description;
 
-    @OneToMany(mappedBy = "team", fetch = FetchType.LAZY)
+    @OneToMany(mappedBy = "team")
     private List<Player> players = new ArrayList<>();
 
     @ManyToOne(fetch = FetchType.LAZY)

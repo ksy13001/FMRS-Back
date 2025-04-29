@@ -3,12 +3,11 @@ package com.ksy.fmrs.domain.player;
 
 import com.ksy.fmrs.domain.Team;
 import com.ksy.fmrs.domain.enums.PlayerMappingStatus;
-import com.ksy.fmrs.util.TimeUtils;
+import com.ksy.fmrs.util.time.TimeUtils;
 import jakarta.persistence.*;
 import lombok.*;
 
 import java.time.LocalDate;
-import java.time.Period;
 
 @Getter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
@@ -47,7 +46,7 @@ public class Player {
     @Column(name="mapping_status")
     private PlayerMappingStatus mappingStatus;
 
-    @ManyToOne
+    @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "team_id")
     private Team team;
 
@@ -55,7 +54,8 @@ public class Player {
     @JoinColumn(name = "fmplayer_id", unique = true)
     private FmPlayer fmPlayer;
 
-    @OneToOne(mappedBy = "player")
+    @OneToOne(fetch = FetchType.LAZY)
+    @PrimaryKeyJoinColumn
     private PlayerStat playerStat;
 
     @Builder
@@ -107,6 +107,10 @@ public class Player {
 
     public void updatePlayerApiId(Integer playerApiId) {
         this.playerApiId = playerApiId;
+    }
+
+    public void updatePlayerStat(PlayerStat playerStat) {
+        this.playerStat = playerStat;
     }
 
     public String getStringBirth(){

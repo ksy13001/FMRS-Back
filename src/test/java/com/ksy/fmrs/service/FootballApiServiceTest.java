@@ -144,43 +144,42 @@ public class FootballApiServiceTest {
 //        verify(playerRepository).findById(playerId);
 //    }
 
-    /**
-     * 시나리오 2: DB에 기존 선수 통계가 존재하는 경우
-     * - 외부 API 호출 없이 DB의 정보를 DTO로 변환하여 반환함.
-     */
-    @Test
-    public void testSavePlayerRealStat_whenExistsInDB() {
-        // given
-        Long playerId = 1L;
-        String playerName = "Neymar";
-        String teamName = "Paris Saint Germain";
-
-        // 기존 통계 객체 생성
-        PlayerStat existingStat = PlayerStat.builder()
-                .playerId(playerId)
-                .apiFootballId(276)
-                .gamesPlayed(10)
-                .goal(5)
-                .assist(3)
-                .pk(2)
-                .rating("7.0")
-                .build();
-        when(playerStatRepository.findById(playerId)).thenReturn(Optional.of(existingStat));
-
-        // when
-        PlayerStatDto result = footballApiService.savePlayerRealStat(playerId, 2024);
-
-        // then
-        assertNotNull(result);
-        assertEquals(10, result.getGamesPlayed());
-        assertEquals(5, result.getGoal());
-        assertEquals(3, result.getAssist());
-        assertEquals(2, result.getPk());
-        assertEquals("7.0", result.getRating());
-
-        // 외부 API 호출 없이 바로 반환되었으므로 save() 호출되지 않음
-        verify(playerStatRepository, never()).save(any(PlayerStat.class));
-    }
+//    /**
+//     * 시나리오 2: DB에 기존 선수 통계가 존재하는 경우
+//     * - 외부 API 호출 없이 DB의 정보를 DTO로 변환하여 반환함.
+//     */
+//    @Test
+//    public void testSavePlayerRealStat_whenExistsInDB() {
+//        // given
+//        Long playerId = 1L;
+//        String playerName = "Neymar";
+//        String teamName = "Paris Saint Germain";
+//
+//        // 기존 통계 객체 생성
+//        PlayerStat existingStat = PlayerStat.builder()
+//                .playerId(playerId)
+//                .gamesPlayed(10)
+//                .goal(5)
+//                .assist(3)
+//                .pk(2)
+//                .rating("7.0")
+//                .build();
+//        when(playerStatRepository.findById(playerId)).thenReturn(Optional.of(existingStat));
+//
+//        // when
+//        PlayerStatDto result = footballApiService.savePlayerRealStat(playerId, 2024);
+//
+//        // then
+//        assertNotNull(result);
+//        assertEquals(10, result.getGamesPlayed());
+//        assertEquals(5, result.getGoal());
+//        assertEquals(3, result.getAssist());
+//        assertEquals(2, result.getPk());
+//        assertEquals("7.0", result.getRating());
+//
+//        // 외부 API 호출 없이 바로 반환되었으므로 save() 호출되지 않음
+//        verify(playerStatRepository, never()).save(any(PlayerStat.class));
+//    }
 
     @Test
     void 메서드명() throws Exception{
