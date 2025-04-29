@@ -47,7 +47,7 @@ public class Player {
     @Column(name="mapping_status")
     private PlayerMappingStatus mappingStatus;
 
-    @ManyToOne
+    @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "team_id")
     private Team team;
 
