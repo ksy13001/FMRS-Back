@@ -11,7 +11,7 @@ import java.time.LocalDateTime;
 public class TestTimeProviderConfig {
 
     @Bean
-    public TimeProvider TimeProvider() {
+    public TimeProvider timeProvider() {
         return new TestTimeProvider(LocalDateTime.of
                 (2000, 8, 14, 0, 0)
         );
