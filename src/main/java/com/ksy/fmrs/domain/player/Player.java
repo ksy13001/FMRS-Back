@@ -3,12 +3,11 @@ package com.ksy.fmrs.domain.player;
 
 import com.ksy.fmrs.domain.Team;
 import com.ksy.fmrs.domain.enums.PlayerMappingStatus;
-import com.ksy.fmrs.util.TimeUtils;
+import com.ksy.fmrs.util.time.TimeUtils;
 import jakarta.persistence.*;
 import lombok.*;
 
 import java.time.LocalDate;
-import java.time.Period;
 
 @Getter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)

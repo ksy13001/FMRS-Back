@@ -30,9 +30,10 @@ public class PlayerStat extends BaseTime {
 
 
     @Builder
-    public PlayerStat(Integer gamesPlayed, Integer substitutes,
+    public PlayerStat(Long playerId, Integer gamesPlayed, Integer substitutes,
                       Integer goal, Integer pk, Integer assist,
                       String rating, Integer yellowCards, Integer redCards) {
+        this.playerId = playerId;
         this.gamesPlayed = gamesPlayed;
         this.substitutes = substitutes;
         this.goal = goal;

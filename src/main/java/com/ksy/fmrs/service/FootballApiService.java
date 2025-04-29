@@ -19,7 +19,6 @@ import com.ksy.fmrs.service.apiClient.WebClientService;
 import com.ksy.fmrs.util.StringUtils;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
 import reactor.core.publisher.Mono;
 
 import java.util.List;
@@ -35,24 +34,25 @@ public class FootballApiService {
     private final PlayerRepository playerRepository;
     private final RestClientService restClientService;
     private final WebClientService  webClientService;
+//
+//    public PlayerStatDto savePlayerRealStat(Long playerId, Integer playerApiId) {
+//        Player player =  findPlayerById(playerId);
+//        return getOptionalPlayerStatById(playerId)
+//                .map(PlayerStatDto::new)
+//                .orElseGet(() -> {
+//                    String url = UrlEnum.buildPlayerStatUrl(playerApiId, player.getTeam().getLeague().getCurrentSeason());
+//                    LeagueApiPlayersDto response = restClientService.getApiResponse(url, LeagueApiPlayersDto.class);
+//                    PlayerStatDto playerStatDto = convertStatisticsToPlayerStatDto(response);
+//                    savePlayerStat(convertPlayerStatDtoToPlayerStat(playerId, playerStatDto));
+//                    return playerStatDto;
+//                });
+//    }
 
-    /**
-     * 1. playerDetailDto 에서 playerName, teamName 가져옴
-     * 2. teamName 을 통해 api-football 에서 teamApiId 가져옴
-     * 3. playerName + teamApiId 를 통해 api-football 에서 playerApi + playerRealStat 가져옴
-     */
-    @Transactional
-    public PlayerStatDto savePlayerRealStat(Long playerId, Integer playerApiId) {
-        Player player =  findPlayerById(playerId);
-        return getOptionalPlayerStatById(playerId)
-                .map(PlayerStatDto::new)
-                .orElseGet(() -> {
-                    String url = UrlEnum.buildPlayerStatUrl(playerApiId, player.getTeam().getLeague().getCurrentSeason());
-                    LeagueApiPlayersDto response = restClientService.getApiResponse(url, LeagueApiPlayersDto.class);
-                    PlayerStatDto playerStatDto = convertStatisticsToPlayerStatDto(response);
-                    savePlayerStat(convertPlayerStatDtoToPlayerStat(playerId, playerStatDto));
-                    return playerStatDto;
-                });
+    public PlayerStatisticApiDto getPlayerStatByPlayerApiIdAndTeamApiIdAndLeagueApiId(Integer playerApiId, Integer teamApiId, Integer leagueApiId, Integer currentSeason) {
+        return webClientService.getApiResponse(
+                UrlEnum.buildPlayerStatUrl(playerApiId, teamApiId, leagueApiId, currentSeason),
+                PlayerStatisticApiDto.class
+        ).block();
     }
 
     public Mono<LeagueApiPlayersDto> getSquadStatistics(Integer teamApiId, Integer leagueApiId, int currentSeason, int page) {
@@ -146,7 +146,6 @@ public class FootballApiService {
 
     private PlayerStat convertPlayerStatDtoToPlayerStat(Long playerId, PlayerStatDto playerStatDto) {
         return PlayerStat.builder()
-                .playerId(playerId)
                 .gamesPlayed(playerStatDto.getGamesPlayed())
                 .goal(playerStatDto.getGoal())
                 .assist(playerStatDto.getAssist())
@@ -156,16 +155,16 @@ public class FootballApiService {
     }
 
     // 출장경기수, 골, 어시스트, 평점, 선수 이미지
-    private PlayerStatDto convertStatisticsToPlayerStatDto(LeagueApiPlayersDto response) {
-        LeagueApiPlayersDto.StatisticDto stat = response.response().getFirst().statistics().getFirst();
-        PlayerStatDto playerStatDto = new PlayerStatDto();
-        playerStatDto.setGamesPlayed(stat.games().appearences());
-        playerStatDto.setGoal(stat.goals().total());
-        playerStatDto.setAssist(stat.goals().assists());
-        playerStatDto.setPk(stat.penalty().scored());
-        playerStatDto.setRating(StringUtils.truncateToTwoDecimalsRanging(stat.games().rating()));
-        return playerStatDto;
-    }
+//    private PlayerStatDto convertStatisticsToPlayerStatDto(LeagueApiPlayersDto response) {
+//        LeagueApiPlayersDto.StatisticDto stat = response.response().getFirst().statistics().getFirst();
+//        PlayerStatDto playerStatDto = new PlayerStatDto();
+//        playerStatDto.setGamesPlayed(stat.games().appearences());
+//        playerStatDto.setGoal(stat.goals().total());
+//        playerStatDto.setAssist(stat.goals().assists());
+//        playerStatDto.setPk(stat.penalty().scored());
+//        playerStatDto.setRating(StringUtils.truncateToTwoDecimalsRanging(stat.games().rating()));
+//        return playerStatDto;
+//    }
 
     private TeamStandingDto convertNullStandingDto(){
         return TeamStandingDto.builder()
