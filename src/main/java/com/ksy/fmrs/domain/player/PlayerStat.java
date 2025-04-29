@@ -11,7 +11,6 @@ import java.time.Duration;
 import java.time.LocalDateTime;
 
 @Getter
-
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 @Entity(name = "player_stat")
 public class PlayerStat extends BaseTime {
@@ -29,16 +28,11 @@ public class PlayerStat extends BaseTime {
     private Integer redCards;
     private String rating;
 
-    @OneToOne
-    @MapsId
-    @JoinColumn(name = "player_id")
-    private Player player;
 
     @Builder
-    public PlayerStat(Long playerId, Integer gamesPlayed, Integer substitutes,
+    public PlayerStat(Player player, Long playerId, Integer gamesPlayed, Integer substitutes,
                       Integer goal, Integer pk, Integer assist,
                       String rating, Integer yellowCards, Integer redCards) {
-        this.playerId = playerId;
         this.gamesPlayed = gamesPlayed;
         this.substitutes = substitutes;
         this.goal = goal;
@@ -54,5 +48,17 @@ public class PlayerStat extends BaseTime {
             return true;
         }
         return false;
+    }
+
+    public void updatePlayerStat(Integer gamesPlayed, Integer substitutes, Integer goal, Integer pk,
+                                 Integer assist, String rating, Integer yellowCards, Integer redCards){
+        this.gamesPlayed = gamesPlayed;
+        this.substitutes = substitutes;
+        this.goal = goal;
+        this.pk = pk;
+        this.assist = assist;
+        this.rating = rating;
+        this.yellowCards = yellowCards;
+        this.redCards = redCards;
     }
 }

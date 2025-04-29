@@ -55,7 +55,8 @@ public class Player {
     @JoinColumn(name = "fmplayer_id", unique = true)
     private FmPlayer fmPlayer;
 
-    @OneToOne(mappedBy = "player")
+    @OneToOne(fetch = FetchType.LAZY)
+    @PrimaryKeyJoinColumn
     private PlayerStat playerStat;
 
     @Builder
@@ -107,6 +108,10 @@ public class Player {
 
     public void updatePlayerApiId(Integer playerApiId) {
         this.playerApiId = playerApiId;
+    }
+
+    public void updatePlayerStat(PlayerStat playerStat) {
+        this.playerStat = playerStat;
     }
 
     public String getStringBirth(){
