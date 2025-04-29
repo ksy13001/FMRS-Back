@@ -7,7 +7,7 @@ import org.springframework.stereotype.Component;
 @Component
 public class PlayerStatMapper {
 
-    public PlayerStat StatisticApiDtoToPlayerStat(Long playerId, PlayerStatisticApiDto playerStatisticApiDto) {
+    public PlayerStat toEntity(Long playerId, PlayerStatisticApiDto playerStatisticApiDto) {
         PlayerStatisticApiDto.Statistic statistic = playerStatisticApiDto.response().getFirst().statistics().getFirst();
         return PlayerStat.builder()
                 .playerId(playerId)
