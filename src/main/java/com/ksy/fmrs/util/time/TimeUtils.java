@@ -1,4 +1,4 @@
-package com.ksy.fmrs.util;
+package com.ksy.fmrs.util.time;
 
 import java.time.LocalDate;
 import java.time.Period;
