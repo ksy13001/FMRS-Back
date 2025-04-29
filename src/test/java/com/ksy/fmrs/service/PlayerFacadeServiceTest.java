@@ -27,9 +27,11 @@ import static org.mockito.Mockito.when;
 @ExtendWith(SpringExtension.class)
 class PlayerFacadeServiceTest {
     @InjectMocks
-    PlayerFacadeService playerFacadeService;
-    @Mock PlayerStatService playerStatService;
-    @Mock PlayerService playerService;
+    private PlayerFacadeService playerFacadeService;
+    @Mock
+    private PlayerStatService playerStatService;
+    @Mock
+    private PlayerService playerService;
 
     private PlayerDetailsDto playerDetailsDto;
     private PlayerStatDto playerStatDto;
@@ -76,7 +78,7 @@ class PlayerFacadeServiceTest {
         // when
         when(playerService.getPlayerDetails(playerId)).thenReturn(playerDetailsDto);
         when(playerService.getFmPlayerDetails(playerId)).thenReturn(Optional.of(fmPlayerDetailsDto));
-        when(playerStatService.getPlayerStatByPlayerId(playerId)).thenReturn(playerStatDto);
+        when(playerStatService.saveAndGetPlayerStat(playerId)).thenReturn(playerStatDto);
         PlayerOverviewDto result = playerFacadeService.getPlayerOverview(playerId);
         // then
         Assertions.assertThat(result.fmPlayerDetailsDto()).isEqualTo(fmPlayerDetailsDto);

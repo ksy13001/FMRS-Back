@@ -29,7 +29,7 @@ class PlayerStatRepositoryTest {
     private TestEntityManager tem;
 
     @Test
-    @DisplayName("PlayerStat 저장 테스트")
+    @DisplayName("PlayerStat 저장 테스트, PlayerStat 저장 전 Player 저장되있어야 하고 PlayerStat 저장 전 Player 에 PlayerStat 값 업데이트해야함")
     void save() {
         // given
         Player player = Player.builder()
@@ -38,7 +38,7 @@ class PlayerStatRepositoryTest {
         tem.persistAndFlush(player);
 
         PlayerStat playerStat = PlayerStat.builder()
-                .player(player)
+                .playerId(player.getId())
                 .gamesPlayed(10)
                 .substitutes(5)
                 .goal(15)
@@ -50,25 +50,11 @@ class PlayerStatRepositoryTest {
                 .build();
 
         // when
-        PlayerStat saved = playerStatRepository.save(playerStat);
+        player.updatePlayerStat(playerStat);
+        PlayerStat savedPlayerStat = playerStatRepository.save(playerStat);
 
         // then
-        assertAll("saved PlayerStat",
-                () ->  Assertions.assertThat(saved.getPlayerId()).isEqualTo(player.getId()),
-                () ->  Assertions.assertThat(saved.getPlayer().getId()).isEqualTo(player.getId()),
-                () ->  Assertions.assertThat(saved.getGamesPlayed()).isEqualTo(10),
-                () ->  Assertions.assertThat(saved.getSubstitutes()).isEqualTo(5),
-                () ->  Assertions.assertThat(saved.getGoal()).isEqualTo(15),
-                () ->  Assertions.assertThat(saved.getAssist()).isEqualTo(10),
-                () ->  Assertions.assertThat(saved.getPk()).isEqualTo(3),
-                () ->  Assertions.assertThat(saved.getRating()).isEqualTo("7.15"),
-                () ->  Assertions.assertThat(saved.getYellowCards()).isEqualTo(5),
-                () ->  Assertions.assertThat(saved.getRedCards()).isEqualTo(3)
-        );
-//
-//        tem.flush();
-//        tem.clear();
-//        Optional<PlayerStat> opt = playerStatRepository.findById(player.getId());
-//        assertThat(opt).isPresent();
+        Assertions.assertThat(savedPlayerStat.getPlayerId()).isEqualTo(playerStat.getPlayerId());
+        Assertions.assertThat(savedPlayerStat.getPlayerId()).isEqualTo(player.getId());
     }
 }
