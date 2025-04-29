@@ -7,21 +7,26 @@ import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 
+import java.time.Duration;
+import java.time.LocalDateTime;
+
 @Getter
 
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
-@Entity
+@Entity(name = "player_stat")
 public class PlayerStat extends BaseTime {
 
     @Id
     @Column(name = "player_id")
     private Long playerId;
 
-    private Integer apiFootballId;
     private Integer gamesPlayed;
+    private Integer substitutes;
     private Integer goal;
     private Integer pk;
     private Integer assist;
+    private Integer yellowCards;
+    private Integer redCards;
     private String rating;
 
     @OneToOne
@@ -30,13 +35,24 @@ public class PlayerStat extends BaseTime {
     private Player player;
 
     @Builder
-    public PlayerStat(Long playerId, Integer apiFootballId, Integer gamesPlayed, Integer goal, Integer pk, Integer assist, String rating) {
+    public PlayerStat(Long playerId, Integer gamesPlayed, Integer substitutes,
+                      Integer goal, Integer pk, Integer assist,
+                      String rating, Integer yellowCards, Integer redCards) {
         this.playerId = playerId;
-        this.apiFootballId = apiFootballId;
         this.gamesPlayed = gamesPlayed;
+        this.substitutes = substitutes;
         this.goal = goal;
         this.pk = pk;
         this.assist = assist;
         this.rating = rating;
+        this.yellowCards = yellowCards;
+        this.redCards = redCards;
+    }
+
+    public boolean isExpired(LocalDateTime now){
+        if(Duration.between(this.getModifiedDate(), now).toHours() >= 24){
+            return true;
+        }
+        return false;
     }
 }
