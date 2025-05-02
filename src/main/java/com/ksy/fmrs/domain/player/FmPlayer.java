@@ -1,5 +1,6 @@
 package com.ksy.fmrs.domain.player;
 
+import com.ksy.fmrs.domain.enums.MappingStatus;
 import com.ksy.fmrs.dto.player.FmPlayerDto;
 import com.ksy.fmrs.util.FmUtils;
 import com.ksy.fmrs.util.NationNormalizer;
@@ -15,10 +16,9 @@ import java.time.LocalDate;
 
 @Getter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
-@Entity
-@Table(indexes = @Index(name = "idx_first_name_and_last_name_and_birth_and_nation_name",
+@Entity(name = "fmplayer")
+@Table(name = "fmplayer", indexes = @Index(name = "idx_first_name_and_last_name_and_birth_and_nation_name",
         columnList = "first_name, last_name, birth, nation_name"))
-
 public class FmPlayer {
 
     @Id
@@ -37,6 +37,9 @@ public class FmPlayer {
 
     @Column(name = "nation_name")
     private String nationName;
+
+    @Enumerated(EnumType.STRING)
+    private MappingStatus mappingStatus;
 
     @Embedded
     private Position position;

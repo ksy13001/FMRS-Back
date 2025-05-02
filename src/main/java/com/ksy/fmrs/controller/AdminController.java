@@ -7,8 +7,10 @@ import com.ksy.fmrs.dto.player.PlayerDetailsDto;
 import com.ksy.fmrs.dto.player.PlayerStatDto;
 import com.ksy.fmrs.repository.Player.PlayerRawRepository;
 import com.ksy.fmrs.repository.Player.PlayerRepository;
+import com.ksy.fmrs.scheduler.PlayerUpdateScheduler;
 import com.ksy.fmrs.service.*;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
@@ -19,18 +21,15 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
+@Slf4j
 @RequiredArgsConstructor
 @RestController
 public class AdminController {
     private final PlayerRawRepository playerRawRepository;
     private final PlayerService playerService;
-    private final FootballApiService footballApiService;
     private final InitializationService initializationService;
-    private final SchedulerService  schedulerService;
     private final PlayerFacadeService playerFacadeService;
-    private static final int LAST_LEAGUE_ID = 1172;
-    private static final int FIRST_LEAGUE_ID = 1;
-    private final PlayerRepository playerRepository;
+    private final PlayerUpdateScheduler playerUpdateScheduler;
 
     @ResponseBody
     @GetMapping("/api/admin/players/{playerId}")
@@ -99,9 +98,10 @@ public class AdminController {
     }
 
     @ResponseBody
-    @PostMapping("/api/admin/mapping")
+    @PutMapping("/api/admin/mapping")
     public void updateAllPlayerApiIds() {
-        initializationService.updateAllPlayersFmData();
+        int result = initializationService.updateAllPlayersFmData();
+        log.info("updated raws = {}", result);
     }
 
     @ResponseBody
@@ -109,22 +109,15 @@ public class AdminController {
     public void updateAllPlayers() {
         List<Player> duplicatedPlayers = playerService.getDuplicatePlayers();
         List<Player> duplicatedPlayersWithFmplayers = playerService.getPlayersWithMultipleFmPlayers();
-//        Set<Player> players = new HashSet<>();
-//        players.addAll(duplicatedPlayersWithFmplayers);
-//        players.addAll(duplicatedPlayers);
-//        if(!players.isEmpty()){
-//            playerService.updatePlayersMappingStatusToFailed(
-//                    new ArrayList<>(players)
-//            );
-//        }
         playerService.updatePlayersMappingStatusToFailed(duplicatedPlayersWithFmplayers);
         playerService.updatePlayersMappingStatusToFailed(duplicatedPlayers);
+        int result = initializationService.updateAllPlayersFmData();
+        log.info("updated raws = {}", result);
     }
 
-
-//    @ResponseBody
-//    @PostMapping("/api/admin/update-squad")
-//    public void updateSquad() {
-//        schedulerService.updateSquad();
-//    }
+    @ResponseBody
+    @PutMapping("/api/admin/update/player-team")
+    public void updateAllPlayersTeam() {
+        playerUpdateScheduler.updateAllSquad();
+    }
 }

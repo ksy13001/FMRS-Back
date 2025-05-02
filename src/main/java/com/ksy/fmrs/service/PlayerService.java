@@ -2,7 +2,7 @@ package com.ksy.fmrs.service;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.ksy.fmrs.domain.enums.PlayerMappingStatus;
+import com.ksy.fmrs.domain.enums.MappingStatus;
 import com.ksy.fmrs.domain.player.*;
 import com.ksy.fmrs.domain.Team;
 import com.ksy.fmrs.dto.apiFootball.LeagueApiPlayersDto;
@@ -57,7 +57,7 @@ public class PlayerService {
     public Optional<FmPlayerDetailsDto> getFmPlayerDetails(Long playerId) {
         Player player = playerRepository.findById(playerId)
                 .orElseThrow(() -> new IllegalArgumentException("Player not found: " + playerId));
-        if (player.getMappingStatus() != PlayerMappingStatus.MATCHED) {
+        if (player.getMappingStatus() != MappingStatus.MATCHED) {
             return Optional.empty();
         }
         return Optional.of(new FmPlayerDetailsDto(player.getFmPlayer()));
@@ -197,7 +197,7 @@ public class PlayerService {
     public void updatePlayersMappingStatusToFailed(List<Player> players) {
         players.forEach(player -> {
             log.info("id:"+player.getId());
-            player.updateMappingStatus(PlayerMappingStatus.FAILED);
+            player.updateMappingStatus(MappingStatus.FAILED);
         });
     }
 

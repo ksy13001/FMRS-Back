@@ -17,6 +17,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.util.Optional;
 
 @RequiredArgsConstructor
 @Service
@@ -32,23 +33,28 @@ public class PlayerStatService {
      * PlayerStat 이 존재 하고 수정 시각이 하루 미만일 경우 조회한 PlayerStat 사용
      * 하루 이상일 경우 외부 api로 값 가져 오고 PlayerStat 업데이트
      * PlayerStat이 존재 하지 않을 경우 외부 api로 값 가져 오기
+     * 팀 매핑된 경우에만 스탯 가져올수있음
      */
-
     @Transactional
-    public PlayerStatDto saveAndGetPlayerStat(Long playerId) {
+    public Optional<PlayerStatDto> saveAndGetPlayerStat(Long playerId) {
         PlayerStat playerStat = playerStatRepository.findById(playerId)
                 .filter(ps -> !ps.isExpired(timeProvider.getCurrentTime()))
                 .orElseGet(() -> savePlayerStat(playerId));
-        return new PlayerStatDto(playerStat);
+        if (playerStat == null) {
+            return Optional.empty();
+        }
+        return Optional.of(new PlayerStatDto(playerStat));
     }
 
     private PlayerStat savePlayerStat(Long playerId) {
         Player player = playerRepository.findById(playerId)
                 .orElseThrow(EntityNotFoundException::new);
         Team team = player.getTeam();
+        if (team == null) {
+            return null;
+        }
         League league = team.getLeague();
         PlayerStat ps = playerStatMapper.toEntity(
-                player.getId(),
                 footballApiService.getPlayerStatByPlayerApiIdAndTeamApiIdAndLeagueApiId(
                         player.getPlayerApiId(),
                         team.getTeamApiId(),

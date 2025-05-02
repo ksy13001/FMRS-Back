@@ -1,6 +1,6 @@
 package com.ksy.fmrs.repository.Player;
 
-import com.ksy.fmrs.domain.enums.PlayerMappingStatus;
+import com.ksy.fmrs.domain.enums.MappingStatus;
 import com.ksy.fmrs.domain.player.Player;
 import com.ksy.fmrs.domain.QTeam;
 import com.ksy.fmrs.domain.player.QPlayer;
@@ -31,9 +31,9 @@ public class PlayerRepositoryCustomImpl implements PlayerRepositoryCustom {
     public Long updateDuplicatedUnmappedPlayersToFailed() {
         return jpaQueryFactory
                 .update(player)
-                .set(player.mappingStatus, PlayerMappingStatus.FAILED)
+                .set(player.mappingStatus, MappingStatus.FAILED)
                 .where(
-                        player.mappingStatus.eq(PlayerMappingStatus.UNMAPPED),
+                        player.mappingStatus.eq(MappingStatus.UNMAPPED),
                         JPAExpressions
                                 .select(fmPlayer.count())
                                 .from(fmPlayer)
@@ -50,9 +50,9 @@ public class PlayerRepositoryCustomImpl implements PlayerRepositoryCustom {
     public Long updateDuplicatedUnmappedFMPlayersToFailed() {
         return jpaQueryFactory
                 .update(player)
-                .set(player.mappingStatus, PlayerMappingStatus.FAILED)
+                .set(player.mappingStatus, MappingStatus.FAILED)
                 .where(
-                        player.mappingStatus.eq(PlayerMappingStatus.UNMAPPED),
+                        player.mappingStatus.eq(MappingStatus.UNMAPPED),
                         JPAExpressions
                                 .select(player.count())
                                 .from(player)
@@ -73,7 +73,7 @@ public class PlayerRepositoryCustomImpl implements PlayerRepositoryCustom {
         List<Tuple> keys = jpaQueryFactory
                 .select(p.firstName, p.lastName, p.birth, p.nationName)
                 .from(p)
-                .where(p.mappingStatus.eq(PlayerMappingStatus.UNMAPPED))
+                .where(p.mappingStatus.eq(MappingStatus.UNMAPPED))
                 .groupBy(p.firstName, p.lastName, p.birth, p.nationName)
                 .having(p.count().gt(1))
                 .fetch();
@@ -91,7 +91,7 @@ public class PlayerRepositoryCustomImpl implements PlayerRepositoryCustom {
 
         return jpaQueryFactory
                 .selectFrom(p)
-                .where(p.mappingStatus.eq(PlayerMappingStatus.UNMAPPED)
+                .where(p.mappingStatus.eq(MappingStatus.UNMAPPED)
                         .and(cond))
                 .fetch();
     }

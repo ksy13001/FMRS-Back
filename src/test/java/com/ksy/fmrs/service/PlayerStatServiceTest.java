@@ -73,7 +73,6 @@ class PlayerStatServiceTest {
         ReflectionTestUtils.setField(league, "id", 1L);
 
         PlayerStat playerStat = PlayerStat.builder()
-                .playerId(player.getId())
                 .gamesPlayed(10)
                 .goal(5)
                 .build();
@@ -82,18 +81,18 @@ class PlayerStatServiceTest {
         when(playerRepository.findById(anyLong())).thenReturn(Optional.of(player));
         when(footballApiService.getPlayerStatByPlayerApiIdAndTeamApiIdAndLeagueApiId(anyInt(), anyInt(), anyInt(), anyInt()))
                 .thenReturn(playerStatisticApiDto);
-        when(playerStatMapper.toEntity(anyLong(), any())).thenReturn(playerStat);
+        when(playerStatMapper.toEntity(any())).thenReturn(playerStat);
 
-        PlayerStatDto actual = playerStatService.saveAndGetPlayerStat(player.getId());
+        Optional<PlayerStatDto> actual = playerStatService.saveAndGetPlayerStat(player.getId());
         // then
         verify(playerStatRepository, times(1)).save(playerStat);
         verify(footballApiService).getPlayerStatByPlayerApiIdAndTeamApiIdAndLeagueApiId(
                 player.getPlayerApiId(), team.getTeamApiId(),
                 league.getLeagueApiId(), league.getCurrentSeason()
         );
-        verify(playerStatMapper).toEntity(player.getId(), playerStatisticApiDto);
+        verify(playerStatMapper).toEntity(playerStatisticApiDto);
         verify(playerStatRepository).findById(player.getId());
-        Assertions.assertThat(actual.getGamesPlayed()).isEqualTo(10);
+        Assertions.assertThat(actual.get().getGamesPlayed()).isEqualTo(10);
     }
 
     @Test
@@ -117,14 +116,12 @@ class PlayerStatServiceTest {
         PlayerStatisticApiDto playerStatisticApiDto = createPlayerStatisticApiDto();
 
         PlayerStat existingStat = PlayerStat.builder()
-                .playerId(playerId)
                 .gamesPlayed(10)
                 .build();
         ReflectionTestUtils.setField(player, "id", playerId);
         ReflectionTestUtils.setField(existingStat, "modifiedDate",
                 LocalDateTime.of(1999, 10, 11, 0, 0));
         PlayerStat refreshStat = PlayerStat.builder()
-                .playerId(playerId)
                 .gamesPlayed(12)
                 .build();
 
@@ -137,8 +134,8 @@ class PlayerStatServiceTest {
         when(playerRepository.findById(anyLong())).thenReturn(Optional.of(player));
         when(footballApiService.getPlayerStatByPlayerApiIdAndTeamApiIdAndLeagueApiId(anyInt(), anyInt(), anyInt(), anyInt()))
                 .thenReturn(playerStatisticApiDto);
-        when(playerStatMapper.toEntity(anyLong(), any())).thenReturn(refreshStat);
-        PlayerStatDto actual = playerStatService.saveAndGetPlayerStat(playerId);
+        when(playerStatMapper.toEntity(any())).thenReturn(refreshStat);
+        Optional<PlayerStatDto> actual = playerStatService.saveAndGetPlayerStat(playerId);
         // then
         verify(playerStatRepository, times(1)).findById(playerId);
         verify(playerRepository, times(1)).findById(playerId);
@@ -148,7 +145,7 @@ class PlayerStatServiceTest {
                 league.getLeagueApiId(), league.getCurrentSeason()
         );
 
-        Assertions.assertThat(actual.getGamesPlayed()).isEqualTo(12);
+        Assertions.assertThat(actual.get().getGamesPlayed()).isEqualTo(12);
     }
 
     @Test
@@ -171,7 +168,6 @@ class PlayerStatServiceTest {
         Long playerId = 1L;
 
         PlayerStat existingStat = PlayerStat.builder()
-                .playerId(playerId)
                 .gamesPlayed(10)
                 .build();
         ReflectionTestUtils.setField(player, "id", playerId);
@@ -184,13 +180,13 @@ class PlayerStatServiceTest {
 
         // when
         when(playerStatRepository.findById(playerId)).thenReturn(Optional.of(existingStat));
-        PlayerStatDto actual = playerStatService.saveAndGetPlayerStat(playerId);
+        Optional<PlayerStatDto> actual = playerStatService.saveAndGetPlayerStat(playerId);
         // then
         verify(playerStatRepository, times(1)).findById(playerId);
         verifyNoInteractions(footballApiService);
         verifyNoInteractions(playerRepository);
 
-        Assertions.assertThat(actual.getGamesPlayed()).isEqualTo(10);
+        Assertions.assertThat(actual.get().getGamesPlayed()).isEqualTo(10);
     }
 
     private PlayerStatisticApiDto createPlayerStatisticApiDto() {
@@ -260,7 +256,6 @@ class PlayerStatServiceTest {
     private PlayerStat dtoToEntity(Long playerId, PlayerStatisticApiDto dto) {
         PlayerStatisticApiDto.Statistic statistic = dto.response().getFirst().statistics().getFirst();
         return PlayerStat.builder()
-                .playerId(playerId)
                 .gamesPlayed(statistic.games().appearences())
                 .substitutes(statistic.substitutes().in())
                 .goal(statistic.goals().total())

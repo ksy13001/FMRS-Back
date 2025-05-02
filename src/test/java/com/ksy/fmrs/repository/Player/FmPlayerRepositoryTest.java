@@ -1,15 +1,13 @@
 package com.ksy.fmrs.repository.Player;
 
-import com.ksy.fmrs.domain.enums.PlayerMappingStatus;
+import com.ksy.fmrs.domain.enums.MappingStatus;
 import com.ksy.fmrs.domain.player.*;
 import jakarta.persistence.EntityManager;
 import org.assertj.core.api.Assertions;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.autoconfigure.jdbc.AutoConfigureTestDatabase;
 import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.boot.test.context.TestConfiguration;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -87,7 +85,7 @@ class FmPlayerRepositoryTest {
                 .lastName(lastName)
                 .birth(birth)
                 .nationName(nation)
-                .mappingStatus(PlayerMappingStatus.UNMAPPED)
+                .mappingStatus(MappingStatus.UNMAPPED)
                 .build();
     }
 
@@ -129,7 +127,7 @@ class FmPlayerRepositoryTest {
                         .dribbling(20)
                         .finishing(20)
                         .firstTouch(20)
-                        .freeKincks(18)
+                        .freeKicks(18)
                         .heading(12)
                         .longShots(18)
                         .longThrows(5)

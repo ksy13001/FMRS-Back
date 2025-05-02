@@ -2,7 +2,7 @@ package com.ksy.fmrs.domain.player;
 
 
 import com.ksy.fmrs.domain.Team;
-import com.ksy.fmrs.domain.enums.PlayerMappingStatus;
+import com.ksy.fmrs.domain.enums.MappingStatus;
 import com.ksy.fmrs.util.time.TimeUtils;
 import jakarta.persistence.*;
 import lombok.*;
@@ -44,7 +44,7 @@ public class Player {
 
     @Enumerated(EnumType.STRING)
     @Column(name="mapping_status")
-    private PlayerMappingStatus mappingStatus;
+    private MappingStatus mappingStatus;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "team_id")
@@ -54,8 +54,8 @@ public class Player {
     @JoinColumn(name = "fmplayer_id", unique = true)
     private FmPlayer fmPlayer;
 
-    @OneToOne(fetch = FetchType.LAZY)
-    @PrimaryKeyJoinColumn
+    @OneToOne
+    @JoinColumn(name = "player_stat_id", unique = true)
     private PlayerStat playerStat;
 
     @Builder
@@ -69,7 +69,7 @@ public class Player {
             String imageUrl,
             String nationName,
             String nationLogoUrl,
-            PlayerMappingStatus mappingStatus
+            MappingStatus mappingStatus
     ) {
         this.playerApiId = playerApiId;
         this.firstName = firstName;
@@ -97,7 +97,7 @@ public class Player {
         this.fmPlayer = fmPlayer;
     }
 
-    public void updateMappingStatus(PlayerMappingStatus status) {
+    public void updateMappingStatus(MappingStatus status) {
         this.mappingStatus = status;
     }
 
