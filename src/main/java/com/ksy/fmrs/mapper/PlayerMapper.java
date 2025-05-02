@@ -1,6 +1,6 @@
 package com.ksy.fmrs.mapper;
 
-import com.ksy.fmrs.domain.enums.PlayerMappingStatus;
+import com.ksy.fmrs.domain.enums.MappingStatus;
 import com.ksy.fmrs.domain.player.Player;
 import com.ksy.fmrs.dto.apiFootball.LeagueApiPlayersDto;
 import com.ksy.fmrs.util.StringUtils;
@@ -49,9 +49,9 @@ public class PlayerMapper {
 
         LocalDate birth = dto.birth() != null ? dto.birth().date() : null;
 
-        PlayerMappingStatus status = (first == null || last == null || birth == null || nation == null)
-                ? PlayerMappingStatus.FAILED
-                : PlayerMappingStatus.UNMAPPED;
+        MappingStatus status = (first == null || last == null || birth == null || nation == null)
+                ? MappingStatus.FAILED
+                : MappingStatus.UNMAPPED;
 
         return Player.builder()
                 .playerApiId(dto.id())

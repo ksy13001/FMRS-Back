@@ -48,7 +48,6 @@ public class PlayerStatService {
         Team team = player.getTeam();
         League league = team.getLeague();
         PlayerStat ps = playerStatMapper.toEntity(
-                player.getId(),
                 footballApiService.getPlayerStatByPlayerApiIdAndTeamApiIdAndLeagueApiId(
                         player.getPlayerApiId(),
                         team.getTeamApiId(),

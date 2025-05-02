@@ -9,6 +9,7 @@ import com.ksy.fmrs.repository.Player.PlayerRawRepository;
 import com.ksy.fmrs.repository.Player.PlayerRepository;
 import com.ksy.fmrs.service.*;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
@@ -19,6 +20,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
+@Slf4j
 @RequiredArgsConstructor
 @RestController
 public class AdminController {
@@ -99,9 +101,10 @@ public class AdminController {
     }
 
     @ResponseBody
-    @PostMapping("/api/admin/mapping")
+    @PutMapping("/api/admin/mapping")
     public void updateAllPlayerApiIds() {
-        initializationService.updateAllPlayersFmData();
+        int result = initializationService.updateAllPlayersFmData();
+        log.info("updated raws = {}", result);
     }
 
     @ResponseBody
@@ -109,16 +112,10 @@ public class AdminController {
     public void updateAllPlayers() {
         List<Player> duplicatedPlayers = playerService.getDuplicatePlayers();
         List<Player> duplicatedPlayersWithFmplayers = playerService.getPlayersWithMultipleFmPlayers();
-//        Set<Player> players = new HashSet<>();
-//        players.addAll(duplicatedPlayersWithFmplayers);
-//        players.addAll(duplicatedPlayers);
-//        if(!players.isEmpty()){
-//            playerService.updatePlayersMappingStatusToFailed(
-//                    new ArrayList<>(players)
-//            );
-//        }
         playerService.updatePlayersMappingStatusToFailed(duplicatedPlayersWithFmplayers);
         playerService.updatePlayersMappingStatusToFailed(duplicatedPlayers);
+        int result = initializationService.updateAllPlayersFmData();
+        log.info("updated raws = {}", result);
     }
 
 

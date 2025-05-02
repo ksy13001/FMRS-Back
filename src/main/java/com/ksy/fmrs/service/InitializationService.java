@@ -3,7 +3,7 @@ package com.ksy.fmrs.service;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.ksy.fmrs.domain.enums.LeagueType;
-import com.ksy.fmrs.domain.enums.PlayerMappingStatus;
+import com.ksy.fmrs.domain.enums.MappingStatus;
 import com.ksy.fmrs.domain.player.*;
 import com.ksy.fmrs.dto.apiFootball.LeagueApiPlayersDto;
 import com.ksy.fmrs.dto.league.LeagueDetailsRequestDto;
@@ -17,6 +17,7 @@ import com.ksy.fmrs.util.StringUtils;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.servlet.LocaleResolver;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
@@ -241,32 +242,30 @@ public class InitializationService {
     }
 
 
+    @Transactional
+    public int updateAllPlayersFmData() {
+//        List<Player> players = new ArrayList<>();
+//        List<FmPlayer> fmPlayers = new ArrayList<>();
+//        playerRepository.findByMappingStatus(PlayerMappingStatus.UNMAPPED).forEach(player -> {
+//            List<FmPlayer> findFmPlayer = fmPlayerRepository.findFmPlayerByFirstNameAndLastNameAndBirthAndNationName(
+//                    player.getFirstName(), player.getLastName(), player.getBirth(), player.getNationName()
+//            );
+//            if(findFmPlayer.size() == 1){
+//                log.info("Add fmPlayer : id{}", findFmPlayer.getFirst().getId());
+//                fmPlayers.add(findFmPlayer.getFirst());
+//            }
+//        });
+//        int total = fmPlayers.size();
+//        for (int i = 0; i < total; i += CHUNK_SIZE) {
+//            int end = Math.min(i + CHUNK_SIZE, total);
+//            bulkRepository.bulkUpdatePlayersFmData(players.subList(i, end), fmPlayers.subList(i, end));
+//        }
+        return bulkRepository.mappingPlayerAndFmPlayer();
+    }
 
-    public void updateAllPlayersFmData() {
-        List<Player> players = new ArrayList<>();
-        List<FmPlayer> fmPlayers = new ArrayList<>();
-        playerRepository.findByMappingStatus(PlayerMappingStatus.UNMAPPED).forEach(player -> {
-            List<FmPlayer> findFmPlayer = fmPlayerRepository.findFmPlayerByFirstNameAndLastNameAndBirthAndNationName(
-                    player.getFirstName(), player.getLastName(), player.getBirth(), player.getNationName()
-            );
-            if (findFmPlayer.isEmpty()) {
-                log.info("Not Exist FmPlayer: {}", player.getId());
-            } else if (findFmPlayer.size() > 1) {
-                log.info("Too Many FmPlayer: {}", player.getId());
-            } else {
-                log.info("Success : FmPlayer: {}", player.getId());
-                FmPlayer fmPlayer = findFmPlayer.getFirst();
-                player.updateFmPlayer(fmPlayer);
-                player.updateMappingStatus(PlayerMappingStatus.MATCHED);
-                players.add(player);
-                fmPlayers.add(fmPlayer);
-            }
-        });
-        int total = fmPlayers.size();
-        for (int i = 0; i < total; i += CHUNK_SIZE) {
-            int end = Math.min(i + CHUNK_SIZE, total);
-            bulkRepository.bulkUpdatePlayersFmData(players.subList(i, end), fmPlayers.subList(i, end));
-        }
+    @Transactional
+    public int updatePlayersAsFailedByDuplicatedFmPlayer(){
+        return bulkRepository.updatePlayersAsFailedByDuplicatedFmPlayer();
     }
 
     private List<Integer> createAllLeagueApiIds() {
@@ -329,7 +328,7 @@ public class InitializationService {
                     .birth(player.birth().date())
                     .height(StringUtils.extractNumber(player.height()))
                     .weight(StringUtils.extractNumber(player.weight()))
-                    .mappingStatus(PlayerMappingStatus.UNMAPPED)
+                    .mappingStatus(MappingStatus.UNMAPPED)
                     .build();
         }).toList();
     }

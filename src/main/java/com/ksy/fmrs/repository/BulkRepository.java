@@ -8,6 +8,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.jdbc.core.BatchPreparedStatementSetter;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Repository;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.sql.PreparedStatement;
 import java.sql.SQLException;
@@ -53,7 +54,7 @@ public class BulkRepository {
     }
 
     public void bulkInsertFmPlayers(List<FmPlayer> fmPlayers) {
-        log.info("전달받은 fmplayer 개수:{}",fmPlayers.size());
+        log.info("전달받은 fmplayer 개수:{}", fmPlayers.size());
 
         List<String> columns = List.of(
                 "name", "current_ability", "potential_ability",
@@ -167,13 +168,47 @@ public class BulkRepository {
         });
     }
 
+
+    public int mappingPlayerAndFmPlayer() {
+        String sql = """
+                UPDATE player p
+                JOIN fmplayer f
+                  ON p.first_name   = f.first_name
+                 AND p.last_name    = f.last_name
+                 AND p.birth        = f.birth
+                 AND p.nation_name  = f.nation_name
+                SET p.fmplayer_id    = f.id,
+                    p.mapping_status = 'MATCHED'
+                WHERE p.mapping_status = 'UNMAPPED'
+                """;
+        return jdbcTemplate.update(sql);
+    }
+
+
+    public int updatePlayersAsFailedByDuplicatedFmPlayer() {
+        String sql = """
+                UPDATE player p\s
+                JOIN (SELECT f.first_name, f.last_name, f.birth, f.nation_name, COUNT(*)
+                FROM fmplayer f
+                GROUP BY 1,2,3,4 HAVING COUNT(*) > 1
+                ) AS dup
+                	on p.first_name = dup.first_name
+                	AND p.last_name = dup.last_name
+                	AND p.birth = dup.birth
+                	AND p.nation_name = dup.nation_name
+                SET p.mapping_status="FAILED"
+                WHERE p.mapping_status = 'UNMAPPED' 
+                """;
+        return jdbcTemplate.update(sql);
+    }
+
     public void bulkUpdatePlayersFmData(List<Player> players, List<FmPlayer> fmPlayers) {
         String sql = "UPDATE player p " +
-                "JOIN fmplayer f " +
-                "ON f.first_name = p.first_name " +
-                "AND f.last_name = p.last_name " +
-                "AND f.birth = p.birth " +
-                "AND f.nation_name = p.nation_name " +
+//                "JOIN fmplayer f " +
+//                "ON f.first_name = p.first_name " +
+//                "AND f.last_name = p.last_name " +
+//                "AND f.birth = p.birth " +
+//                "AND f.nation_name = p.nation_name " +
                 "SET " +
                 "p.fmplayer_id = ?, p.mapping_status= 'MATCHED' " +
                 "WHERE p.id=? AND p.mapping_status= 'UNMAPPED' ";
@@ -195,7 +230,7 @@ public class BulkRepository {
 
     }
 
-    public void bulkInsertPlayerRaws(List<String> jsons){
+    public void bulkInsertPlayerRaws(List<String> jsons) {
         List<String> columns = Arrays.asList("json_raw", "created_at", "processed");
         String sql = buildInsertSql("player_raw", columns);
 

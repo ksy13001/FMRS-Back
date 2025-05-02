@@ -1,6 +1,6 @@
 package com.ksy.fmrs.service;
 
-import com.ksy.fmrs.domain.enums.PlayerMappingStatus;
+import com.ksy.fmrs.domain.enums.MappingStatus;
 import com.ksy.fmrs.domain.player.FmPlayer;
 import com.ksy.fmrs.domain.player.Player;
 import com.ksy.fmrs.domain.player.PlayerStat;
@@ -50,7 +50,7 @@ class PlayerFacadeServiceTest {
                 .weight(80)
                 .imageUrl("imageUrl")
                 .nationLogoUrl("nationLogoUrl")
-                .mappingStatus(PlayerMappingStatus.MATCHED)
+                .mappingStatus(MappingStatus.MATCHED)
                 .build();
         ReflectionTestUtils.setField(player, "id", 1L);
         FmPlayer fmPlayer = FmPlayer.builder()

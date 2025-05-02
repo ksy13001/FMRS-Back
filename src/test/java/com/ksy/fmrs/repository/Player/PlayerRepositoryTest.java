@@ -1,7 +1,7 @@
 package com.ksy.fmrs.repository.Player;
 
 import com.ksy.fmrs.config.TestQueryDSLConfig;
-import com.ksy.fmrs.domain.enums.PlayerMappingStatus;
+import com.ksy.fmrs.domain.enums.MappingStatus;
 import com.ksy.fmrs.domain.player.FmPlayer;
 import com.ksy.fmrs.domain.player.Player;
 import com.ksy.fmrs.domain.QTeam;
@@ -40,7 +40,7 @@ class PlayerRepositoryTest {
     @DisplayName("save 단건")
     void save() {
         // given
-        Player player = createPlayer("p1", "p1", LocalDate.now(), "n1", PlayerMappingStatus.UNMAPPED);
+        Player player = createPlayer("p1", "p1", LocalDate.now(), "n1", MappingStatus.UNMAPPED);
         // when
         Player savePlayer = playerRepository.save(player);
 
@@ -53,8 +53,8 @@ class PlayerRepositoryTest {
     void saveAll() {
         // given
         List<Player> playerList = new ArrayList<>();
-        Player player = createPlayer("p1", "p1", LocalDate.now(), "n1", PlayerMappingStatus.UNMAPPED);
-        Player player2 = createPlayer("p2", "p2", LocalDate.now(), "n2", PlayerMappingStatus.UNMAPPED);
+        Player player = createPlayer("p1", "p1", LocalDate.now(), "n1", MappingStatus.UNMAPPED);
+        Player player2 = createPlayer("p2", "p2", LocalDate.now(), "n2", MappingStatus.UNMAPPED);
         Team team1 = createTeam("t1");
         Team team2 = createTeam("t2");
         player.updateTeam(team1);
@@ -80,13 +80,13 @@ class PlayerRepositoryTest {
         teamRepository.save(team1);
         teamRepository.save(team2);
         for (int i = 0; i < 10; i++) {
-            Player player = createPlayer("player" + i, "p" + i, LocalDate.now(), "n" + i, PlayerMappingStatus.UNMAPPED);
+            Player player = createPlayer("player" + i, "p" + i, LocalDate.now(), "n" + i, MappingStatus.UNMAPPED);
             players.add(player);
             player.updateTeam(team1);
             playerRepository.save(player);
         }
         for (int i = 0; i < 5; i++) {
-            Player player = createPlayer("not_player" + i, " p" + i, LocalDate.now(), "n" + i, PlayerMappingStatus.UNMAPPED);
+            Player player = createPlayer("not_player" + i, " p" + i, LocalDate.now(), "n" + i, MappingStatus.UNMAPPED);
             players.add(player);
             player.updateTeam(team2);
             playerRepository.save(player);
@@ -178,7 +178,7 @@ class PlayerRepositoryTest {
                 .lastName("AKANJI")
                 .nationName("SWITZERLAND")
                 .birth(LocalDate.of(1995, 7, 19))
-                .mappingStatus(PlayerMappingStatus.UNMAPPED)
+                .mappingStatus(MappingStatus.UNMAPPED)
                 .build();
         entityManager.persist(player);
         entityManager.persist(fmPlayer1);
@@ -203,11 +203,11 @@ class PlayerRepositoryTest {
         String nationName = "SWITZERLAND";
         LocalDate birth = LocalDate.of(1995, 7, 19);
         for (int i = 0; i < 100; i++) {
-            Player player = createPlayer(firstName, lastName, birth, nationName, PlayerMappingStatus.UNMAPPED);
+            Player player = createPlayer(firstName, lastName, birth, nationName, MappingStatus.UNMAPPED);
             entityManager.persist(player);
         }
         for (int i = 0; i < 100; i++) {
-            Player player = createPlayer("f" + i, "l" + i, LocalDate.now(), "n" + i, PlayerMappingStatus.UNMAPPED);
+            Player player = createPlayer("f" + i, "l" + i, LocalDate.now(), "n" + i, MappingStatus.UNMAPPED);
             entityManager.persist(player);
         }
         entityManager.flush();
@@ -229,7 +229,7 @@ class PlayerRepositoryTest {
         return Team.builder().name(name).build();
     }
 
-    private Player createPlayer(String firstName, String lastName, LocalDate birth, String nationName, PlayerMappingStatus mappingStatus) {
+    private Player createPlayer(String firstName, String lastName, LocalDate birth, String nationName, MappingStatus mappingStatus) {
         return Player.builder()
                 .firstName(firstName)
                 .lastName(lastName)

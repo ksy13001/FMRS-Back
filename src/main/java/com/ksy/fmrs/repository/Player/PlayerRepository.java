@@ -1,7 +1,6 @@
 package com.ksy.fmrs.repository.Player;
 
-import com.ksy.fmrs.domain.Team;
-import com.ksy.fmrs.domain.enums.PlayerMappingStatus;
+import com.ksy.fmrs.domain.enums.MappingStatus;
 import com.ksy.fmrs.domain.player.Player;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
@@ -17,10 +16,16 @@ public interface PlayerRepository extends JpaRepository<Player, Long>, PlayerRep
 
     Optional<Player> findByPlayerApiId(Integer playerApiId);
 
-    List<Player> findByMappingStatus(PlayerMappingStatus mappingStatus);
+    List<Player> findByMappingStatus(MappingStatus mappingStatus);
+
+//    @Query("SELECT p FROM Player p " +
+//            "join fetch  ps" +
+//            "WHERE p.mappingStatus = 'UNMAPPED' " +
+//            "")
+//    List<Player> findUnMappingPlayerWithPlayerStat();
 
     @Query("SELECT p FROM Player p " +
-            "JOIN FmPlayer fp " +
+            "JOIN fmplayer fp " +
             "ON p.firstName = fp.firstName " +
             "AND p.lastName = fp.lastName " +
             "AND p.birth = fp.birth " +
