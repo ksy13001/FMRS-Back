@@ -38,7 +38,6 @@ class PlayerStatRepositoryTest {
         tem.persistAndFlush(player);
 
         PlayerStat playerStat = PlayerStat.builder()
-                .playerId(player.getId())
                 .gamesPlayed(10)
                 .substitutes(5)
                 .goal(15)
@@ -54,7 +53,9 @@ class PlayerStatRepositoryTest {
         PlayerStat savedPlayerStat = playerStatRepository.save(playerStat);
 
         // then
-        Assertions.assertThat(savedPlayerStat.getPlayerId()).isEqualTo(playerStat.getPlayerId());
-        Assertions.assertThat(savedPlayerStat.getPlayerId()).isEqualTo(player.getId());
+        Assertions.assertThat(savedPlayerStat.getGamesPlayed()).isEqualTo(playerStat.getGamesPlayed());
+        Assertions.assertThat(savedPlayerStat.getGoal()).isEqualTo(playerStat.getGoal());
+        Assertions.assertThat(savedPlayerStat.getAssist()).isEqualTo(playerStat.getAssist());
+
     }
 }
