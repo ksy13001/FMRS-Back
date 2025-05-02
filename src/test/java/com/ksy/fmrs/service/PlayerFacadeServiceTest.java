@@ -78,7 +78,7 @@ class PlayerFacadeServiceTest {
         // when
         when(playerService.getPlayerDetails(playerId)).thenReturn(playerDetailsDto);
         when(playerService.getFmPlayerDetails(playerId)).thenReturn(Optional.of(fmPlayerDetailsDto));
-        when(playerStatService.saveAndGetPlayerStat(playerId)).thenReturn(playerStatDto);
+        when(playerStatService.saveAndGetPlayerStat(playerId)).thenReturn(Optional.of(playerStatDto));
         PlayerOverviewDto result = playerFacadeService.getPlayerOverview(playerId);
         // then
         Assertions.assertThat(result.fmPlayerDetailsDto()).isEqualTo(fmPlayerDetailsDto);
