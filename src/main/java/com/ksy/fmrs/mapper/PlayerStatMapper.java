@@ -14,7 +14,7 @@ public class PlayerStatMapper {
                 .substitutes(statistic.substitutes().in())
                 .goal(statistic.goals().total())
                 .assist(statistic.goals().assists())
-                .pk(statistic.penalty().won())
+                .pk(statistic.penalty().scored())
                 .rating(statistic.games().rating())
                 .yellowCards(statistic.cards().yellow())
                 .redCards(statistic.cards().red())

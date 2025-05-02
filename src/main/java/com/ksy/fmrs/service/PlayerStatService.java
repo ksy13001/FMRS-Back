@@ -30,6 +30,7 @@ public class PlayerStatService {
     private final TimeProvider timeProvider;
 
     /**
+     * Player 통해서 playerStat 조회
      * PlayerStat 이 존재 하고 수정 시각이 하루 미만일 경우 조회한 PlayerStat 사용
      * 하루 이상일 경우 외부 api로 값 가져 오고 PlayerStat 업데이트
      * PlayerStat이 존재 하지 않을 경우 외부 api로 값 가져 오기
@@ -37,21 +38,20 @@ public class PlayerStatService {
      */
     @Transactional
     public Optional<PlayerStatDto> saveAndGetPlayerStat(Long playerId) {
-        PlayerStat playerStat = playerStatRepository.findById(playerId)
-                .filter(ps -> !ps.isExpired(timeProvider.getCurrentTime()))
-                .orElseGet(() -> savePlayerStat(playerId));
-        if (playerStat == null) {
-            return Optional.empty();
+        Player player = playerRepository.findById(playerId)
+                .orElseThrow(()-> new EntityNotFoundException("Player not found with id: " + playerId));
+        PlayerStat playerStat = player.getPlayerStat();
+
+        if (playerStat == null || playerStat.isExpired(timeProvider.getCurrentTime())) {
+            return savePlayerStat(player).map(PlayerStatDto::new);
         }
         return Optional.of(new PlayerStatDto(playerStat));
     }
 
-    private PlayerStat savePlayerStat(Long playerId) {
-        Player player = playerRepository.findById(playerId)
-                .orElseThrow(EntityNotFoundException::new);
+    private Optional<PlayerStat> savePlayerStat(Player player) {
         Team team = player.getTeam();
         if (team == null) {
-            return null;
+            return Optional.empty();
         }
         League league = team.getLeague();
         PlayerStat ps = playerStatMapper.toEntity(
@@ -60,8 +60,9 @@ public class PlayerStatService {
                         team.getTeamApiId(),
                         league.getLeagueApiId(),
                         league.getCurrentSeason()));
+        player.updatePlayerStat(ps);
         playerStatRepository.save(ps);
-        return ps;
+        return Optional.of(ps);
     }
 
     @Transactional(readOnly = true)
