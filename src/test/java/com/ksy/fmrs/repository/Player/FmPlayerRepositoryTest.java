@@ -127,7 +127,7 @@ class FmPlayerRepositoryTest {
                         .dribbling(20)
                         .finishing(20)
                         .firstTouch(20)
-                        .freeKincks(18)
+                        .freeKicks(18)
                         .heading(12)
                         .longShots(18)
                         .longThrows(5)
