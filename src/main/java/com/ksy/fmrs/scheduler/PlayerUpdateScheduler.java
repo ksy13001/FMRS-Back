@@ -34,12 +34,13 @@ public class PlayerUpdateScheduler {
     private static final int DELAY_MS = 150;
     private static final int TIME_OUT = 10;
 
-    @Scheduled(cron = "0 0 7 1/3 * *", zone = "Asia/Seoul")
+    @Scheduled(cron = "0 57 15 * * *", zone = "Asia/Seoul")
     public void updateAllSquad() {
         Mono.fromCallable(teamRepository::findAll)
                 .subscribeOn(Schedulers.boundedElastic())
                 .flatMapMany(Flux::fromIterable)
                 .flatMap(team -> {
+                    log.info("Team ID: {}", team.getId());
                     return footballApiService.getSquadPlayers(team.getTeamApiId())
                             .delayElement(Duration.ofMillis(DELAY_MS))
                             .timeout(Duration.ofSeconds(TIME_OUT))

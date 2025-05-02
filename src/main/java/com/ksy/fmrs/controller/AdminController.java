@@ -7,6 +7,7 @@ import com.ksy.fmrs.dto.player.PlayerDetailsDto;
 import com.ksy.fmrs.dto.player.PlayerStatDto;
 import com.ksy.fmrs.repository.Player.PlayerRawRepository;
 import com.ksy.fmrs.repository.Player.PlayerRepository;
+import com.ksy.fmrs.scheduler.PlayerUpdateScheduler;
 import com.ksy.fmrs.service.*;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -26,13 +27,9 @@ import java.util.Set;
 public class AdminController {
     private final PlayerRawRepository playerRawRepository;
     private final PlayerService playerService;
-    private final FootballApiService footballApiService;
     private final InitializationService initializationService;
-    private final SchedulerService  schedulerService;
     private final PlayerFacadeService playerFacadeService;
-    private static final int LAST_LEAGUE_ID = 1172;
-    private static final int FIRST_LEAGUE_ID = 1;
-    private final PlayerRepository playerRepository;
+    private final PlayerUpdateScheduler playerUpdateScheduler;
 
     @ResponseBody
     @GetMapping("/api/admin/players/{playerId}")
@@ -118,10 +115,9 @@ public class AdminController {
         log.info("updated raws = {}", result);
     }
 
-
-//    @ResponseBody
-//    @PostMapping("/api/admin/update-squad")
-//    public void updateSquad() {
-//        schedulerService.updateSquad();
-//    }
+    @ResponseBody
+    @PutMapping("/api/admin/update/player-team")
+    public void updateAllPlayersTeam() {
+        playerUpdateScheduler.updateAllSquad();
+    }
 }

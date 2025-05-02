@@ -250,7 +250,7 @@ public class BulkRepository {
         });
     }
 
-    public void updatePlayersTeam(List<Integer> playerApiIds, Long teamId) {
+    public void  updatePlayersTeam(List<Integer> playerApiIds, Long teamId) {
         String sql = "UPDATE Player " +
                 "SET team_id = ? " +
                 "WHERE player_api_id = ?";

@@ -33,8 +33,8 @@ public class PlayerStatService {
      * PlayerStat 이 존재 하고 수정 시각이 하루 미만일 경우 조회한 PlayerStat 사용
      * 하루 이상일 경우 외부 api로 값 가져 오고 PlayerStat 업데이트
      * PlayerStat이 존재 하지 않을 경우 외부 api로 값 가져 오기
+     * 팀 매핑된 경우에만 스탯 가져올수있음
      */
-
     @Transactional
     public Optional<PlayerStatDto> saveAndGetPlayerStat(Long playerId) {
         PlayerStat playerStat = playerStatRepository.findById(playerId)
