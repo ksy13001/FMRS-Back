@@ -17,7 +17,8 @@ public class PlayerFacadeService {
 
     public PlayerOverviewDto getPlayerOverview(Long playerId) {
         PlayerDetailsDto playerDetailsDto = playerService.getPlayerDetails(playerId);
-        PlayerStatDto playerStatDto = playerStatService.saveAndGetPlayerStat(playerId);
+        PlayerStatDto playerStatDto = playerStatService.saveAndGetPlayerStat(playerId)
+                .orElse(null);
         FmPlayerDetailsDto fmPlayerDetailsDto = playerService.getFmPlayerDetails(playerId)
                 .orElse(null);
 

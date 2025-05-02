@@ -17,6 +17,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.util.Optional;
 
 @RequiredArgsConstructor
 @Service
@@ -35,17 +36,23 @@ public class PlayerStatService {
      */
 
     @Transactional
-    public PlayerStatDto saveAndGetPlayerStat(Long playerId) {
+    public Optional<PlayerStatDto> saveAndGetPlayerStat(Long playerId) {
         PlayerStat playerStat = playerStatRepository.findById(playerId)
                 .filter(ps -> !ps.isExpired(timeProvider.getCurrentTime()))
                 .orElseGet(() -> savePlayerStat(playerId));
-        return new PlayerStatDto(playerStat);
+        if (playerStat == null) {
+            return Optional.empty();
+        }
+        return Optional.of(new PlayerStatDto(playerStat));
     }
 
     private PlayerStat savePlayerStat(Long playerId) {
         Player player = playerRepository.findById(playerId)
                 .orElseThrow(EntityNotFoundException::new);
         Team team = player.getTeam();
+        if (team == null) {
+            return null;
+        }
         League league = team.getLeague();
         PlayerStat ps = playerStatMapper.toEntity(
                 footballApiService.getPlayerStatByPlayerApiIdAndTeamApiIdAndLeagueApiId(
