@@ -23,30 +23,7 @@
         .stat-item:hover { background-color: #f1f5f9; }
 
         /* Position map styles */
-        .position-map {
-            width: 100%;
-            aspect-ratio: 3/2;
-            background-color: #000000;
-            border-radius: 0.5rem;
-            position: relative;
-            overflow: hidden;
-        }
 
-        .field-line {
-            position: absolute;
-            background-color: #222222;
-        }
-
-        .position-indicator {
-            position: absolute;
-            width: 16px;
-            height: 16px;
-            left: 10px;
-        }
-
-        .position-gray { background-color: #6B7280; }
-        .position-yellow { background-color: #FBBF24; }
-        .position-green { background-color: #34D399; }
     </style>
 </head>
 <body class="bg-slate-100 min-h-screen flex flex-col text-xs">
@@ -171,7 +148,7 @@
                         <div class="bg-white rounded-lg p-1 shadow-sm">
                             <div class="flex items-center gap-1 mb-0.5">
                                 <i class="icon icon-play-circle text-emerald-500"></i>
-                                <span class="text-xs text-slate-600">Games</span>
+                                <span class="text-xs text-slate-600">Games(sub)</span>
                             </div>
                             <span class="text-sm font-bold text-slate-800"
                                   th:with="games=${player != null && player.playerStatDto != null && player.playerStatDto.gamesPlayed != null ? player.playerStatDto.gamesPlayed : '0'},
@@ -181,7 +158,7 @@
                         <div class="bg-white rounded-lg p-1 shadow-sm">
                             <div class="flex items-center gap-1 mb-0.5">
                                 <i class="icon icon-ball-football text-emerald-500"></i>
-                                <span class="text-xs text-slate-600">Goals</span>
+                                <span class="text-xs text-slate-600">Goals(PK)</span>
                             </div>
                             <span class="text-sm font-bold text-slate-800"
                                   th:with="goals=${player != null && player.playerStatDto != null && player.playerStatDto.goal != null ? player.playerStatDto.goal : '0'},
@@ -230,114 +207,100 @@
                         Position
                     </h3>
                     <div class="flex justify-center items-center">
-                        <div class="position-map">
+                        <div style="width: 100%; max-width: 200px; aspect-ratio: 2/1;" class="bg-black rounded-md relative overflow-hidden">
                             <!-- Field markings - very subtle -->
-                            <div class="field-line" style="width: 100%; height: 1px; top: 50%; left: 0;"></div>
-                            <div class="field-line" style="width: 1px; height: 100%; left: 50%; top: 0;"></div>
+                            <div class="absolute w-full h-px top-1/2 bg-gray-800"></div>
+                            <div class="absolute w-px h-full left-1/2 bg-gray-800"></div>
 
                             <!-- Position indicators - all on the left side -->
                             <!-- Striker -->
                             <div th:if="${player.fmPlayerDetailsDto.position.striker > 0}"
-                                 th:class="${'position-indicator ' +
-                                  (player.fmPlayerDetailsDto.position.striker < 10 ? 'position-gray' :
-                                   player.fmPlayerDetailsDto.position.striker < 15 ? 'position-yellow' : 'position-green')}"
-                                 style="top: 10%;">
+                                 th:class="${player.fmPlayerDetailsDto.position.striker < 10 ? 'bg-gray-500' :
+                           player.fmPlayerDetailsDto.position.striker < 15 ? 'bg-yellow-400' : 'bg-green-400'}"
+                                 class="absolute w-4 h-4 left-2" style="top: 10%;">
                             </div>
 
                             <!-- Attacking Midfielders -->
                             <div th:if="${player.fmPlayerDetailsDto.position.attackingMidLeft > 0}"
-                                 th:class="${'position-indicator ' +
-                                  (player.fmPlayerDetailsDto.position.attackingMidLeft < 10 ? 'position-gray' :
-                                   player.fmPlayerDetailsDto.position.attackingMidLeft < 15 ? 'position-yellow' : 'position-green')}"
-                                 style="top: 20%;">
+                                 th:class="${player.fmPlayerDetailsDto.position.attackingMidLeft < 10 ? 'bg-gray-500' :
+                           player.fmPlayerDetailsDto.position.attackingMidLeft < 15 ? 'bg-yellow-400' : 'bg-green-400'}"
+                                 class="absolute w-4 h-4 left-2" style="top: 20%;">
                             </div>
 
                             <div th:if="${player.fmPlayerDetailsDto.position.attackingMidCentral > 0}"
-                                 th:class="${'position-indicator ' +
-                                  (player.fmPlayerDetailsDto.position.attackingMidCentral < 10 ? 'position-gray' :
-                                   player.fmPlayerDetailsDto.position.attackingMidCentral < 15 ? 'position-yellow' : 'position-green')}"
-                                 style="top: 25%;">
+                                 th:class="${player.fmPlayerDetailsDto.position.attackingMidCentral < 10 ? 'bg-gray-500' :
+                           player.fmPlayerDetailsDto.position.attackingMidCentral < 15 ? 'bg-yellow-400' : 'bg-green-400'}"
+                                 class="absolute w-4 h-4 left-2" style="top: 25%;">
                             </div>
 
                             <div th:if="${player.fmPlayerDetailsDto.position.attackingMidRight > 0}"
-                                 th:class="${'position-indicator ' +
-                                  (player.fmPlayerDetailsDto.position.attackingMidRight < 10 ? 'position-gray' :
-                                   player.fmPlayerDetailsDto.position.attackingMidRight < 15 ? 'position-yellow' : 'position-green')}"
-                                 style="top: 30%;">
+                                 th:class="${player.fmPlayerDetailsDto.position.attackingMidRight < 10 ? 'bg-gray-500' :
+                           player.fmPlayerDetailsDto.position.attackingMidRight < 15 ? 'bg-yellow-400' : 'bg-green-400'}"
+                                 class="absolute w-4 h-4 left-2" style="top: 30%;">
                             </div>
 
                             <!-- Midfielders -->
                             <div th:if="${player.fmPlayerDetailsDto.position.midfielderLeft > 0}"
-                                 th:class="${'position-indicator ' +
-                                  (player.fmPlayerDetailsDto.position.midfielderLeft < 10 ? 'position-gray' :
-                                   player.fmPlayerDetailsDto.position.midfielderLeft < 15 ? 'position-yellow' : 'position-green')}"
-                                 style="top: 35%;">
+                                 th:class="${player.fmPlayerDetailsDto.position.midfielderLeft < 10 ? 'bg-gray-500' :
+                           player.fmPlayerDetailsDto.position.midfielderLeft < 15 ? 'bg-yellow-400' : 'bg-green-400'}"
+                                 class="absolute w-4 h-4 left-2" style="top: 35%;">
                             </div>
 
                             <div th:if="${player.fmPlayerDetailsDto.position.midfielderCentral > 0}"
-                                 th:class="${'position-indicator ' +
-                                  (player.fmPlayerDetailsDto.position.midfielderCentral < 10 ? 'position-gray' :
-                                   player.fmPlayerDetailsDto.position.midfielderCentral < 15 ? 'position-yellow' : 'position-green')}"
-                                 style="top: 40%;">
+                                 th:class="${player.fmPlayerDetailsDto.position.midfielderCentral < 10 ? 'bg-gray-500' :
+                           player.fmPlayerDetailsDto.position.midfielderCentral < 15 ? 'bg-yellow-400' : 'bg-green-400'}"
+                                 class="absolute w-4 h-4 left-2" style="top: 40%;">
                             </div>
 
                             <div th:if="${player.fmPlayerDetailsDto.position.midfielderRight > 0}"
-                                 th:class="${'position-indicator ' +
-                                  (player.fmPlayerDetailsDto.position.midfielderRight < 10 ? 'position-gray' :
-                                   player.fmPlayerDetailsDto.position.midfielderRight < 15 ? 'position-yellow' : 'position-green')}"
-                                 style="top: 45%;">
+                                 th:class="${player.fmPlayerDetailsDto.position.midfielderRight < 10 ? 'bg-gray-500' :
+                           player.fmPlayerDetailsDto.position.midfielderRight < 15 ? 'bg-yellow-400' : 'bg-green-400'}"
+                                 class="absolute w-4 h-4 left-2" style="top: 45%;">
                             </div>
 
                             <div th:if="${player.fmPlayerDetailsDto.position.defensiveMidfielder > 0}"
-                                 th:class="${'position-indicator ' +
-                                  (player.fmPlayerDetailsDto.position.defensiveMidfielder < 10 ? 'position-gray' :
-                                   player.fmPlayerDetailsDto.position.defensiveMidfielder < 15 ? 'position-yellow' : 'position-green')}"
-                                 style="top: 50%;">
+                                 th:class="${player.fmPlayerDetailsDto.position.defensiveMidfielder < 10 ? 'bg-gray-500' :
+                           player.fmPlayerDetailsDto.position.defensiveMidfielder < 15 ? 'bg-yellow-400' : 'bg-green-400'}"
+                                 class="absolute w-4 h-4 left-2" style="top: 50%;">
                             </div>
 
                             <!-- Wing Backs -->
                             <div th:if="${player.fmPlayerDetailsDto.position.wingBackLeft > 0}"
-                                 th:class="${'position-indicator ' +
-                                  (player.fmPlayerDetailsDto.position.wingBackLeft < 10 ? 'position-gray' :
-                                   player.fmPlayerDetailsDto.position.wingBackLeft < 15 ? 'position-yellow' : 'position-green')}"
-                                 style="top: 55%;">
+                                 th:class="${player.fmPlayerDetailsDto.position.wingBackLeft < 10 ? 'bg-gray-500' :
+                           player.fmPlayerDetailsDto.position.wingBackLeft < 15 ? 'bg-yellow-400' : 'bg-green-400'}"
+                                 class="absolute w-4 h-4 left-2" style="top: 55%;">
                             </div>
 
                             <div th:if="${player.fmPlayerDetailsDto.position.wingBackRight > 0}"
-                                 th:class="${'position-indicator ' +
-                                  (player.fmPlayerDetailsDto.position.wingBackRight < 10 ? 'position-gray' :
-                                   player.fmPlayerDetailsDto.position.wingBackRight < 15 ? 'position-yellow' : 'position-green')}"
-                                 style="top: 60%;">
+                                 th:class="${player.fmPlayerDetailsDto.position.wingBackRight < 10 ? 'bg-gray-500' :
+                           player.fmPlayerDetailsDto.position.wingBackRight < 15 ? 'bg-yellow-400' : 'bg-green-400'}"
+                                 class="absolute w-4 h-4 left-2" style="top: 60%;">
                             </div>
 
                             <!-- Defenders -->
                             <div th:if="${player.fmPlayerDetailsDto.position.defenderLeft > 0}"
-                                 th:class="${'position-indicator ' +
-                                  (player.fmPlayerDetailsDto.position.defenderLeft < 10 ? 'position-gray' :
-                                   player.fmPlayerDetailsDto.position.defenderLeft < 15 ? 'position-yellow' : 'position-green')}"
-                                 style="top: 65%;">
+                                 th:class="${player.fmPlayerDetailsDto.position.defenderLeft < 10 ? 'bg-gray-500' :
+                           player.fmPlayerDetailsDto.position.defenderLeft < 15 ? 'bg-yellow-400' : 'bg-green-400'}"
+                                 class="absolute w-4 h-4 left-2" style="top: 65%;">
                             </div>
 
                             <div th:if="${player.fmPlayerDetailsDto.position.defenderCentral > 0}"
-                                 th:class="${'position-indicator ' +
-                                  (player.fmPlayerDetailsDto.position.defenderCentral < 10 ? 'position-gray' :
-                                   player.fmPlayerDetailsDto.position.defenderCentral < 15 ? 'position-yellow' : 'position-green')}"
-                                 style="top: 70%;">
+                                 th:class="${player.fmPlayerDetailsDto.position.defenderCentral < 10 ? 'bg-gray-500' :
+                           player.fmPlayerDetailsDto.position.defenderCentral < 15 ? 'bg-yellow-400' : 'bg-green-400'}"
+                                 class="absolute w-4 h-4 left-2" style="top: 70%;">
                             </div>
 
                             <div th:if="${player.fmPlayerDetailsDto.position.defenderRight > 0}"
-                                 th:class="${'position-indicator ' +
-                                  (player.fmPlayerDetailsDto.position.defenderRight < 10 ? 'position-gray' :
-                                   player.fmPlayerDetailsDto.position.defenderRight < 15 ? 'position-yellow' : 'position-green')}"
-                                 style="top: 75%;">
+                                 th:class="${player.fmPlayerDetailsDto.position.defenderRight < 10 ? 'bg-gray-500' :
+                           player.fmPlayerDetailsDto.position.defenderRight < 15 ? 'bg-yellow-400' : 'bg-green-400'}"
+                                 class="absolute w-4 h-4 left-2" style="top: 75%;">
                             </div>
 
                             <!-- Goalkeeper -->
                             <div th:if="${player.fmPlayerDetailsDto.position.goalkeeper > 0}"
-                                 th:class="${'position-indicator ' +
-                                  (player.fmPlayerDetailsDto.position.goalkeeper < 10 ? 'position-gray' :
-                                   player.fmPlayerDetailsDto.position.goalkeeper < 15 ? 'position-yellow' : 'position-green')}"
-                                 style="top: 85%;">
+                                 th:class="${player.fmPlayerDetailsDto.position.goalkeeper < 10 ? 'bg-gray-500' :
+                           player.fmPlayerDetailsDto.position.goalkeeper < 15 ? 'bg-yellow-400' : 'bg-green-400'}"
+                                 class="absolute w-4 h-4 left-2" style="top: 85%;">
                             </div>
                         </div>
                     </div>
