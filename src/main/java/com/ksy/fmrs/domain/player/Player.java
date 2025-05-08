@@ -21,6 +21,8 @@ public class Player {
     @Column(name = "player_api_id", unique = true)
     private Integer playerApiId;
 
+    private String name;
+
     @Column(name = "first_name")
     private String firstName;
 
@@ -50,11 +52,11 @@ public class Player {
     @JoinColumn(name = "team_id")
     private Team team;
 
-    @OneToOne
+    @OneToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "fmplayer_id", unique = true)
     private FmPlayer fmPlayer;
 
-    @OneToOne
+    @OneToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "player_stat_id", unique = true)
     private PlayerStat playerStat;
 
@@ -63,6 +65,7 @@ public class Player {
             Integer playerApiId,
             String firstName,
             String lastName,
+            String name,
             LocalDate birth,
             int height,
             int weight,
@@ -74,6 +77,7 @@ public class Player {
         this.playerApiId = playerApiId;
         this.firstName = firstName;
         this.lastName = lastName;
+        this.name = name;
         this.birth = birth;
         this.height = height;
         this.weight = weight;

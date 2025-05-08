@@ -8,15 +8,21 @@ import com.ksy.fmrs.dto.search.SearchPlayerCondition;
 import com.querydsl.core.BooleanBuilder;
 import com.querydsl.core.Tuple;
 import com.querydsl.core.types.dsl.BooleanExpression;
+import com.querydsl.core.types.dsl.CaseBuilder;
+import com.querydsl.core.types.dsl.NumberExpression;
 import com.querydsl.jpa.JPAExpressions;
 import com.querydsl.jpa.impl.JPAQueryFactory;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Slice;
+import org.springframework.data.domain.SliceImpl;
 import org.springframework.stereotype.Repository;
 
 import java.time.LocalDate;
 import java.util.Collections;
 import java.util.List;
 
+import static com.ksy.fmrs.domain.QTeam.team;
 import static com.ksy.fmrs.domain.player.QFmPlayer.fmPlayer;
 import static com.ksy.fmrs.domain.player.QPlayer.player;
 
@@ -25,85 +31,6 @@ import static com.ksy.fmrs.domain.player.QPlayer.player;
 public class PlayerRepositoryCustomImpl implements PlayerRepositoryCustom {
 
     private final JPAQueryFactory jpaQueryFactory;
-
-    // fmPlayer 에 대응되는 Player 가 하나 이상인 경우 mapping_state = FAILED 처리
-    // 서브쿼리는 JPAExpressions 로 구현, 괄호랑 같은 역할
-    public Long updateDuplicatedUnmappedPlayersToFailed() {
-        return jpaQueryFactory
-                .update(player)
-                .set(player.mappingStatus, MappingStatus.FAILED)
-                .where(
-                        player.mappingStatus.eq(MappingStatus.UNMAPPED),
-                        JPAExpressions
-                                .select(fmPlayer.count())
-                                .from(fmPlayer)
-                                .where(
-                                        fmPlayer.firstName.eq(player.firstName),
-                                        fmPlayer.lastName.eq(player.lastName),
-                                        fmPlayer.birth.eq(player.birth),
-                                        fmPlayer.nationName.eq(player.nationName)
-                                ).gt(1L)
-                )
-                .execute();
-    }
-
-    public Long updateDuplicatedUnmappedFMPlayersToFailed() {
-        return jpaQueryFactory
-                .update(player)
-                .set(player.mappingStatus, MappingStatus.FAILED)
-                .where(
-                        player.mappingStatus.eq(MappingStatus.UNMAPPED),
-                        JPAExpressions
-                                .select(player.count())
-                                .from(player)
-                                .where(
-                                        player.firstName.eq(fmPlayer.firstName),
-                                        player.lastName.eq(fmPlayer.lastName),
-                                        player.birth.eq(fmPlayer.birth),
-                                        player.nationName.eq(fmPlayer.nationName)
-                                ).gt(1L)
-                )
-                .execute();
-    }
-
-    public List<Player> findDuplicatedPlayers() {
-        QPlayer p = QPlayer.player;
-
-        // 1) 중복 키 추출
-        List<Tuple> keys = jpaQueryFactory
-                .select(p.firstName, p.lastName, p.birth, p.nationName)
-                .from(p)
-                .where(p.mappingStatus.eq(MappingStatus.UNMAPPED))
-                .groupBy(p.firstName, p.lastName, p.birth, p.nationName)
-                .having(p.count().gt(1))
-                .fetch();
-
-        if (keys.isEmpty()) return Collections.emptyList();
-
-        // 2) OR 조건 조합 (≈ 300개면 부담 없음)
-        BooleanBuilder cond = new BooleanBuilder();
-        keys.forEach(k -> cond.or(
-                p.firstName.eq(k.get(p.firstName))
-                        .and(p.lastName.eq(k.get(p.lastName)))
-                        .and(p.birth.eq(k.get(p.birth)))
-                        .and(p.nationName.eq(k.get(p.nationName)))
-        ));
-
-        return jpaQueryFactory
-                .selectFrom(p)
-                .where(p.mappingStatus.eq(MappingStatus.UNMAPPED)
-                        .and(cond))
-                .fetch();
-    }
-
-//    // 팀 소속 선수들 조회 기능
-//    @Override
-//    public List<Player> getPlayersByTeamId(Long teamId) {
-//        return jpaQueryFactory.selectFrom(QPlayer.player)
-//                .join(QTeam.team.players, QPlayer.player)
-//                .where(QPlayer.player.team.id.eq(teamId))
-//                .fetch();
-//    }
 
     // firstName, lastName, 나이, 국가로 검색
     @Override
@@ -117,11 +44,20 @@ public class PlayerRepositoryCustomImpl implements PlayerRepositoryCustom {
 
     // 이름 검색
     @Override
-    public List<Player> searchPlayerByName(String name) {
-        return jpaQueryFactory
+    public Slice<Player> searchPlayerByName(
+            String name, Pageable pageable, MappingStatus lastmappingStatus, Long lastPlayerId) {
+
+        int limit = pageable.getPageSize();
+        List<Player> players = jpaQueryFactory
                 .selectFrom(player)
-//                .where(nameContains(name))
+                .where(nameContains(name), mappingStatusAndIdCursorPredicate(lastmappingStatus, lastPlayerId))
+                .orderBy(mappingStatusRankExpr().asc(), player.id.asc())
+                .limit(limit + 1) // limit + 1만큼 불러 와지면 다음 페이지가 존재함
                 .fetch();
+
+        boolean hasNext = players.size() > limit;
+        List<Player> content = hasNext ? players.subList(0, limit) : players;
+        return new SliceImpl<>(content, pageable, hasNext);
     }
 
     // 나이, 포지션, 능력치, 나라, 팀
@@ -179,13 +115,37 @@ public class PlayerRepositoryCustomImpl implements PlayerRepositoryCustom {
                 .fetch();
     }
 
-    // 검색 조건
-//    private BooleanExpression nameContains(String name) {
-//        if (name == null || name.isEmpty()) {
-//            return null;
-//        }
-//        return QPlayer.player.name.contains(name);
-//    }
+    //     검색 조건
+    private BooleanExpression nameContains(String name) {
+        if (name == null || name.isEmpty()) {
+            return null;
+        }
+        return QPlayer.player.name.containsIgnoreCase(name);
+    }
+
+    private BooleanExpression mappingStatusAndIdCursorPredicate(
+            MappingStatus lastMappingStatus, Long lastPlayerId) {
+        if (lastPlayerId == null || lastMappingStatus == null) {
+            return null;
+        }
+        int cnt = switch (lastMappingStatus) {
+            case MATCHED -> 0;
+            case UNMAPPED -> 1;
+            default -> 2;
+        };
+
+        return mappingStatusRankExpr().gt(cnt).or(
+                mappingStatusRankExpr().eq(cnt).and(player.id.gt(lastPlayerId))
+        );
+    }
+
+    // MATCHED -> UNMAPPED -> FAILED 순으로 정렬
+    private NumberExpression<Integer> mappingStatusRankExpr() {
+        return new CaseBuilder()
+                .when(player.mappingStatus.eq(MappingStatus.MATCHED)).then(0)
+                .when(player.mappingStatus.eq(MappingStatus.UNMAPPED)).then(1)
+                .otherwise(2);
+    }
 
     private BooleanExpression eqFirstName(String first) {
         if (first == null || first.isEmpty()) {
@@ -198,7 +158,7 @@ public class PlayerRepositoryCustomImpl implements PlayerRepositoryCustom {
         if (nation == null || nation.isEmpty()) {
             return null;
         }
-        return  player.nationName.eq(nation);
+        return player.nationName.eq(nation);
     }
 
     private BooleanExpression eqBirth(LocalDate birth) {
@@ -538,4 +498,85 @@ public class PlayerRepositoryCustomImpl implements PlayerRepositoryCustom {
 //        }
 //        return QPlayer.player.physicalAttributes.strength.goe(strengthMin);
 //    }
+
+
+    // fmPlayer 에 대응되는 Player 가 하나 이상인 경우 mapping_state = FAILED 처리
+    // 서브쿼리는 JPAExpressions 로 구현, 괄호랑 같은 역할
+    public Long updateDuplicatedUnmappedPlayersToFailed() {
+        return jpaQueryFactory
+                .update(player)
+                .set(player.mappingStatus, MappingStatus.FAILED)
+                .where(
+                        player.mappingStatus.eq(MappingStatus.UNMAPPED),
+                        JPAExpressions
+                                .select(fmPlayer.count())
+                                .from(fmPlayer)
+                                .where(
+                                        fmPlayer.firstName.eq(player.firstName),
+                                        fmPlayer.lastName.eq(player.lastName),
+                                        fmPlayer.birth.eq(player.birth),
+                                        fmPlayer.nationName.eq(player.nationName)
+                                ).gt(1L)
+                )
+                .execute();
+    }
+
+    public Long updateDuplicatedUnmappedFMPlayersToFailed() {
+        return jpaQueryFactory
+                .update(player)
+                .set(player.mappingStatus, MappingStatus.FAILED)
+                .where(
+                        player.mappingStatus.eq(MappingStatus.UNMAPPED),
+                        JPAExpressions
+                                .select(player.count())
+                                .from(player)
+                                .where(
+                                        player.firstName.eq(fmPlayer.firstName),
+                                        player.lastName.eq(fmPlayer.lastName),
+                                        player.birth.eq(fmPlayer.birth),
+                                        player.nationName.eq(fmPlayer.nationName)
+                                ).gt(1L)
+                )
+                .execute();
+    }
+
+    public List<Player> findDuplicatedPlayers() {
+        QPlayer p = QPlayer.player;
+
+        // 1) 중복 키 추출
+        List<Tuple> keys = jpaQueryFactory
+                .select(p.firstName, p.lastName, p.birth, p.nationName)
+                .from(p)
+                .where(p.mappingStatus.eq(MappingStatus.UNMAPPED))
+                .groupBy(p.firstName, p.lastName, p.birth, p.nationName)
+                .having(p.count().gt(1))
+                .fetch();
+
+        if (keys.isEmpty()) return Collections.emptyList();
+
+        // 2) OR 조건 조합 (≈ 300개면 부담 없음)
+        BooleanBuilder cond = new BooleanBuilder();
+        keys.forEach(k -> cond.or(
+                p.firstName.eq(k.get(p.firstName))
+                        .and(p.lastName.eq(k.get(p.lastName)))
+                        .and(p.birth.eq(k.get(p.birth)))
+                        .and(p.nationName.eq(k.get(p.nationName)))
+        ));
+
+        return jpaQueryFactory
+                .selectFrom(p)
+                .where(p.mappingStatus.eq(MappingStatus.UNMAPPED)
+                        .and(cond))
+                .fetch();
+    }
+
+//    // 팀 소속 선수들 조회 기능
+//    @Override
+//    public List<Player> getPlayersByTeamId(Long teamId) {
+//        return jpaQueryFactory.selectFrom(QPlayer.player)
+//                .join(QTeam.team.players, QPlayer.player)
+//                .where(QPlayer.player.team.id.eq(teamId))
+//                .fetch();
+//    }
+
 }
