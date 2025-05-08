@@ -9,6 +9,9 @@ public class                                                                    
     }
 
     public static int getAge(LocalDate birth) {
+        if(birth == null){
+            return 0;
+        }
         return Period.between(birth, LocalDate.now()).getYears();
     }
 }
