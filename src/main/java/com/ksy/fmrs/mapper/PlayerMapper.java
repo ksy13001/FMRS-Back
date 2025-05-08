@@ -57,6 +57,7 @@ public class PlayerMapper {
                 .playerApiId(dto.id())
                 .firstName(first)
                 .lastName(last)
+                .name(dto.name())
                 .birth(birth)
                 .height(StringUtils.extractNumber(dto.height()))
                 .weight(StringUtils.extractNumber(dto.weight()))
