@@ -1,5 +1,6 @@
 package com.ksy.fmrs.dto.player;
 
+import com.ksy.fmrs.domain.enums.MappingStatus;
 import com.ksy.fmrs.domain.player.*;
 import lombok.Getter;
 import lombok.Setter;
@@ -23,6 +24,7 @@ public class PlayerDetailsDto {
         this.nationName = player.getNationName();
         this.nationLogoUrl = player.getNationLogoUrl();
         this.imageUrl = player.getImageUrl();
+        this.mappingStatus = player.getMappingStatus();
     }
 
     private Long id;
@@ -36,4 +38,5 @@ public class PlayerDetailsDto {
     private String nationName;
     private String nationLogoUrl;
     private String imageUrl;
+    private MappingStatus mappingStatus;
 }
