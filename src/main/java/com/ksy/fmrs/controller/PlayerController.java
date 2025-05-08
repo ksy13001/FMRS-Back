@@ -1,14 +1,13 @@
 package com.ksy.fmrs.controller;
 
+import com.ksy.fmrs.domain.enums.MappingStatus;
 import com.ksy.fmrs.dto.PlayerOverviewDto;
 import com.ksy.fmrs.dto.search.SearchPlayerCondition;
 import com.ksy.fmrs.dto.search.SearchPlayerResponseDto;
-import com.ksy.fmrs.dto.team.TeamPlayersResponseDto;
-import com.ksy.fmrs.service.FootballApiService;
 import com.ksy.fmrs.service.PlayerFacadeService;
 import com.ksy.fmrs.service.PlayerService;
-import com.ksy.fmrs.service.PlayerStatService;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
@@ -18,15 +17,13 @@ import org.springframework.web.bind.annotation.*;
 public class PlayerController {
 
     private final PlayerFacadeService playerFacadeService;
-    private final PlayerStatService playerStatService;
     private final PlayerService playerService;
-    private final FootballApiService footballApiService;
 
     /**
      * 1. player 상세정보
      * 2. 매핑된 상태라면 fmplayer 정보
      * 3. 실제 스탯
-     * */
+     */
     @GetMapping("/players/{playerId}")
     public String getPlayerDetail(@PathVariable Long playerId, Model model) {
         PlayerOverviewDto playerOverviewDto = playerFacadeService.getPlayerOverview(playerId);
@@ -43,10 +40,21 @@ public class PlayerController {
 
     // 상세 검색 결과 반환 페이지
     @GetMapping("/players/detail-search/result")
-    public String searchPlayerByDetailConditionResult(@ModelAttribute("searchPlayerCondition") SearchPlayerCondition searchPlayerCondition, Model model) {
+    public String searchPlayerByDetailConditionResult(
+            @ModelAttribute("searchPlayerCondition") SearchPlayerCondition searchPlayerCondition, Model model) {
         SearchPlayerResponseDto searchPlayerResponseDto = playerService.searchPlayerByDetailCondition(searchPlayerCondition);
         model.addAttribute("players", searchPlayerResponseDto);
         return "players-detail-search";
     }
 
+    @ResponseBody
+    @GetMapping("/api/search/simple-player")
+    public SearchPlayerResponseDto searchPlayerBySimpleCondition(
+            @RequestParam String name,
+            Pageable pageable,
+            @RequestParam(required = false) Long lastPlayerId,
+            @RequestParam(required = false) MappingStatus lastMappingStatus
+    ) {
+        return playerService.searchPlayerByName(name, pageable, lastMappingStatus, lastPlayerId);
+    }
 }

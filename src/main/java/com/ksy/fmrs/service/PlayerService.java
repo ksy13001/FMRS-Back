@@ -13,13 +13,12 @@ import com.ksy.fmrs.dto.search.SearchPlayerResponseDto;
 import com.ksy.fmrs.dto.team.TeamPlayersResponseDto;
 import com.ksy.fmrs.mapper.PlayerMapper;
 import com.ksy.fmrs.repository.BulkRepository;
-import com.ksy.fmrs.repository.Player.FmPlayerRepository;
-import com.ksy.fmrs.repository.Player.PlayerRawRepository;
 import com.ksy.fmrs.repository.Player.PlayerRepository;
 import com.ksy.fmrs.repository.Team.TeamRepository;
 import com.ksy.fmrs.util.StringUtils;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -36,10 +35,8 @@ import java.util.stream.Collectors;
 public class PlayerService {
 
     private final PlayerRepository playerRepository;
-    private final FmPlayerRepository fmPlayerRepository;
     private final TeamRepository teamRepository;
     private final BulkRepository bulkRepository;
-    private final PlayerRawRepository playerRawRepository;
     private final ObjectMapper objectMapper;
     private final PlayerMapper playerMapper;
 
@@ -172,8 +169,14 @@ public class PlayerService {
      * 선수 이름 검색
      */
     @Transactional(readOnly = true)
-    public SearchPlayerResponseDto searchPlayerByName(String name) {
-        return new SearchPlayerResponseDto(playerRepository.searchPlayerByName(name)
+    public SearchPlayerResponseDto searchPlayerByName(
+            String name,
+            Pageable pageable,
+            MappingStatus lastMappingStatus,
+            Long lastPlayerId
+    ) {
+        return new SearchPlayerResponseDto(playerRepository.searchPlayerByName(
+                        name, pageable, lastMappingStatus, lastPlayerId)
                 .stream()
                 .map(this::convertPlayerToPlayerDetailsResponseDto)
                 .toList());
@@ -192,17 +195,17 @@ public class PlayerService {
 
     /**
      * 하나의 player 에 대응되는 fmPlayer 가 여러개인 경우 Failed 처리
-     * */
+     */
     @Transactional
     public void updatePlayersMappingStatusToFailed(List<Player> players) {
         players.forEach(player -> {
-            log.info("id:"+player.getId());
+            log.info("id:" + player.getId());
             player.updateMappingStatus(MappingStatus.FAILED);
         });
     }
 
     @Transactional(readOnly = true)
-    public List<Player> getPlayersWithMultipleFmPlayers(){
+    public List<Player> getPlayersWithMultipleFmPlayers() {
         return playerRepository.findPlayerDuplicatedWithFmPlayer();
     }
 
