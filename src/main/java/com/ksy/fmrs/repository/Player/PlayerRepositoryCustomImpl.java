@@ -22,7 +22,6 @@ import java.time.LocalDate;
 import java.util.Collections;
 import java.util.List;
 
-import static com.ksy.fmrs.domain.QTeam.team;
 import static com.ksy.fmrs.domain.player.QFmPlayer.fmPlayer;
 import static com.ksy.fmrs.domain.player.QPlayer.player;
 
@@ -45,13 +44,15 @@ public class PlayerRepositoryCustomImpl implements PlayerRepositoryCustom {
     // 이름 검색
     @Override
     public Slice<Player> searchPlayerByName(
-            String name, Pageable pageable, MappingStatus lastmappingStatus, Long lastPlayerId) {
+            String name, Pageable pageable, MappingStatus lastmappingStatus, Integer lastCurrentAbility, Long lastPlayerId) {
 
         int limit = pageable.getPageSize();
         List<Player> players = jpaQueryFactory
                 .selectFrom(player)
-                .where(nameContains(name), mappingStatusAndIdCursorPredicate(lastmappingStatus, lastPlayerId))
-                .orderBy(mappingStatusRankExpr().asc(), player.id.asc())
+                .leftJoin(player.fmPlayer, fmPlayer)
+                .where(nameContains(name),
+                        mappingStatusAndIdCursorPredicate(lastmappingStatus, lastCurrentAbility, lastPlayerId))
+                .orderBy(mappingStatusRankExpr().asc(), fmPlayer.currentAbility.desc(), player.id.asc())
                 .limit(limit + 1) // limit + 1만큼 불러 와지면 다음 페이지가 존재함
                 .fetch();
 
@@ -123,19 +124,34 @@ public class PlayerRepositoryCustomImpl implements PlayerRepositoryCustom {
         return QPlayer.player.name.containsIgnoreCase(name);
     }
 
+    /**
+     * ORDER BY
+     * 1. mappingStatus - MATCHED, UNMAPPED, FAILED
+     * 2. if mappingStatus == MATCHED, currentAbility desc
+     * 3. id asc
+     */
     private BooleanExpression mappingStatusAndIdCursorPredicate(
-            MappingStatus lastMappingStatus, Long lastPlayerId) {
+            MappingStatus lastMappingStatus, Integer lastCurrentAbility, Long lastPlayerId) {
         if (lastPlayerId == null || lastMappingStatus == null) {
             return null;
         }
-        int cnt = switch (lastMappingStatus) {
+        int lastMappingStatusRank = switch (lastMappingStatus) {
             case MATCHED -> 0;
             case UNMAPPED -> 1;
             default -> 2;
         };
 
-        return mappingStatusRankExpr().gt(cnt).or(
-                mappingStatusRankExpr().eq(cnt).and(player.id.gt(lastPlayerId))
+        if(lastMappingStatus != MappingStatus.MATCHED || lastCurrentAbility == null) {
+            return mappingStatusRankExpr().gt(lastMappingStatusRank).or(
+                    mappingStatusRankExpr().eq(lastMappingStatusRank).and(player.id.gt(lastPlayerId))
+            );
+        }
+        return mappingStatusRankExpr().gt(lastMappingStatusRank).or(
+                mappingStatusRankExpr().eq(lastMappingStatusRank).and(
+                        fmPlayer.currentAbility.lt(lastCurrentAbility).or(
+                                fmPlayer.currentAbility.eq(lastCurrentAbility).and(player.id.gt(lastPlayerId))
+                        )
+                )
         );
     }
 
