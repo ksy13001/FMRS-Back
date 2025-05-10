@@ -45,10 +45,10 @@ public class FmPlayer {
     private Position position;
 
     @Column(name = "current_ability")
-    private int currentAbility;
+    private Integer currentAbility;
 
     @Column(name = "potential_ability")
-    private int potentialAbility;
+    private Integer potentialAbility;
 
     // 인성
     @Column(name = "personality_attributes")
@@ -94,8 +94,8 @@ public class FmPlayer {
             PhysicalAttributes physicalAttributes,
             GoalKeeperAttributes goalKeeperAttributes,
             HiddenAttributes hiddenAttributes,
-            int currentAbility,
-            int potentialAbility) {
+            Integer currentAbility,
+            Integer potentialAbility) {
         this.name = name;
         this.firstName = firstName;
         this.lastName = lastName;
