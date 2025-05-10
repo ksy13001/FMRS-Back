@@ -48,9 +48,9 @@ public class PlayerController {
     }
 
     @ResponseBody
-    @GetMapping("/api/search/simple-player")
-    public SearchPlayerResponseDto searchPlayerBySimpleCondition(
-            @RequestParam String name,
+    @GetMapping("/api/search/simple-player/{name}")
+    public SearchPlayerResponseDto searchPlayerByName(
+            @PathVariable String name,
             Pageable pageable,
             @RequestParam(required = false) Long lastPlayerId,
             @RequestParam(required = false) MappingStatus lastMappingStatus

@@ -8,6 +8,7 @@ import jakarta.persistence.*;
 import lombok.*;
 
 import java.time.LocalDate;
+import java.util.Optional;
 
 @Getter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
@@ -119,5 +120,26 @@ public class Player {
 
     public String getStringBirth(){
         return String.valueOf(birth);
+    }
+
+    public String getTeamName(){
+        if(team == null){
+            return null;
+        }
+        return team.getName();
+    }
+
+    public String getTeamLogoUrl(){
+        if(team == null){
+            return null;
+        }
+        return team.getLogoUrl();
+    }
+
+    public Integer getFmPlayerCurrentAbility(){
+        if(fmPlayer == null){
+            return null;
+        }
+        return fmPlayer.getCurrentAbility();
     }
 }
