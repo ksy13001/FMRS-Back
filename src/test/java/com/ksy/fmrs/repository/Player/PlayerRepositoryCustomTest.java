@@ -36,7 +36,8 @@ class PlayerRepositoryCustomTest {
         createPlayers();
 
         // when
-        Slice<Player> actual = playerRepository.searchPlayerByName("messi", pageable,null, null);
+        Slice<Player> actual = playerRepository.searchPlayerByName(
+                "messi", pageable,null, null, null);
         // then
         Assertions.assertThat(actual).hasSize(limit);
         Assertions.assertThat(actual.hasNext()).isTrue();
@@ -59,7 +60,7 @@ class PlayerRepositoryCustomTest {
         // when
         Pageable pageable = PageRequest.of(0, 5);
         Slice<Player> actual = playerRepository.searchPlayerByName(
-                "messi", pageable, null, null);
+                "messi", pageable, null, null, null);
         // then
         Assertions.assertThat(actual).hasSize(3);
         Assertions.assertThat(actual.hasNext()).isFalse();

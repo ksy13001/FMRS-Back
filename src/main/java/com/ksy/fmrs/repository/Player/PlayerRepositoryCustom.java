@@ -12,7 +12,8 @@ import java.util.List;
 
 @Repository
 public interface PlayerRepositoryCustom {
-    Slice<Player> searchPlayerByName(String name, Pageable pageable, MappingStatus mappingStatus, Long lastPlayerId);
+    Slice<Player> searchPlayerByName(
+            String name, Pageable pageable, MappingStatus mappingStatus, Integer lastCurrentAbility, Long lastPlayerId);
 
     List<Player> searchPlayerByDetailCondition(SearchPlayerCondition condition);
 

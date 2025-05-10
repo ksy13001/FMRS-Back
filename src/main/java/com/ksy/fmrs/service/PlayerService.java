@@ -122,25 +122,12 @@ public class PlayerService {
     }
 
     private PlayerDetailsDto convertPlayerToPlayerDetailsResponseDto(Player player) {
-        return new PlayerDetailsDto(player, getTeamNameByPlayer(player));
-    }
-
-    private String getTeamNameByPlayer(Player player) {
-        return Optional.ofNullable(player.getTeam())
-                .map(Team::getName)
-                .orElse(null);
-    }
-
-    @Transactional
-    public void updatePlayerApiIdByPlayerWrapperDto(Integer playerApiId, String firstName, String lastName, LocalDate birth, String nationName) {
-        List<Player> findPlayers = playerRepository.searchPlayerByFm(firstName, lastName, birth, nationName);
-        if (findPlayers.size() > 1) {
-            return;
-        }
-        if (findPlayers.isEmpty()) {
-            return;
-        }
-        findPlayers.getFirst().updatePlayerApiId(playerApiId);
+        return new PlayerDetailsDto(
+                player,
+                player.getTeamName(),
+                player.getTeamLogoUrl(),
+                player.getFmPlayerCurrentAbility()
+        );
     }
 
     /**
@@ -173,10 +160,11 @@ public class PlayerService {
             String name,
             Pageable pageable,
             MappingStatus lastMappingStatus,
+            Integer lastCurrentAbility,
             Long lastPlayerId
     ) {
         return new SearchPlayerResponseDto(playerRepository.searchPlayerByName(
-                        name, pageable, lastMappingStatus, lastPlayerId)
+                        name, pageable, lastMappingStatus, lastCurrentAbility, lastPlayerId)
                 .stream()
                 .map(this::convertPlayerToPlayerDetailsResponseDto)
                 .toList());

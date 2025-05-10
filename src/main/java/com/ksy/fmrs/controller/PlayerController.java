@@ -53,8 +53,9 @@ public class PlayerController {
             @PathVariable String name,
             Pageable pageable,
             @RequestParam(required = false) Long lastPlayerId,
+            @RequestParam(required = false) Integer lastCurrentAbility,
             @RequestParam(required = false) MappingStatus lastMappingStatus
     ) {
-        return playerService.searchPlayerByName(name, pageable, lastMappingStatus, lastPlayerId);
+        return playerService.searchPlayerByName(name, pageable, lastMappingStatus, lastCurrentAbility, lastPlayerId);
     }
 }
