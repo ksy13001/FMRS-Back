@@ -11,11 +11,14 @@
             background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%);
         }
         .search-results {
-            height: 400px;
+            max-height: 80px; /* 검색 결과창 높이 축소 */
             overflow-y: auto;
             display: none;
             scrollbar-width: thin;
             scrollbar-color: #cbd5e1 #f1f5f9;
+        }
+        .search-results.with-results {
+            max-height: 400px; /* 결과가 있을 때는 원래 높이로 */
         }
         .search-results::-webkit-scrollbar {
             width: 6px;
@@ -81,7 +84,8 @@
             <div class="relative">
                 <i class="icon icon-search absolute left-4 top-1/2 transform -translate-y-1/2 text-slate-400 text-xl"></i>
                 <input type="text" id="player-search" name="name" placeholder="Enter player name..."
-                       class="w-full pl-12 pr-4 py-4 rounded-lg border border-slate-300 focus:outline-none focus:ring-2 focus:ring-blue-500 transition duration-300 text-lg">
+                       class="w-full pl-12 pr-4 py-4 rounded-lg border border-slate-300 focus:outline-none focus:ring-2 focus:ring-blue-500 transition duration-300 text-lg"
+                       autocomplete="off"> <!-- 자동완성 비활성화 -->
             </div>
 
             <!-- Search Results Container -->
@@ -122,6 +126,10 @@
         const loadingIndicator = document.getElementById('loading-indicator');
         const scrollHint = document.getElementById('scroll-hint');
 
+        // 페이지 로드 시 검색 결과 숨김
+        searchResults.classList.remove('active');
+        emptyResults.style.display = 'none';
+
         let debounceTimer;
         let isLoading = false;
         let hasMoreResults = true;
@@ -134,7 +142,7 @@
         let currentQuery = '';
 
         // 초기 상태 설정 - 빈 검색 결과 표시
-        searchResults.classList.add('active');
+        searchResults.classList.remove('active');
 
         // Function to fetch search results
         async function fetchSearchResults(query, isLoadMore = false) {
@@ -143,6 +151,7 @@
                 emptyResults.style.display = 'block';
                 scrollHint.style.display = 'none';
                 searchResults.classList.add('active');
+                searchResults.classList.remove('with-results'); // 결과가 없을 때 높이 축소
                 return;
             }
 
@@ -234,10 +243,13 @@
                 hasMoreResults = false;
                 scrollHint.style.display = 'none';
                 searchResults.classList.add('active');
+                searchResults.classList.remove('with-results'); // 결과가 없을 때 높이 축소
                 return;
             }
 
             // 결과가 있으면 표시
+            searchResults.classList.add('with-results'); // 결과가 있을 때 높이 확장
+
             players.forEach(player => {
                 const resultItem = document.createElement('a');
                 resultItem.href = `/players/${player.id || ''}`;
@@ -250,17 +262,17 @@
                 const imageUrl = player.imageUrl || '/placeholder.svg';
 
                 resultItem.innerHTML = `
-                    <div class="w-10 h-10 rounded-full overflow-hidden bg-slate-200 mr-3 flex-shrink-0">
-                        <img src="${imageUrl}" alt="${name}" class="w-full h-full object-cover">
-                    </div>
-                    <div class="flex-grow">
-                        <div class="font-medium">${name}</div>
-                        <div class="text-xs text-slate-500">
-                            <span class="mr-2">${age ? age + ' years' : ''}</span>
-                            <span>${teamName}</span>
-                        </div>
-                    </div>
-                `;
+    <div class="w-10 h-10 rounded-full overflow-hidden bg-slate-200 mr-3 flex-shrink-0">
+        <img src="${imageUrl}" alt="${name}" class="w-full h-full object-cover">
+    </div>
+    <div class="flex-grow">
+        <div class="font-bold text-black">${name}</div>
+        <div class="text-xs text-slate-500">
+            <span>${teamName}</span>
+            <span class="ml-2">${age ? age + ' years' : ''}</span>
+        </div>
+    </div>
+`;
 
                 resultsContainer.appendChild(resultItem);
             });
@@ -354,6 +366,7 @@
                 resultsContainer.innerHTML = '';
                 emptyResults.style.display = 'block';
                 scrollHint.style.display = 'none';
+                searchResults.classList.remove('with-results'); // 결과가 없을 때 높이 축소
             } else if (currentQuery) {
                 // 이미 검색 결과가 있으면 스크롤 가능 여부 다시 확인
                 checkScrollability();
