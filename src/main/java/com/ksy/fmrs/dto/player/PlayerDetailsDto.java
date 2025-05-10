@@ -12,7 +12,7 @@ import java.time.LocalDate;
 public class PlayerDetailsDto {
 
 
-    public PlayerDetailsDto(Player player, String teamName) {
+    public PlayerDetailsDto(Player player, String teamName, String teamLogoUrl, Integer currentAbility) {
         this.id = player.getId();
         this.playerApiId = player.getPlayerApiId();
         this.name = player.getName();
@@ -21,10 +21,12 @@ public class PlayerDetailsDto {
         this.height = player.getHeight();
         this.weight = player.getWeight();
         this.teamName = teamName;
+        this.teamLogoUrl = teamLogoUrl;
         this.nationName = player.getNationName();
         this.nationLogoUrl = player.getNationLogoUrl();
         this.imageUrl = player.getImageUrl();
         this.mappingStatus = player.getMappingStatus();
+        this.currentAbility = currentAbility;
     }
 
     private Long id;
@@ -35,8 +37,10 @@ public class PlayerDetailsDto {
     private int height;
     private int weight;
     private String teamName;
+    private String teamLogoUrl;
     private String nationName;
     private String nationLogoUrl;
     private String imageUrl;
     private MappingStatus mappingStatus;
+    private Integer currentAbility;
 }
