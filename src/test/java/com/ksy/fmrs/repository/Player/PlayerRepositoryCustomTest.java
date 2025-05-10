@@ -14,7 +14,6 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Slice;
 
-import static org.junit.jupiter.api.Assertions.*;
 
 @Import(TestQueryDSLConfig.class)
 @DataJpaTest
@@ -28,8 +27,7 @@ class PlayerRepositoryCustomTest {
     private PlayerRepository playerRepository;
 
     @Test
-    @DisplayName("검색 시 lastPlayerId or lastMappingStatus null 이면 첫 페이지 반환" +
-            ", mappingStatus=MATCHED, UNMAPPED, FAILED 순으로 정렬")
+    @DisplayName("검색 시 lastPlayerId or lastMappingStatus null 이면 첫 페이지 반환")
     void search_player_byName_firstPage(){
         // given
         int limit = 5;
@@ -45,6 +43,30 @@ class PlayerRepositoryCustomTest {
         Assertions.assertThat(actual.getContent())
                 .extracting(Player::getMappingStatus)
                 .allMatch(status -> status == MappingStatus.MATCHED);
+    }
+
+    @Test
+    @DisplayName("검색 시 mappingStatus 가 MATCHED, UNMAPPED, FAILED 순으로 검색됨")
+    void search_valid_orderByMappingStatus(){
+        // given
+        Player player1 = Player.builder().name("messi1").mappingStatus(MappingStatus.FAILED).build();
+        Player player2 = Player.builder().name("messi2").mappingStatus(MappingStatus.UNMAPPED).build();
+        Player player3 = Player.builder().name("messi3").mappingStatus(MappingStatus.MATCHED).build();
+        tem.persist(player1);
+        tem.persist(player2);
+        tem.persist(player3);
+        tem.flush();
+        // when
+        Pageable pageable = PageRequest.of(0, 5);
+        Slice<Player> actual = playerRepository.searchPlayerByName(
+                "messi", pageable, null, null);
+        // then
+        Assertions.assertThat(actual).hasSize(3);
+        Assertions.assertThat(actual.hasNext()).isFalse();
+        Assertions.assertThat(actual.getContent())
+                .extracting(Player::getMappingStatus)
+                .containsExactly(MappingStatus.MATCHED, MappingStatus.UNMAPPED,  MappingStatus.FAILED);
+
     }
 
     private void createPlayers(){
