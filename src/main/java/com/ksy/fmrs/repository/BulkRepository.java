@@ -177,7 +177,8 @@ public class BulkRepository {
                  AND p.birth        = f.birth
                  AND p.nation_name  = f.nation_name
                 SET p.fmplayer_id    = f.id,
-                    p.mapping_status = 'MATCHED'
+                    p.mapping_status = 'MATCHED',
+                    p.is_gk = IF(f.goalkeeper=20, TRUE, FALSE)
                 WHERE p.mapping_status = 'UNMAPPED'
                 """;
         return jdbcTemplate.update(sql);
