@@ -128,23 +128,23 @@ public class Player {
     }
 
     public String getTeamName(){
-        if(team == null){
+        if(this.team == null){
             return null;
         }
-        return team.getName();
+        return this.team.getName();
     }
 
     public String getTeamLogoUrl(){
-        if(team == null){
+        if(this.team == null){
             return null;
         }
-        return team.getLogoUrl();
+        return this.team.getLogoUrl();
     }
 
     public Integer getFmPlayerCurrentAbility(){
-        if(fmPlayer == null){
+        if(this.fmPlayer == null){
             return null;
         }
-        return fmPlayer.getCurrentAbility();
+        return this.fmPlayer.getCurrentAbility();
     }
 }
