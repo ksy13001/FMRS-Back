@@ -2,6 +2,7 @@ package com.ksy.fmrs.repository.Player;
 
 import com.ksy.fmrs.config.TestQueryDSLConfig;
 import com.ksy.fmrs.domain.enums.MappingStatus;
+import com.ksy.fmrs.domain.player.FmPlayer;
 import com.ksy.fmrs.domain.player.Player;
 import org.assertj.core.api.Assertions;
 import org.junit.jupiter.api.DisplayName;
@@ -14,12 +15,17 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Slice;
 
+import java.util.ArrayList;
+import java.util.Comparator;
+import java.util.List;
+
 
 @Import(TestQueryDSLConfig.class)
 @DataJpaTest
 class PlayerRepositoryCustomTest {
 
-    private static final int TOTAL = 10;
+    private static final int LIMIT = 6;
+    private static final Pageable PAGEABLE = PageRequest.of(0, 6);
     @Autowired
     private TestEntityManager tem;
 
@@ -30,16 +36,15 @@ class PlayerRepositoryCustomTest {
     @DisplayName("검색 시 lastPlayerId or lastMappingStatus null 이면 첫 페이지 반환")
     void search_player_byName_firstPage(){
         // given
-        int limit = 5;
-        Pageable pageable = PageRequest.of(0, limit);
+        String name = "messi";
 
-        createPlayers();
+        createPlayers(name);
 
         // when
         Slice<Player> actual = playerRepository.searchPlayerByName(
-                "messi", pageable,null, null, null);
+                "messi", PAGEABLE,null, null, null);
         // then
-        Assertions.assertThat(actual).hasSize(limit);
+        Assertions.assertThat(actual).hasSize(LIMIT);
         Assertions.assertThat(actual.hasNext()).isTrue();
         Assertions.assertThat(actual.getContent())
                 .extracting(Player::getMappingStatus)
@@ -47,41 +52,138 @@ class PlayerRepositoryCustomTest {
     }
 
     @Test
+    @DisplayName("검색결과 없는 경우 빈 배열 반환")
+    void search_no_result(){
+        // given
+        String name = "messi";
+        createPlayers(name);
+        // when
+        Slice<Player> actual = playerRepository
+                .searchPlayerByName("ronaldo", PAGEABLE, null, null, null);
+
+        // then
+        Assertions.assertThat(actual.getContent()).isEmpty();
+    }
+
+    @Test
     @DisplayName("검색 시 mappingStatus 가 MATCHED, UNMAPPED, FAILED 순으로 검색됨")
     void search_valid_orderByMappingStatus(){
         // given
-        Player player1 = Player.builder().name("messi1").mappingStatus(MappingStatus.FAILED).build();
-        Player player2 = Player.builder().name("messi2").mappingStatus(MappingStatus.UNMAPPED).build();
-        Player player3 = Player.builder().name("messi3").mappingStatus(MappingStatus.MATCHED).build();
-        tem.persist(player1);
-        tem.persist(player2);
-        tem.persist(player3);
+        String name = "messi";
+        int totalPlayerSize = 60;
+        int totalPage = totalPlayerSize / LIMIT;
+        for(int i=0;i<20;i++){
+            Player player = Player.builder().name(name + i).mappingStatus(MappingStatus.MATCHED).build();
+            FmPlayer fmPlayer = FmPlayer.builder().name(name + i).currentAbility(100 + i*10).build();
+            player.updateFmPlayer(fmPlayer);
+            tem.persist(player);
+            tem.persist(fmPlayer);
+        }
+        for(int i=20;i<40;i++){
+            tem.persist(Player.builder().name(name + i).mappingStatus(MappingStatus.UNMAPPED).build());
+        }
+        for(int i=40;i<60;i++){
+            tem.persist(Player.builder().name(name + i).mappingStatus(MappingStatus.FAILED).build());
+        }
         tem.flush();
+        tem.clear();
+        List<MappingStatus> actualMappingStatus = new ArrayList<>();
         // when
-        Pageable pageable = PageRequest.of(0, 5);
         Slice<Player> actual = playerRepository.searchPlayerByName(
-                "messi", pageable, null, null, null);
+                name, PAGEABLE, null, null, null);
+        int actualPage = 0;
         // then
-        Assertions.assertThat(actual).hasSize(3);
-        Assertions.assertThat(actual.hasNext()).isFalse();
-        Assertions.assertThat(actual.getContent())
-                .extracting(Player::getMappingStatus)
-                .containsExactly(MappingStatus.MATCHED, MappingStatus.UNMAPPED,  MappingStatus.FAILED);
+        while(true){
+            for(int i=0;i<LIMIT;i++){
+                actualMappingStatus.add(actual.getContent().get(i).getMappingStatus());
+            }
+            actualPage++;
+            Assertions.assertThat(actual.getContent()).hasSize(LIMIT);
 
+            Assertions.assertThat(actual.getContent())
+                    .extracting(Player::getName)
+                    .allMatch(n -> n.startsWith(name));
+            if (!actual.hasNext()){
+                break;
+            }
+            actual = playerRepository.searchPlayerByName(
+                    name,
+                    PAGEABLE,
+                    actual.getContent().getLast().getMappingStatus(),
+                    actual.getContent().getLast().getFmPlayerCurrentAbility(),
+                    actual.getContent().getLast().getId()
+            );
+        }
+        Assertions.assertThat(actualMappingStatus.subList(0, 20))
+                .allMatch(status -> status == MappingStatus.MATCHED);
+        Assertions.assertThat(actualMappingStatus.subList(20, 40))
+                .allMatch(status -> status == MappingStatus.UNMAPPED);
+        Assertions.assertThat(actualMappingStatus.subList(40, 60))
+                .allMatch(status -> status == MappingStatus.FAILED);
+
+        Assertions.assertThat(actual.hasNext()).isFalse();
+        Assertions.assertThat(actualPage).isEqualTo(totalPage);
     }
 
-    private void createPlayers(){
-        for (int i=0;i<5;i++){
+    @Test
+    @DisplayName("mapping_status = MATCHED 일때 current_ability desc 조회")
+    void search_MATCHED_player_by_current_ability(){
+        // given
+        String name = "messi";
+        for(int i=0;i<30;i++){
+            Player player = Player.builder().name(name + i).mappingStatus(MappingStatus.MATCHED).build();
+            FmPlayer fmPlayer = FmPlayer.builder().name(name + i).currentAbility(100 + i*10).build();
+            player.updateFmPlayer(fmPlayer);
+            tem.persist(player);
+            tem.persist(fmPlayer);
+        }
+        tem.flush();
+        tem.clear();
+        // when
+        Slice<Player> actual = playerRepository
+                .searchPlayerByName(name, PAGEABLE, null, null, null);
+        int totalPlayerSize = 30;
+        int totalPage = totalPlayerSize / LIMIT;
+        int actualPage = 1;
+        // then
+        while (actual.hasNext()){
+            actualPage++;
+            Assertions.assertThat(actual.getContent()).hasSize(LIMIT);
+
+            Assertions.assertThat(actual.getContent())
+                    .extracting(Player::getName)
+                    .allMatch(n -> n.startsWith(name));
+
+            Assertions.assertThat(actual.getContent()).extracting(Player::getMappingStatus)
+                    .allMatch(status -> status == MappingStatus.MATCHED);
+
+            Assertions.assertThat(actual.getContent()).extracting(Player::getFmPlayerCurrentAbility)
+                    .isSortedAccordingTo(Comparator.reverseOrder());
+
+            actual = playerRepository.searchPlayerByName(
+                    name,
+                    PAGEABLE,
+                    actual.getContent().getLast().getMappingStatus(),
+                    actual.getContent().getLast().getFmPlayerCurrentAbility(),
+                    actual.getContent().getLast().getId());
+        }
+        Assertions.assertThat(actual.hasNext()).isFalse();
+        Assertions.assertThat(actualPage).isEqualTo(totalPage);
+    }
+
+
+    private void createPlayers(String name){
+        for (int i=0;i<LIMIT;i++){
             Player player = Player.builder()
-                    .name("messi" + i)
+                    .name(name + i)
                     .mappingStatus(MappingStatus.MATCHED)
                     .build();
             tem.persist(player);
         }
 
-        for (int i=5;i<10;i++){
+        for (int i=LIMIT;i<LIMIT*2;i++){
             Player player = Player.builder()
-                    .name("messi" + i)
+                    .name(name + i)
                     .mappingStatus(MappingStatus.UNMAPPED)
                     .build();
             tem.persist(player);
