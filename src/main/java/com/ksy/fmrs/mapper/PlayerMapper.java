@@ -64,6 +64,7 @@ public class PlayerMapper {
                 .imageUrl(dto.photo())
                 .nationName(nation)
                 .mappingStatus(status)
+                .isGK(null)
                 .build();
     }
 

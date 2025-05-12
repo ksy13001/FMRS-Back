@@ -27,6 +27,7 @@ public class PlayerDetailsDto {
         this.imageUrl = player.getImageUrl();
         this.mappingStatus = player.getMappingStatus();
         this.currentAbility = currentAbility;
+        this.isGK = player.getIsGK();
     }
 
     private Long id;
@@ -43,4 +44,5 @@ public class PlayerDetailsDto {
     private String imageUrl;
     private MappingStatus mappingStatus;
     private Integer currentAbility;
+    private Boolean isGK;
 }

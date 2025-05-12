@@ -61,6 +61,9 @@ public class Player {
     @JoinColumn(name = "player_stat_id", unique = true)
     private PlayerStat playerStat;
 
+    @Column(name = "is_gk")
+    private Boolean isGK;
+
     @Builder
     public Player(
             Integer playerApiId,
@@ -73,7 +76,8 @@ public class Player {
             String imageUrl,
             String nationName,
             String nationLogoUrl,
-            MappingStatus mappingStatus
+            MappingStatus mappingStatus,
+            Boolean isGK
     ) {
         this.playerApiId = playerApiId;
         this.firstName = firstName;
@@ -86,6 +90,7 @@ public class Player {
         this.nationName = nationName;
         this.nationLogoUrl = nationLogoUrl;
         this.mappingStatus = mappingStatus;
+        this.isGK = isGK;
     }
 
     // 연관관계 설정 메서드
