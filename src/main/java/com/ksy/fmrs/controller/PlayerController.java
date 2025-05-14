@@ -8,6 +8,7 @@ import com.ksy.fmrs.service.PlayerFacadeService;
 import com.ksy.fmrs.service.PlayerService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.web.PageableDefault;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
@@ -31,22 +32,6 @@ public class PlayerController {
         return "player-detail";
     }
 
-    @GetMapping("/players/detail-search")
-    public String searchPlayerByDetailCondition(Model model) {
-        SearchPlayerCondition searchPlayerCondition = new SearchPlayerCondition(); // 새로운 객체를 생성하여 모델에 추가
-        model.addAttribute("searchPlayerCondition", searchPlayerCondition); // 모델에 추가
-        return "players-detail-search";
-    }
-
-    // 상세 검색 결과 반환 페이지
-    @GetMapping("/players/detail-search/result")
-    public String searchPlayerByDetailConditionResult(
-            @ModelAttribute("searchPlayerCondition") SearchPlayerCondition searchPlayerCondition, Model model) {
-        SearchPlayerResponseDto searchPlayerResponseDto = playerService.searchPlayerByDetailCondition(searchPlayerCondition);
-        model.addAttribute("players", searchPlayerResponseDto);
-        return "players-detail-search";
-    }
-
     @ResponseBody
     @GetMapping("/api/search/simple-player/{name}")
     public SearchPlayerResponseDto searchPlayerByName(
@@ -58,4 +43,39 @@ public class PlayerController {
     ) {
         return playerService.searchPlayerByName(name, pageable, lastMappingStatus, lastCurrentAbility, lastPlayerId);
     }
+
+    // 상세 검색 결과 반환 페이지
+    @ResponseBody
+    @PostMapping("/api/search/detail-player")
+    public SearchPlayerResponseDto searchPlayerByDetailConditionResult(
+            @RequestBody(required = false) SearchPlayerCondition searchPlayerCondition,
+            @PageableDefault Pageable pageable
+    ) {
+        return playerService.searchPlayerByDetailCondition(searchPlayerCondition, pageable);
+    }
+
+    @GetMapping("/players/detail-search")
+    public String searchPlayerByDetailConditionForm(Model model) {
+        // 빈 검색 조건 객체 생성 - 중첩 객체 구조가 아닌 직접 필드를 사용하는 방식으로 변경
+        SearchPlayerCondition searchCondition = new SearchPlayerCondition();
+
+        model.addAttribute("searchPlayerCondition", searchCondition);
+        return "players-detail-search";
+    }
+
+    // 상세 검색 결과 반환 페이지
+    @PostMapping("/players/detail-search")
+    public String searchPlayerByDetailConditionResult(
+            @ModelAttribute("searchPlayerCondition") SearchPlayerCondition searchPlayerCondition,
+            Pageable pageable,
+            Model model
+    ) {
+        SearchPlayerResponseDto searchPlayerResponseDto = playerService
+                .searchPlayerByDetailCondition(searchPlayerCondition, pageable);
+        model.addAttribute("players", searchPlayerResponseDto);
+        model.addAttribute("currentPage", pageable.getPageNumber());
+        model.addAttribute("pageSize", pageable.getPageSize());
+        return "players-detail-search";
+    }
+
 }

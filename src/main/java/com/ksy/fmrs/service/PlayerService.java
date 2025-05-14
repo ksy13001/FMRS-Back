@@ -22,7 +22,6 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.time.LocalDate;
 import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
@@ -47,7 +46,7 @@ public class PlayerService {
     public PlayerDetailsDto getPlayerDetails(Long playerId) {
         Player player = playerRepository.findById(playerId)
                 .orElseThrow(() -> new IllegalArgumentException("Player not found: " + playerId));
-        return convertPlayerToPlayerDetailsResponseDto(player);
+        return convertPlayerToPlayerDetailsDto(player);
     }
 
     @Transactional(readOnly = true)
@@ -121,7 +120,7 @@ public class PlayerService {
                 .toList();
     }
 
-    private PlayerDetailsDto convertPlayerToPlayerDetailsResponseDto(Player player) {
+    private PlayerDetailsDto convertPlayerToPlayerDetailsDto(Player player) {
         return new PlayerDetailsDto(
                 player,
                 player.getTeamName(),
@@ -137,20 +136,9 @@ public class PlayerService {
     public TeamPlayersResponseDto getTeamPlayersByTeamId(Long teamId) {
         return new TeamPlayersResponseDto(playerRepository.findAllByTeamId(teamId)
                 .stream()
-                .map(this::convertPlayerToPlayerDetailsResponseDto)
+                .map(this::convertPlayerToPlayerDetailsDto)
                 .toList());
     }
-
-//    /**
-//     * 모든 선수 몸값순 조회
-//     */
-//    public SearchPlayerResponseDto getPlayersByMarketValueDesc() {
-//        return new SearchPlayerResponseDto(playerRepository.findAllByOrderByMarketValueDesc()
-//                .stream()
-//                .map(this::convertPlayerToPlayerDetailsResponseDto)
-//                .toList());
-//    }
-
 
     /**
      * 선수 이름 검색
@@ -166,18 +154,21 @@ public class PlayerService {
         return new SearchPlayerResponseDto(playerRepository.searchPlayerByName(
                         name, pageable, lastMappingStatus, lastCurrentAbility, lastPlayerId)
                 .stream()
-                .map(this::convertPlayerToPlayerDetailsResponseDto)
+                .map(this::convertPlayerToPlayerDetailsDto)
                 .toList());
     }
 
     /**
-     * 선수 상세 조회
+     * 선수 상세 검색
      */
     @Transactional(readOnly = true)
-    public SearchPlayerResponseDto searchPlayerByDetailCondition(SearchPlayerCondition condition) {
-        return new SearchPlayerResponseDto(playerRepository.searchPlayerByDetailCondition(condition)
+    public SearchPlayerResponseDto searchPlayerByDetailCondition(
+            SearchPlayerCondition condition,
+            Pageable pageable
+    ) {
+        return new SearchPlayerResponseDto(playerRepository.searchPlayerByDetailCondition(condition, pageable)
                 .stream()
-                .map(this::convertPlayerToPlayerDetailsResponseDto)
+                .map(this::convertPlayerToPlayerDetailsDto)
                 .toList());
     }
 
