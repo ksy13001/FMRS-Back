@@ -6,6 +6,7 @@ import com.ksy.fmrs.domain.player.QPlayer;
 import com.ksy.fmrs.dto.search.SearchPlayerCondition;
 import com.ksy.fmrs.util.time.SystemTimeProvider;
 import com.querydsl.core.BooleanBuilder;
+import com.querydsl.core.QueryResults;
 import com.querydsl.core.Tuple;
 import com.querydsl.core.types.dsl.BooleanExpression;
 import com.querydsl.core.types.dsl.CaseBuilder;
@@ -76,7 +77,15 @@ public class PlayerRepositoryCustomImpl implements PlayerRepositoryCustom {
                 .orderBy(fmPlayer.currentAbility.desc(), player.id.asc())
                 .fetch();
 
-        return new PageImpl<>(players, pageable, players.size());
+        Long count = jpaQueryFactory
+                .select(player.count())
+                .leftJoin(player.team, team)
+                .leftJoin(player.team.league, league)
+                .leftJoin(player.fmPlayer, fmPlayer)
+                .where(playerDetailSearchCondition(condition))
+                .fetchOne();
+
+        return new PageImpl<>(players, pageable, count);
     }
 
     //     검색 조건

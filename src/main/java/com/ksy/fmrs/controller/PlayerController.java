@@ -1,7 +1,7 @@
 package com.ksy.fmrs.controller;
 
 import com.ksy.fmrs.domain.enums.MappingStatus;
-import com.ksy.fmrs.dto.PlayerOverviewDto;
+import com.ksy.fmrs.dto.player.PlayerOverviewDto;
 import com.ksy.fmrs.dto.search.SearchPlayerCondition;
 import com.ksy.fmrs.dto.search.SearchPlayerResponseDto;
 import com.ksy.fmrs.service.PlayerFacadeService;
