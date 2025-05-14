@@ -18,7 +18,9 @@ import com.ksy.fmrs.repository.Team.TeamRepository;
 import com.ksy.fmrs.util.StringUtils;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Slice;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -151,11 +153,11 @@ public class PlayerService {
             Integer lastCurrentAbility,
             Long lastPlayerId
     ) {
-        return new SearchPlayerResponseDto(playerRepository.searchPlayerByName(
-                        name, pageable, lastMappingStatus, lastCurrentAbility, lastPlayerId)
-                .stream()
-                .map(this::convertPlayerToPlayerDetailsDto)
-                .toList());
+        Slice<Player> result = playerRepository.searchPlayerByName(
+                name, pageable, lastMappingStatus, lastCurrentAbility, lastPlayerId);
+        return SearchPlayerResponseDto.fromSlice(
+                result.getContent().stream().map(this::convertPlayerToPlayerDetailsDto).toList(),
+                result.hasNext());
     }
 
     /**
@@ -166,10 +168,10 @@ public class PlayerService {
             SearchPlayerCondition condition,
             Pageable pageable
     ) {
-        return new SearchPlayerResponseDto(playerRepository.searchPlayerByDetailCondition(condition, pageable)
-                .stream()
-                .map(this::convertPlayerToPlayerDetailsDto)
-                .toList());
+        Page<Player> result = playerRepository.searchPlayerByDetailCondition(condition, pageable);
+        return SearchPlayerResponseDto.fromPage(
+                result.getContent().stream().map(this::convertPlayerToPlayerDetailsDto).toList(),
+                result.getTotalPages());
     }
 
     /**
