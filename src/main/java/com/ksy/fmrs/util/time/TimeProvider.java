@@ -5,5 +5,6 @@ import java.time.LocalDateTime;
 
 public interface TimeProvider {
 
-    LocalDateTime getCurrentTime();
+    LocalDateTime getCurrentLocalDateTime();
+    LocalDate getCurrentLocalDate();
 }
