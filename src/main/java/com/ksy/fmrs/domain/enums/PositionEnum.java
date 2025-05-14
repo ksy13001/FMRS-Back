@@ -35,23 +35,3 @@ public enum PositionEnum {
         throw new IllegalArgumentException("Unknown position: " + position);
     }
 }
-
-
-
-//  "Positions": {
-//          "Goalkeeper": 20,
-//          "Striker": 1,
-//          "AttackingMidCentral": 1,
-//          "AttackingMidLeft": 1,
-//          "AttackingMidRight": 1,
-//          "DefenderCentral": 1,
-//          "DefenderLeft": 1,
-//          "DefenderRight": 1,
-//          "DefensiveMidfielder": 1,
-//          "MidfielderCentral": 1,
-//          "MidfielderLeft": 1,
-//          "MidfielderRight": 1,
-//          "WingBackLeft": 1,
-//          "WingBackRight": 1,
-//          "Id": -1
-//          },
