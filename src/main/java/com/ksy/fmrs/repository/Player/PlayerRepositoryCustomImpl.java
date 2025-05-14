@@ -79,6 +79,7 @@ public class PlayerRepositoryCustomImpl implements PlayerRepositoryCustom {
 
         Long count = jpaQueryFactory
                 .select(player.count())
+                .from(player)
                 .leftJoin(player.team, team)
                 .leftJoin(player.team.league, league)
                 .leftJoin(player.fmPlayer, fmPlayer)
