@@ -1,7 +1,6 @@
 package com.ksy.fmrs.dto.player;
 
 import com.ksy.fmrs.domain.player.*;
-import lombok.Data;
 import lombok.Getter;
 import lombok.Setter;
 
