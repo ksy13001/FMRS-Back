@@ -9,7 +9,7 @@ import lombok.Setter;
 
 import java.util.List;
 
-
+@AllArgsConstructor
 @Getter
 @Setter
 public class SearchPlayerResponseDto {
@@ -18,13 +18,6 @@ public class SearchPlayerResponseDto {
     private Boolean hasNext;
     private Integer totalPages;
     private Long totalElements;
-
-    public SearchPlayerResponseDto(List<PlayerDetailsDto> players, Boolean hasNext, Integer totalPages, Long totalElements) {
-        this.players = players;
-        this.hasNext = hasNext;
-        this.totalPages = totalPages;
-        this.totalElements = totalElements;
-    }
 
     public static SearchPlayerResponseDto  fromSlice(
             List<PlayerDetailsDto> players, Boolean hasNext
