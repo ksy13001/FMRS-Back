@@ -54,28 +54,64 @@ public class PlayerController {
         return playerService.searchPlayerByDetailCondition(searchPlayerCondition, pageable);
     }
 
-    @GetMapping("/players/detail-search")
-    public String searchPlayerByDetailConditionForm(Model model) {
-        // 빈 검색 조건 객체 생성 - 중첩 객체 구조가 아닌 직접 필드를 사용하는 방식으로 변경
-        SearchPlayerCondition searchCondition = new SearchPlayerCondition();
-
-        model.addAttribute("searchPlayerCondition", searchCondition);
-        return "players-detail-search";
-    }
+//    @GetMapping("/players/detail-search")
+//    public String searchPlayerByDetailConditionForm(Model model) {
+//        // 빈 검색 조건 객체 생성 - 중첩 객체 구조가 아닌 직접 필드를 사용하는 방식으로 변경
+//        SearchPlayerCondition searchCondition = new SearchPlayerCondition();
+//
+//        model.addAttribute("searchPlayerCondition", searchCondition);
+//        return "players-detail-search";
+//    }
 
     // 상세 검색 결과 반환 페이지
     @PostMapping("/players/detail-search")
     public String searchPlayerByDetailConditionResult(
-            @ModelAttribute("searchPlayerCondition") SearchPlayerCondition searchPlayerCondition,
-            Pageable pageable,
+            @ModelAttribute SearchPlayerCondition searchPlayerCondition,
+            @PageableDefault(size = 10) Pageable pageable,
             Model model
     ) {
         SearchPlayerResponseDto searchPlayerResponseDto = playerService
                 .searchPlayerByDetailCondition(searchPlayerCondition, pageable);
+
         model.addAttribute("players", searchPlayerResponseDto);
         model.addAttribute("currentPage", pageable.getPageNumber());
         model.addAttribute("pageSize", pageable.getPageSize());
+        model.addAttribute("totalPages", searchPlayerResponseDto.getTotalPages());
+        model.addAttribute("totalElements", searchPlayerResponseDto.getTotalElements());
+
+        // 검색 조건을 다시 모델에 추가
+        model.addAttribute("searchPlayerCondition", searchPlayerCondition);
         return "players-detail-search";
     }
 
+
+    // GET 요청으로도 페이지네이션 처리
+    @GetMapping("/players/detail-search")
+    public String searchPlayerByDetailConditionGet(
+            @ModelAttribute SearchPlayerCondition searchPlayerCondition,
+            @PageableDefault(size = 10) Pageable pageable,
+            Model model
+    ) {
+        // 검색 조건이 없는 경우 (첫 페이지 접근)
+        if (searchPlayerCondition.getAgeMin() == null && searchPlayerCondition.getAgeMax() == null
+                && searchPlayerCondition.getNationName() == null) {
+            model.addAttribute("searchPlayerCondition", searchPlayerCondition);
+            return "players-detail-search";
+        }
+
+        SearchPlayerResponseDto searchPlayerResponseDto = playerService
+                .searchPlayerByDetailCondition(searchPlayerCondition, pageable);
+
+        // 페이징 정보를 모델에 추가
+        model.addAttribute("players", searchPlayerResponseDto);
+        model.addAttribute("currentPage", pageable.getPageNumber());
+        model.addAttribute("pageSize", pageable.getPageSize());
+        model.addAttribute("totalPages", searchPlayerResponseDto.getTotalPages());
+        model.addAttribute("totalElements", searchPlayerResponseDto.getTotalElements());
+
+        // 검색 조건을 다시 모델에 추가
+        model.addAttribute("searchPlayerCondition", searchPlayerCondition);
+
+        return "players-detail-search";
+    }
 }

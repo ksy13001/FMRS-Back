@@ -4,9 +4,8 @@ import com.ksy.fmrs.domain.enums.MappingStatus;
 import com.ksy.fmrs.domain.player.Player;
 import com.ksy.fmrs.domain.player.QPlayer;
 import com.ksy.fmrs.dto.search.SearchPlayerCondition;
-import com.ksy.fmrs.util.time.SystemTimeProvider;
+import com.ksy.fmrs.util.time.TimeProvider;
 import com.querydsl.core.BooleanBuilder;
-import com.querydsl.core.QueryResults;
 import com.querydsl.core.Tuple;
 import com.querydsl.core.types.dsl.BooleanExpression;
 import com.querydsl.core.types.dsl.CaseBuilder;
@@ -32,7 +31,7 @@ import static com.ksy.fmrs.domain.player.QPlayer.player;
 public class PlayerRepositoryCustomImpl implements PlayerRepositoryCustom {
 
     private final JPAQueryFactory jpaQueryFactory;
-    private final SystemTimeProvider systemTimeProvider;
+    private final TimeProvider timeProvider;
 
     // firstName, lastName, 나이, 국가로 검색
     @Override
@@ -311,12 +310,10 @@ public class PlayerRepositoryCustomImpl implements PlayerRepositoryCustom {
         if (ageMin == null || ageMax == null) {
             return null;
         }
-        LocalDate today = systemTimeProvider.getCurrentLocalDate();
-        LocalDate min = today.minusYears(ageMax);
-        LocalDate max = today.minusYears(ageMin);
-        BooleanExpression maxCond = player.birth.loe(max);
-        BooleanExpression minCond = player.birth.goe(min);
-        return maxCond.and(minCond);
+        LocalDate today = timeProvider.getCurrentLocalDate();
+        LocalDate toBirth = today.minusYears(ageMin);
+        LocalDate fromBirth = today.minusYears(ageMax);
+        return player.birth.between(fromBirth, toBirth);
     }
 
     private BooleanExpression goeStat(Integer stat, NumberExpression<Integer> expr) {
