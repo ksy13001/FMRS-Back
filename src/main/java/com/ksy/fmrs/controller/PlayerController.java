@@ -32,6 +32,34 @@ public class PlayerController {
         return "player-detail";
     }
 
+    // 상세 검색 결과 반환 페이지
+    @GetMapping("/detail-search")
+    public String search(
+            @ModelAttribute SearchPlayerCondition condition,
+            @PageableDefault(size = 10) Pageable pageable,
+            Model model
+    ) {
+        // 첫 페이지(조건 모두 null)이면 빈 폼만 보여줌
+        if (condition == null) {
+            model.addAttribute("searchPlayerCondition", condition);
+            return "players-detail-search";
+        }
+
+        // 조회 및 캐싱
+        SearchPlayerResponseDto dto = playerService
+                .searchPlayerByDetailCondition(condition, pageable);
+
+        // 공통 모델 채우기
+        model.addAttribute("players", dto);
+        model.addAttribute("currentPage", pageable.getPageNumber());
+        model.addAttribute("pageSize", pageable.getPageSize());
+        model.addAttribute("totalPages", dto.getTotalPages());
+        model.addAttribute("totalElements", dto.getTotalElements());
+        model.addAttribute("searchPlayerCondition", condition);
+
+        return "players-detail-search";
+    }
+
     @ResponseBody
     @GetMapping("/api/search/simple-player/{name}")
     public SearchPlayerResponseDto searchPlayerByName(
@@ -63,55 +91,5 @@ public class PlayerController {
 //        return "players-detail-search";
 //    }
 
-    // 상세 검색 결과 반환 페이지
-    @PostMapping("/players/detail-search")
-    public String searchPlayerByDetailConditionResult(
-            @ModelAttribute SearchPlayerCondition searchPlayerCondition,
-            @PageableDefault(size = 10) Pageable pageable,
-            Model model
-    ) {
-        SearchPlayerResponseDto searchPlayerResponseDto = playerService
-                .searchPlayerByDetailCondition(searchPlayerCondition, pageable);
 
-        model.addAttribute("players", searchPlayerResponseDto);
-        model.addAttribute("currentPage", pageable.getPageNumber());
-        model.addAttribute("pageSize", pageable.getPageSize());
-        model.addAttribute("totalPages", searchPlayerResponseDto.getTotalPages());
-        model.addAttribute("totalElements", searchPlayerResponseDto.getTotalElements());
-
-        // 검색 조건을 다시 모델에 추가
-        model.addAttribute("searchPlayerCondition", searchPlayerCondition);
-        return "players-detail-search";
-    }
-
-
-    // GET 요청으로도 페이지네이션 처리
-    @GetMapping("/players/detail-search")
-    public String searchPlayerByDetailConditionGet(
-            @ModelAttribute SearchPlayerCondition searchPlayerCondition,
-            @PageableDefault(size = 10) Pageable pageable,
-            Model model
-    ) {
-        // 검색 조건이 없는 경우 (첫 페이지 접근)
-        if (searchPlayerCondition.getAgeMin() == null && searchPlayerCondition.getAgeMax() == null
-                && searchPlayerCondition.getNationName() == null) {
-            model.addAttribute("searchPlayerCondition", searchPlayerCondition);
-            return "players-detail-search";
-        }
-
-        SearchPlayerResponseDto searchPlayerResponseDto = playerService
-                .searchPlayerByDetailCondition(searchPlayerCondition, pageable);
-
-        // 페이징 정보를 모델에 추가
-        model.addAttribute("players", searchPlayerResponseDto);
-        model.addAttribute("currentPage", pageable.getPageNumber());
-        model.addAttribute("pageSize", pageable.getPageSize());
-        model.addAttribute("totalPages", searchPlayerResponseDto.getTotalPages());
-        model.addAttribute("totalElements", searchPlayerResponseDto.getTotalElements());
-
-        // 검색 조건을 다시 모델에 추가
-        model.addAttribute("searchPlayerCondition", searchPlayerCondition);
-
-        return "players-detail-search";
-    }
 }
