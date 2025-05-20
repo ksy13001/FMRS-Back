@@ -46,7 +46,10 @@ class PlayerStatServiceTest {
     private PlayerStatMapper playerStatMapper;
     @Spy
     private TimeProvider timeProvider =
-            new TestTimeProvider(LocalDateTime.of(2000, 8 ,14 ,0, 0));
+            new TestTimeProvider(
+                    LocalDateTime.of(2000, 8, 14, 0, 0),
+                    LocalDate.of(2000, 8, 14)
+            );
 
     @Test
     @DisplayName("PlayerStat 이 없는 경우에 Player 조회하면 " +
@@ -77,7 +80,6 @@ class PlayerStatServiceTest {
                 .goal(5)
                 .build();
         // when
-        when(playerStatRepository.findById(player.getId())).thenReturn(Optional.empty());
         when(playerRepository.findById(anyLong())).thenReturn(Optional.of(player));
         when(footballApiService.getPlayerStatByPlayerApiIdAndTeamApiIdAndLeagueApiId(anyInt(), anyInt(), anyInt(), anyInt()))
                 .thenReturn(playerStatisticApiDto);
@@ -91,7 +93,6 @@ class PlayerStatServiceTest {
                 league.getLeagueApiId(), league.getCurrentSeason()
         );
         verify(playerStatMapper).toEntity(playerStatisticApiDto);
-        verify(playerStatRepository).findById(player.getId());
         Assertions.assertThat(actual.get().getGamesPlayed()).isEqualTo(10);
     }
 
@@ -130,14 +131,12 @@ class PlayerStatServiceTest {
         player.updateTeam(team);
 
         // when
-        when(playerStatRepository.findById(playerId)).thenReturn(Optional.of(existingStat));
         when(playerRepository.findById(anyLong())).thenReturn(Optional.of(player));
         when(footballApiService.getPlayerStatByPlayerApiIdAndTeamApiIdAndLeagueApiId(anyInt(), anyInt(), anyInt(), anyInt()))
                 .thenReturn(playerStatisticApiDto);
         when(playerStatMapper.toEntity(any())).thenReturn(refreshStat);
         Optional<PlayerStatDto> actual = playerStatService.saveAndGetPlayerStat(playerId);
         // then
-        verify(playerStatRepository, times(1)).findById(playerId);
         verify(playerRepository, times(1)).findById(playerId);
         verify(playerStatRepository, times(1)).save(refreshStat);
         verify(footballApiService).getPlayerStatByPlayerApiIdAndTeamApiIdAndLeagueApiId(
@@ -150,9 +149,10 @@ class PlayerStatServiceTest {
 
     @Test
     @DisplayName("PlayerStat 이 존재 하며 유효기간이 지나지않은 경우" +
-            "저장된 PlayerStat 반환")
+            "저장된 PlayerStat 반환, footballApiService 동작 없어야함")
     void savePlayerStat_existValidPlayerStat() {
         // given
+        Long playerId = 1L;
         Player player = Player.builder()
                 .playerApiId(1)
                 .build();
@@ -165,7 +165,6 @@ class PlayerStatServiceTest {
                 .currentSeason(2024)
                 .leagueApiId(1)
                 .build();
-        Long playerId = 1L;
 
         PlayerStat existingStat = PlayerStat.builder()
                 .gamesPlayed(10)
@@ -179,12 +178,11 @@ class PlayerStatServiceTest {
         player.updateTeam(team);
 
         // when
-        when(playerStatRepository.findById(playerId)).thenReturn(Optional.of(existingStat));
+        when(playerRepository.findById(playerId)).thenReturn(Optional.of(player));
         Optional<PlayerStatDto> actual = playerStatService.saveAndGetPlayerStat(playerId);
         // then
-        verify(playerStatRepository, times(1)).findById(playerId);
+        verify(playerRepository, times(1)).findById(playerId);
         verifyNoInteractions(footballApiService);
-        verifyNoInteractions(playerRepository);
 
         Assertions.assertThat(actual.get().getGamesPlayed()).isEqualTo(10);
     }
