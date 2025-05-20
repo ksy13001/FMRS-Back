@@ -1,36 +1,47 @@
 package com.ksy.fmrs.repository.Player;
 
 import com.ksy.fmrs.config.TestQueryDSLConfig;
+import com.ksy.fmrs.config.TestTimeProviderConfig;
 import com.ksy.fmrs.domain.enums.MappingStatus;
 import com.ksy.fmrs.domain.player.FmPlayer;
 import com.ksy.fmrs.domain.player.Player;
+import com.ksy.fmrs.dto.search.SearchPlayerCondition;
 import org.assertj.core.api.Assertions;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest;
 import org.springframework.boot.test.autoconfigure.orm.jpa.TestEntityManager;
 import org.springframework.context.annotation.Import;
+import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Slice;
 
+import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
 
 
-@Import(TestQueryDSLConfig.class)
+@Import({TestQueryDSLConfig.class, TestTimeProviderConfig.class})
 @DataJpaTest
 class PlayerRepositoryCustomTest {
 
     private static final int LIMIT = 6;
     private static final Pageable PAGEABLE = PageRequest.of(0, 6);
+
     @Autowired
     private TestEntityManager tem;
 
     @Autowired
     private PlayerRepository playerRepository;
+
+    @BeforeEach
+    void setUp() {
+
+    }
 
     @Test
     @DisplayName("검색 시 lastPlayerId or lastMappingStatus null 이면 첫 페이지 반환")
@@ -172,13 +183,40 @@ class PlayerRepositoryCustomTest {
     }
 
 
+    @Test
+    @DisplayName("상세 검색 시, 최소 나이와 최대 나이의 선수들 검색")
+    void detail_search_between_age(){
+        // given
+        // now - 2000.8.14
+        int minAge = 20;
+        int maxAge = 30;
+        Player ob = Player.builder().name("ob").birth(LocalDate.of(1000, 8, 14)).build();
+        Player p = Player.builder().name("p").birth(LocalDate.of(1980, 8, 14)).build();
+        Player yb = Player.builder().name("yb").birth(LocalDate.of(3000, 8, 14)).build();
+
+        persistAndFlushPlayers(List.of(ob, p, yb));
+
+        SearchPlayerCondition searchPlayerCondition = new SearchPlayerCondition();
+        searchPlayerCondition.setAgeMin(minAge);
+        searchPlayerCondition.setAgeMax(maxAge);
+
+        // when
+        Page<Player> actual = playerRepository.searchPlayerByDetailCondition(searchPlayerCondition, PAGEABLE);
+
+        // then
+        Assertions.assertThat(actual.getContent()).hasSize(1);
+        Assertions.assertThat(actual.getContent().getFirst().getName())
+                .isEqualTo(p.getName());
+    }
+
     private void createPlayers(String name){
+        List<Player> players = new ArrayList<>();
         for (int i=0;i<LIMIT;i++){
             Player player = Player.builder()
                     .name(name + i)
                     .mappingStatus(MappingStatus.MATCHED)
                     .build();
-            tem.persist(player);
+            players.add(player);
         }
 
         for (int i=LIMIT;i<LIMIT*2;i++){
@@ -186,9 +224,15 @@ class PlayerRepositoryCustomTest {
                     .name(name + i)
                     .mappingStatus(MappingStatus.UNMAPPED)
                     .build();
+            players.add(player);
+        }
+        persistAndFlushPlayers(players);
+    }
+
+    private void persistAndFlushPlayers(List<Player> players){
+        for (Player player : players){
             tem.persist(player);
         }
-
         tem.flush();
     }
 }
