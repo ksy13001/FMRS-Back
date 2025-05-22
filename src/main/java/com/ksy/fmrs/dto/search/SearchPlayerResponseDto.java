@@ -26,8 +26,8 @@ public class SearchPlayerResponseDto {
     }
 
     public static SearchPlayerResponseDto fromPage(
-            List<PlayerDetailsDto> players, Integer totalPages
+            List<PlayerDetailsDto> players, Integer totalPages,  Long totalElements
     ){
-        return new SearchPlayerResponseDto(players, null, totalPages, null);
+        return new SearchPlayerResponseDto(players, null, totalPages, totalElements);
     }
 }

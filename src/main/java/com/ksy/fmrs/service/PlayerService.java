@@ -171,7 +171,8 @@ public class PlayerService {
         Page<Player> result = playerRepository.searchPlayerByDetailCondition(condition, pageable);
         return SearchPlayerResponseDto.fromPage(
                 result.getContent().stream().map(this::convertPlayerToPlayerDetailsDto).toList(),
-                result.getTotalPages());
+                result.getTotalPages(),
+                result.getTotalElements());
     }
 
     /**
