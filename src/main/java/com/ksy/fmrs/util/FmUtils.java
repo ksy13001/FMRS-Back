@@ -58,6 +58,7 @@ public class FmUtils {
                 .positioning(mentalAttributesDto.getPositioning())
                 .teamwork(mentalAttributesDto.getTeamwork())
                 .vision(mentalAttributesDto.getVision())
+                .workRate(mentalAttributesDto.getWorkrate())
                 .build();
     }
 
