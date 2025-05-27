@@ -1,4 +1,4 @@
-package com.ksy.fmrs.dto;
+package com.ksy.fmrs.dto.player;
 
 import lombok.Getter;
 import lombok.Setter;

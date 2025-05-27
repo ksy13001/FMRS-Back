@@ -1,6 +1,7 @@
 package com.ksy.fmrs.dto.search;
 
 import com.ksy.fmrs.domain.enums.PositionEnum;
+import com.ksy.fmrs.dto.player.FmPlayerDto;
 import lombok.Getter;
 import lombok.Setter;
 
@@ -9,12 +10,10 @@ import lombok.Setter;
 public class SearchPlayerCondition {
     // 선수 검색 조건 - 이름, 나이,
 
-    private String name;
     private Integer ageMin;
     private Integer ageMax;
-    private PositionEnum positionEnum;
-    private String teamName;
-    private String leagueName;
+    private Long teamId;
+    private Long leagueId;
     private String nationName;
 
     // 기술(Technical) 능력치 (Min, Max)
@@ -58,4 +57,20 @@ public class SearchPlayerCondition {
     private Integer pace;
     private Integer stamina;
     private Integer strength;
+
+    // 포지션
+    private Integer GK;
+    private Integer LB;
+    private Integer CB;
+    private Integer RB;
+    private Integer LWB;
+    private Integer RWB;
+    private Integer DM;
+    private Integer LM;
+    private Integer CM;
+    private Integer RM;
+    private Integer LAM;
+    private Integer CAM;
+    private Integer RAM;
+    private Integer ST;
 }

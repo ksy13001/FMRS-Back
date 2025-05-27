@@ -1,13 +1,14 @@
 package com.ksy.fmrs.controller;
 
 import com.ksy.fmrs.domain.enums.MappingStatus;
-import com.ksy.fmrs.dto.PlayerOverviewDto;
+import com.ksy.fmrs.dto.player.PlayerOverviewDto;
 import com.ksy.fmrs.dto.search.SearchPlayerCondition;
 import com.ksy.fmrs.dto.search.SearchPlayerResponseDto;
 import com.ksy.fmrs.service.PlayerFacadeService;
 import com.ksy.fmrs.service.PlayerService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.web.PageableDefault;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
@@ -31,19 +32,29 @@ public class PlayerController {
         return "player-detail";
     }
 
-    @GetMapping("/players/detail-search")
-    public String searchPlayerByDetailCondition(Model model) {
-        SearchPlayerCondition searchPlayerCondition = new SearchPlayerCondition(); // 새로운 객체를 생성하여 모델에 추가
-        model.addAttribute("searchPlayerCondition", searchPlayerCondition); // 모델에 추가
-        return "players-detail-search";
-    }
-
     // 상세 검색 결과 반환 페이지
-    @GetMapping("/players/detail-search/result")
-    public String searchPlayerByDetailConditionResult(
-            @ModelAttribute("searchPlayerCondition") SearchPlayerCondition searchPlayerCondition, Model model) {
-        SearchPlayerResponseDto searchPlayerResponseDto = playerService.searchPlayerByDetailCondition(searchPlayerCondition);
-        model.addAttribute("players", searchPlayerResponseDto);
+    @GetMapping("/players/detail-search")
+    public String search(
+            @ModelAttribute SearchPlayerCondition condition,
+            @PageableDefault Pageable pageable,
+            Model model
+    ) {
+        // 첫 페이지(조건 모두 null)이면 빈 폼만 보여줌
+        if (condition == null) {
+            model.addAttribute("searchPlayerCondition", new SearchPlayerCondition());
+            return "players-detail-search";
+        }
+
+        SearchPlayerResponseDto dto = playerService
+                .searchPlayerByDetailCondition(condition, pageable);
+
+        model.addAttribute("players", dto);
+        model.addAttribute("currentPage", pageable.getPageNumber());
+        model.addAttribute("pageSize", pageable.getPageSize());
+        model.addAttribute("totalPages", dto.getTotalPages());
+        model.addAttribute("totalElements", dto.getTotalElements());
+        model.addAttribute("searchPlayerCondition", condition);
+
         return "players-detail-search";
     }
 
@@ -58,4 +69,14 @@ public class PlayerController {
     ) {
         return playerService.searchPlayerByName(name, pageable, lastMappingStatus, lastCurrentAbility, lastPlayerId);
     }
+
+    @ResponseBody
+    @PostMapping("/api/search/detail-player")
+    public SearchPlayerResponseDto searchPlayerByDetailConditionResult(
+            @RequestBody(required = false) SearchPlayerCondition searchPlayerCondition,
+            @PageableDefault Pageable pageable
+    ) {
+        return playerService.searchPlayerByDetailCondition(searchPlayerCondition, pageable);
+    }
+
 }

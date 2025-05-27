@@ -6,62 +6,13 @@
     <title>FMRS - Football Manager Research System</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://cdn.jsdelivr.net/npm/lucide-static@0.321.0/font/lucide.min.css" rel="stylesheet">
-    <style>
-        .hero-gradient {
-            background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%);
-        }
-        .search-results {
-            max-height: 80px; /* 검색 결과창 높이 축소 */
-            overflow-y: auto;
-            display: none;
-            scrollbar-width: thin;
-            scrollbar-color: #cbd5e1 #f1f5f9;
-        }
-        .search-results.with-results {
-            max-height: 400px; /* 결과가 있을 때는 원래 높이로 */
-        }
-        .search-results::-webkit-scrollbar {
-            width: 6px;
-        }
-        .search-results::-webkit-scrollbar-track {
-            background: #f1f5f9;
-        }
-        .search-results::-webkit-scrollbar-thumb {
-            background-color: #cbd5e1;
-            border-radius: 3px;
-        }
-        .search-results.active {
-            display: block;
-        }
-        .search-result-item:hover {
-            background-color: #f1f5f9;
-        }
-        .loading-indicator {
-            display: none;
-            text-align: center;
-            padding: 10px;
-            color: #64748b;
-        }
-        .loading-indicator.active {
-            display: block;
-        }
-        .search-result-item {
-            min-height: 60px;
-        }
-        .scroll-hint {
-            text-align: center;
-            padding: 8px;
-            color: #64748b;
-            font-size: 12px;
-            border-top: 1px dashed #e2e8f0;
-        }
-    </style>
+    <link rel="stylesheet" th:href="@{/css/home.css}">
 </head>
 <body class="bg-slate-100 min-h-screen flex flex-col text-sm">
 <!-- Header -->
 <header class="bg-white shadow-sm">
     <nav class="w-full max-w-7xl mx-auto px-2 py-2">
-        <a href="/" class="text-lg font-bold text-slate-800 flex items-center gap-1">
+        <a href="/home" class="text-lg font-bold text-slate-800 flex items-center gap-1">
             <i class="icon icon-soccer-ball text-emerald-600"></i>
             FMRS
         </a>
@@ -80,12 +31,11 @@
     <!-- Search Container -->
     <div class="bg-white rounded-lg shadow-md p-6 mb-8 max-w-3xl mx-auto">
         <h2 class="text-xl font-semibold mb-4 text-slate-800">Player Search</h2>
-        <div class="relative">
+        <div class="search-container">
             <div class="relative">
                 <i class="icon icon-search absolute left-4 top-1/2 transform -translate-y-1/2 text-slate-400 text-xl"></i>
                 <input type="text" id="player-search" name="name" placeholder="Enter player name..."
-                       class="w-full pl-12 pr-4 py-4 rounded-lg border border-slate-300 focus:outline-none focus:ring-2 focus:ring-blue-500 transition duration-300 text-lg"
-                       autocomplete="off"> <!-- 자동완성 비활성화 -->
+                       class="search-input w-full pl-12 pr-4 py-4 rounded-lg border border-slate-300 focus:outline-none focus:ring-2 focus:ring-blue-500 transition duration-300 text-lg">
             </div>
 
             <!-- Search Results Container -->
@@ -104,7 +54,7 @@
                 <!-- Loading indicator -->
                 <div id="loading-indicator" class="loading-indicator">
                     <div class="flex items-center justify-center">
-                        <svg class="animate-spin -ml-1 mr-2 h-5 w-5 text-blue-500" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                        <svg class="loading-spinner -ml-1 mr-2 h-5 w-5 text-blue-500" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
                             <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
                             <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
                         </svg>
@@ -113,266 +63,17 @@
                 </div>
             </div>
         </div>
+
+        <!-- Advanced Search Button -->
+        <div class="mt-4 text-center">
+            <a href="/players/detail-search" class="inline-flex items-center px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition">
+                <i class="icon icon-filter mr-2"></i>
+                Detailed Search
+            </a>
+        </div>
     </div>
 </main>
 
-<!-- JavaScript for Auto-complete Search with Infinite Scroll -->
-<script>
-    document.addEventListener('DOMContentLoaded', function() {
-        const searchInput = document.getElementById('player-search');
-        const searchResults = document.getElementById('search-results');
-        const resultsContainer = document.getElementById('results-container');
-        const emptyResults = document.getElementById('empty-results');
-        const loadingIndicator = document.getElementById('loading-indicator');
-        const scrollHint = document.getElementById('scroll-hint');
-
-        // 페이지 로드 시 검색 결과 숨김
-        searchResults.classList.remove('active');
-        emptyResults.style.display = 'none';
-
-        let debounceTimer;
-        let isLoading = false;
-        let hasMoreResults = true;
-        let currentPage = 0;
-
-        // 마지막으로 로드된 플레이어 정보를 저장
-        let lastPlayerId = null;
-        let lastMappingStatus = null;
-        let currentAbility = null;
-        let currentQuery = '';
-
-        // 초기 상태 설정 - 빈 검색 결과 표시
-        searchResults.classList.remove('active');
-
-        // Function to fetch search results
-        async function fetchSearchResults(query, isLoadMore = false) {
-            if (!query || query.length < 2) {
-                resultsContainer.innerHTML = '';
-                emptyResults.style.display = 'block';
-                scrollHint.style.display = 'none';
-                searchResults.classList.add('active');
-                searchResults.classList.remove('with-results'); // 결과가 없을 때 높이 축소
-                return;
-            }
-
-            if (isLoading) {
-                return;
-            }
-
-            isLoading = true;
-            emptyResults.style.display = 'none';
-
-            if (!isLoadMore) {
-                // 새 검색이면 이전 결과와 마지막 ID 초기화
-                resultsContainer.innerHTML = '';
-                lastPlayerId = null;
-                lastMappingStatus = null;
-                currentAbility = null;
-                hasMoreResults = true;
-                currentPage = 0;
-            } else {
-                currentPage++;
-            }
-
-            loadingIndicator.classList.add('active');
-
-            try {
-                // API 엔드포인트 구성 - Spring Pageable 형식에 맞게 수정
-                let url = `/api/search/simple-player/${encodeURIComponent(query)}?page=${currentPage}&size=6`;
-
-                // 커서 파라미터 추가 (있는 경우에만)
-                if (isLoadMore && lastPlayerId !== null) {
-                    url += `&lastPlayerId=${lastPlayerId}`;
-                }
-
-                if (isLoadMore && lastMappingStatus !== null) {
-                    url += `&lastMappingStatus=${lastMappingStatus}`;
-                }
-
-                if (isLoadMore && currentAbility !== null) {
-                    url += `&currentAbility=${currentAbility}`;
-                }
-
-                const response = await fetch(url);
-
-                if (!response.ok) {
-                    throw new Error(`Network response was not ok: ${response.status}`);
-                }
-
-                const data = await response.json();
-
-                // 응답 구조 확인 및 처리
-                displaySearchResults(data, isLoadMore);
-                currentQuery = query;
-            } catch (error) {
-                console.error('Error fetching search results:', error);
-                // 에러 발생 시 사용자에게 알림
-                if (!isLoadMore) {
-                    resultsContainer.innerHTML = '<div class="p-4 text-center text-red-500">Error loading results. Please try again.</div>';
-                }
-            } finally {
-                isLoading = false;
-                loadingIndicator.classList.remove('active');
-            }
-        }
-
-        // Function to display search results
-        function displaySearchResults(data, isLoadMore = false) {
-            // 응답 구조 확인 및 안전하게 데이터 추출
-            let players = [];
-
-            // 다양한 응답 구조 처리
-            if (data && data.players && Array.isArray(data.players)) {
-                players = data.players;
-            } else if (data && Array.isArray(data)) {
-                players = data;
-            } else if (data && typeof data === 'object') {
-                // 객체에서 배열 찾기
-                for (const key in data) {
-                    if (Array.isArray(data[key])) {
-                        players = data[key];
-                        break;
-                    }
-                }
-            }
-
-            if (players.length === 0) {
-                if (!isLoadMore) {
-                    resultsContainer.innerHTML = '<div class="p-4 text-center text-slate-500">No players found</div>';
-                }
-                hasMoreResults = false;
-                scrollHint.style.display = 'none';
-                searchResults.classList.add('active');
-                searchResults.classList.remove('with-results'); // 결과가 없을 때 높이 축소
-                return;
-            }
-
-            // 결과가 있으면 표시
-            searchResults.classList.add('with-results'); // 결과가 있을 때 높이 확장
-
-            players.forEach(player => {
-                const resultItem = document.createElement('a');
-                resultItem.href = `/players/${player.id || ''}`;
-                resultItem.className = 'search-result-item flex items-center p-3 border-b border-slate-100 last:border-b-0 text-slate-700 hover:text-blue-600 transition';
-
-                // 안전하게 속성 접근
-                const name = player.name || 'Unknown Player';
-                const age = player.age || '';
-                const teamName = player.teamName || '';
-                const imageUrl = player.imageUrl || '/placeholder.svg';
-
-                resultItem.innerHTML = `
-    <div class="w-10 h-10 rounded-full overflow-hidden bg-slate-200 mr-3 flex-shrink-0">
-        <img src="${imageUrl}" alt="${name}" class="w-full h-full object-cover">
-    </div>
-    <div class="flex-grow">
-        <div class="font-bold text-black">${name}</div>
-        <div class="text-xs text-slate-500">
-            <span>${teamName}</span>
-            <span class="ml-2">${age ? age + ' years' : ''}</span>
-        </div>
-    </div>
-`;
-
-                resultsContainer.appendChild(resultItem);
-            });
-
-            // 마지막 플레이어 정보 저장 (무한 스크롤용)
-            if (players.length > 0) {
-                const lastPlayer = players[players.length - 1];
-                lastPlayerId = lastPlayer.id || null;
-                lastMappingStatus = lastPlayer.mappingStatus || null;
-                currentAbility = lastPlayer.currentAbility || null;
-            }
-
-            // 결과가 6개 미만이면 더 이상 로드할 결과가 없음
-            if (players.length < 6) {
-                hasMoreResults = false;
-                scrollHint.style.display = 'none';
-            } else {
-                hasMoreResults = true;
-                scrollHint.style.display = 'block';
-            }
-
-            searchResults.classList.add('active');
-
-            // 스크롤 가능한지 확인
-            checkScrollability();
-        }
-
-        // 스크롤 가능 여부 확인 함수
-        function checkScrollability() {
-            setTimeout(() => {
-                const resultsHeight = resultsContainer.scrollHeight;
-                const containerHeight = searchResults.clientHeight;
-
-                // 스크롤이 필요한지 확인
-                if (resultsHeight > containerHeight - 50) { // 로딩 인디케이터 공간 고려
-                    scrollHint.style.display = 'block';
-                } else {
-                    scrollHint.style.display = 'none';
-                }
-
-                // 공백 문제 해결: 스크롤 패딩 제거
-                // 이전에 추가된 패딩 요소 제거
-                const existingPadding = resultsContainer.querySelector('.scroll-padding');
-                if (existingPadding) {
-                    existingPadding.remove();
-                }
-            }, 100);
-        }
-
-        // 스크롤 이벤트 핸들러
-        function handleScroll() {
-            if (isLoading || !hasMoreResults) {
-                return;
-            }
-
-            const scrollPosition = searchResults.scrollTop;
-            const scrollHeight = searchResults.scrollHeight;
-            const clientHeight = searchResults.clientHeight;
-            const scrollThreshold = scrollHeight - clientHeight - 20; // 하단에서 20px 전에 로드 시작
-
-            if (scrollPosition >= scrollThreshold) {
-                fetchSearchResults(currentQuery, true);
-            }
-        }
-
-        // Event listener for input changes with debounce
-        searchInput.addEventListener('input', function() {
-            clearTimeout(debounceTimer);
-            debounceTimer = setTimeout(() => {
-                const query = this.value.trim();
-                if (query !== currentQuery) {
-                    fetchSearchResults(query);
-                }
-            }, 300); // 300ms debounce
-        });
-
-        // Event listener for scroll to implement infinite scroll
-        searchResults.addEventListener('scroll', handleScroll);
-
-        // Close results when clicking outside
-        document.addEventListener('click', function(event) {
-            if (!searchInput.contains(event.target) && !searchResults.contains(event.target)) {
-                searchResults.classList.remove('active');
-            }
-        });
-
-        // Show results again when focusing on input
-        searchInput.addEventListener('focus', function() {
-            searchResults.classList.add('active');
-            if (this.value.trim().length < 2) {
-                resultsContainer.innerHTML = '';
-                emptyResults.style.display = 'block';
-                scrollHint.style.display = 'none';
-                searchResults.classList.remove('with-results'); // 결과가 없을 때 높이 축소
-            } else if (currentQuery) {
-                // 이미 검색 결과가 있으면 스크롤 가능 여부 다시 확인
-                checkScrollability();
-            }
-        });
-    });
-</script>
+<script th:src="@{/js/home.js}"></script>
 </body>
 </html>

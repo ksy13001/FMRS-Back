@@ -18,11 +18,12 @@ import com.ksy.fmrs.repository.Team.TeamRepository;
 import com.ksy.fmrs.util.StringUtils;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Slice;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.time.LocalDate;
 import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
@@ -47,7 +48,7 @@ public class PlayerService {
     public PlayerDetailsDto getPlayerDetails(Long playerId) {
         Player player = playerRepository.findById(playerId)
                 .orElseThrow(() -> new IllegalArgumentException("Player not found: " + playerId));
-        return convertPlayerToPlayerDetailsResponseDto(player);
+        return convertPlayerToPlayerDetailsDto(player);
     }
 
     @Transactional(readOnly = true)
@@ -121,7 +122,7 @@ public class PlayerService {
                 .toList();
     }
 
-    private PlayerDetailsDto convertPlayerToPlayerDetailsResponseDto(Player player) {
+    private PlayerDetailsDto convertPlayerToPlayerDetailsDto(Player player) {
         return new PlayerDetailsDto(
                 player,
                 player.getTeamName(),
@@ -137,20 +138,9 @@ public class PlayerService {
     public TeamPlayersResponseDto getTeamPlayersByTeamId(Long teamId) {
         return new TeamPlayersResponseDto(playerRepository.findAllByTeamId(teamId)
                 .stream()
-                .map(this::convertPlayerToPlayerDetailsResponseDto)
+                .map(this::convertPlayerToPlayerDetailsDto)
                 .toList());
     }
-
-//    /**
-//     * 모든 선수 몸값순 조회
-//     */
-//    public SearchPlayerResponseDto getPlayersByMarketValueDesc() {
-//        return new SearchPlayerResponseDto(playerRepository.findAllByOrderByMarketValueDesc()
-//                .stream()
-//                .map(this::convertPlayerToPlayerDetailsResponseDto)
-//                .toList());
-//    }
-
 
     /**
      * 선수 이름 검색
@@ -163,22 +153,26 @@ public class PlayerService {
             Integer lastCurrentAbility,
             Long lastPlayerId
     ) {
-        return new SearchPlayerResponseDto(playerRepository.searchPlayerByName(
-                        name, pageable, lastMappingStatus, lastCurrentAbility, lastPlayerId)
-                .stream()
-                .map(this::convertPlayerToPlayerDetailsResponseDto)
-                .toList());
+        Slice<Player> result = playerRepository.searchPlayerByName(
+                name, pageable, lastMappingStatus, lastCurrentAbility, lastPlayerId);
+        return SearchPlayerResponseDto.fromSlice(
+                result.getContent().stream().map(this::convertPlayerToPlayerDetailsDto).toList(),
+                result.hasNext());
     }
 
     /**
-     * 선수 상세 조회
+     * 선수 상세 검색
      */
     @Transactional(readOnly = true)
-    public SearchPlayerResponseDto searchPlayerByDetailCondition(SearchPlayerCondition condition) {
-        return new SearchPlayerResponseDto(playerRepository.searchPlayerByDetailCondition(condition)
-                .stream()
-                .map(this::convertPlayerToPlayerDetailsResponseDto)
-                .toList());
+    public SearchPlayerResponseDto searchPlayerByDetailCondition(
+            SearchPlayerCondition condition,
+            Pageable pageable
+    ) {
+        Page<Player> result = playerRepository.searchPlayerByDetailCondition(condition, pageable);
+        return SearchPlayerResponseDto.fromPage(
+                result.getContent().stream().map(this::convertPlayerToPlayerDetailsDto).toList(),
+                result.getTotalPages(),
+                result.getTotalElements());
     }
 
     /**

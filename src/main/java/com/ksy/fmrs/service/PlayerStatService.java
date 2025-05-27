@@ -11,12 +11,9 @@ import com.ksy.fmrs.repository.Player.PlayerStatRepository;
 import com.ksy.fmrs.util.time.TimeProvider;
 import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
-import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.time.LocalDate;
-import java.time.LocalDateTime;
 import java.util.Optional;
 
 @RequiredArgsConstructor
@@ -42,7 +39,7 @@ public class PlayerStatService {
                 .orElseThrow(()-> new EntityNotFoundException("Player not found with id: " + playerId));
         PlayerStat playerStat = player.getPlayerStat();
 
-        if (playerStat == null || playerStat.isExpired(timeProvider.getCurrentTime())) {
+        if (playerStat == null || playerStat.isExpired(timeProvider.getCurrentLocalDateTime())) {
             return savePlayerStat(player).map(PlayerStatDto::new);
         }
         return Optional.of(new PlayerStatDto(playerStat));

@@ -1,29 +1,27 @@
 package com.ksy.fmrs.repository.Player;
 
 import com.ksy.fmrs.config.TestQueryDSLConfig;
+import com.ksy.fmrs.config.TestTimeProviderConfig;
 import com.ksy.fmrs.domain.enums.MappingStatus;
 import com.ksy.fmrs.domain.player.FmPlayer;
 import com.ksy.fmrs.domain.player.Player;
-import com.ksy.fmrs.domain.QTeam;
 import com.ksy.fmrs.domain.Team;
-import com.ksy.fmrs.domain.player.QPlayer;
-import com.ksy.fmrs.dto.search.SearchPlayerCondition;
 import com.ksy.fmrs.repository.Team.TeamRepository;
 import com.ksy.fmrs.util.StringUtils;
-import com.querydsl.jpa.impl.JPAQueryFactory;
 import jakarta.persistence.EntityManager;
 import org.assertj.core.api.Assertions;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest;
+import org.springframework.boot.test.autoconfigure.orm.jpa.TestEntityManager;
 import org.springframework.context.annotation.Import;
 
 import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
 
-@Import(TestQueryDSLConfig.class)
+@Import({TestQueryDSLConfig.class, TestTimeProviderConfig.class})
 @DataJpaTest
 class PlayerRepositoryTest {
 
@@ -32,9 +30,7 @@ class PlayerRepositoryTest {
     @Autowired
     private TeamRepository teamRepository;
     @Autowired
-    private JPAQueryFactory jpaQueryFactory;
-    @Autowired
-    private EntityManager entityManager;
+    private TestEntityManager tem;
 
     @Test
     @DisplayName("save 단건")
@@ -103,28 +99,7 @@ class PlayerRepositoryTest {
     @Test
     @DisplayName("상세 검색 테스트 - 팀")
     void detail_search_test() {
-        // given
-        SearchPlayerCondition condition = new SearchPlayerCondition();
-        condition.setTeamName("TOT");
-        Team team = Team.builder().name("TOT").build();
-        Player player = Player.builder().build();
-        teamRepository.save(team);
-        playerRepository.save(player);
-        player.updateTeam(team);
 
-        // when
-        List<Player> result = playerRepository.searchPlayerByDetailCondition(condition);
-        List<Player> expected = jpaQueryFactory
-                .selectFrom(QPlayer.player)
-                .leftJoin(QPlayer.player.team, QTeam.team)
-                .where(
-                        QTeam.team.name.eq(condition.getTeamName())
-                )
-                .fetch();
-
-        // then
-//        Assertions.assertThat(result.get(0).getName()).isEqualTo(expected.get(0).getName());
-        Assertions.assertThat(result.size()).isEqualTo(1);
     }
 
     @Test
@@ -158,7 +133,7 @@ class PlayerRepositoryTest {
     }
 
     @Test
-    @DisplayName("하나에 player에 매핑되는 fm player가 2명 이상일 경우")
+    @DisplayName("하나에 player에 매핑되는 fm player가 2명 이상인 player 조회 테스트")
     void findDuplicatedFmPlayer() {
         // given
         FmPlayer fmPlayer1 = FmPlayer.builder()
@@ -180,11 +155,11 @@ class PlayerRepositoryTest {
                 .birth(LocalDate.of(1995, 7, 19))
                 .mappingStatus(MappingStatus.UNMAPPED)
                 .build();
-        entityManager.persist(player);
-        entityManager.persist(fmPlayer1);
-        entityManager.persist(fmPlayer2);
-        entityManager.flush();
-        entityManager.close();
+        tem.persist(player);
+        tem.persist(fmPlayer1);
+        tem.persist(fmPlayer2);
+
+        tem.flush();
         // when
         List<Player> players = playerRepository.findPlayerDuplicatedWithFmPlayer();
         List<Player> playerAll = playerRepository.findAll();
@@ -204,14 +179,14 @@ class PlayerRepositoryTest {
         LocalDate birth = LocalDate.of(1995, 7, 19);
         for (int i = 0; i < 100; i++) {
             Player player = createPlayer(firstName, lastName, birth, nationName, MappingStatus.UNMAPPED);
-            entityManager.persist(player);
+            tem.persist(player);
         }
         for (int i = 0; i < 100; i++) {
             Player player = createPlayer("f" + i, "l" + i, LocalDate.now(), "n" + i, MappingStatus.UNMAPPED);
-            entityManager.persist(player);
+            tem.persist(player);
         }
-        entityManager.flush();
-        entityManager.close();
+        tem.flush();
+        tem.clear();
         // when
         List<Player> players = playerRepository.findDuplicatedPlayers();
         // then

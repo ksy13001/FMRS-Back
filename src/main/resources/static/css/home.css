@@ -1,0 +1,222 @@
+.hero-gradient {
+    background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%);
+}
+
+/* 검색 결과 컨테이너 스타일 개선 */
+#results-container {
+    /* 결과 간 간격 제거 */
+    display: flex;
+    flex-direction: column;
+}
+
+/* 검색 결과 항목 스타일 개선 */
+.search-result-item {
+    min-height: 60px;
+    /* 마진 제거하여 연속성 보장 */
+    margin: 0;
+    /* 패딩 조정 */
+    padding: 12px 16px;
+    /* 부드러운 전환 효과 */
+    transition: background-color 0.2s ease;
+}
+
+.search-result-item:hover {
+    background-color: #f1f5f9;
+}
+
+/* 마지막 항목의 border 제거 */
+.search-result-item:last-child {
+    border-bottom: none;
+}
+
+/* 스크롤 패딩 스타일 */
+.scroll-padding {
+    flex-shrink: 0;
+    /* 부드러운 전환을 위한 투명 배경 */
+    background: transparent;
+    /* 최소 높이 설정 */
+    min-height: 20px;
+}
+
+/* 로딩 인디케이터 위치 조정 */
+.loading-indicator {
+    display: none;
+    text-align: center;
+    padding: 16px 10px;
+    color: #64748b;
+    /* 상단 여백 제거 */
+    margin-top: 0;
+    /* 부드러운 전환 */
+    transition: opacity 0.2s ease;
+}
+
+.loading-indicator.active {
+    display: block;
+    opacity: 1;
+}
+
+/* 스크롤 힌트 스타일 개선 */
+.scroll-hint {
+    text-align: center;
+    padding: 8px;
+    color: #64748b;
+    font-size: 12px;
+    border-top: 1px dashed #e2e8f0;
+    /* 상단 여백 제거 */
+    margin-top: 0;
+    /* 배경색 추가로 연속성 보장 */
+    background-color: #ffffff;
+}
+
+/* 검색 결과 전체 컨테이너 */
+.search-results {
+    height: 400px;
+    overflow-y: auto;
+    display: none;
+    scrollbar-width: thin;
+    scrollbar-color: #cbd5e1 #f1f5f9;
+    /* 내부 여백 제거 */
+    padding: 0;
+}
+
+/* 빈 결과 메시지 스타일 */
+#empty-results {
+    padding: 16px;
+    text-align: center;
+    color: #64748b;
+    /* 여백 제거 */
+    margin: 0;
+}
+
+/* 에러 메시지 스타일 */
+.error-message {
+    padding: 16px;
+    text-align: center;
+    color: #ef4444;
+    background-color: #fef2f2;
+    border: 1px solid #fecaca;
+    border-radius: 6px;
+    margin: 8px;
+}
+
+.search-results::-webkit-scrollbar {
+    width: 6px;
+}
+
+.search-results::-webkit-scrollbar-track {
+    background: #f1f5f9;
+}
+
+.search-results::-webkit-scrollbar-thumb {
+    background-color: #cbd5e1;
+    border-radius: 3px;
+}
+
+.search-results.active {
+    display: block;
+}
+
+/* 검색 컨테이너 스타일 */
+.search-container {
+    position: relative;
+}
+
+.search-input {
+    transition: all 0.3s ease;
+}
+
+.search-input:focus {
+    box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+}
+
+/* 검색 결과 애니메이션 개선 */
+.search-results {
+    animation: fadeIn 0.15s ease-out;
+}
+
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+        transform: translateY(-5px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+/* 로딩 스피너 애니메이션 */
+.loading-spinner {
+    animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+    from {
+        transform: rotate(0deg);
+    }
+    to {
+        transform: rotate(360deg);
+    }
+}
+
+/* 반응형 디자인 */
+@media (max-width: 768px) {
+    .search-results {
+        height: 300px;
+    }
+
+    .search-result-item {
+        min-height: 50px;
+    }
+
+    .search-result-item .font-medium {
+        font-size: 14px;
+    }
+
+    .search-result-item .text-xs {
+        font-size: 11px;
+    }
+}
+
+/* 접근성 개선 */
+.search-result-item:focus {
+    outline: 2px solid #3b82f6;
+    outline-offset: 2px;
+}
+
+/* 스크롤 힌트 애니메이션 */
+.scroll-hint i {
+    animation: bounce 2s infinite;
+}
+
+@keyframes bounce {
+    0%,
+    20%,
+    50%,
+    80%,
+    100% {
+        transform: translateY(0);
+    }
+    40% {
+        transform: translateY(-5px);
+    }
+    60% {
+        transform: translateY(-3px);
+    }
+}
+
+/* 새로운 결과 항목 애니메이션 */
+.search-result-item {
+    animation: slideIn 0.2s ease-out;
+}
+
+@keyframes slideIn {
+    from {
+        opacity: 0;
+        transform: translateX(-10px);
+    }
+    to {
+        opacity: 1;
+        transform: translateX(0);
+    }
+}

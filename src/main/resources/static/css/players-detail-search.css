@@ -1,0 +1,144 @@
+.hero-gradient {
+    background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%);
+}
+
+.form-section {
+    transition: all 0.3s ease;
+}
+
+.form-section.collapsed .section-content {
+    display: none !important;
+}
+
+.section-header {
+    transition: all 0.3s ease;
+    cursor: pointer !important;
+    user-select: none;
+}
+
+.section-header:hover {
+    background-color: rgba(0, 0, 0, 0.05) !important;
+    transform: translateY(-1px);
+}
+
+.section-header .toggle-icon {
+    transition: transform 0.3s ease;
+}
+
+.form-section.collapsed .toggle-icon {
+    transform: rotate(-90deg);
+}
+
+.stat-bar {
+    height: 3px;
+    background-color: #e2e8f0;
+    border-radius: 1px;
+    overflow: hidden;
+}
+
+.stat-bar-fill-gray {
+    background-color: #94a3b8;
+}
+
+.stat-bar-fill-yellow {
+    background-color: #fbbf24;
+}
+
+.stat-bar-fill-orange {
+    background-color: #f97316;
+}
+
+.stat-bar-fill-emerald {
+    background-color: #10b981;
+}
+
+/* Increased spacing for pagination links */
+.pagination-link {
+    padding-left: 1.5rem !important;
+    padding-right: 1.5rem !important;
+    padding-top: 0.75rem !important;
+    padding-bottom: 0.75rem !important;
+    margin: 0 0.5rem !important;
+}
+
+/* Position clickable dots - 강화된 스타일 */
+.position-clickable {
+    position: absolute !important;
+    width: 20px !important;
+    height: 20px !important;
+    border-radius: 50% !important;
+    background-color: #6b7280 !important;
+    transform: translate(-50%, -50%) !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    cursor: pointer !important;
+    transition: all 0.3s ease !important;
+    border: 2px solid transparent !important;
+    z-index: 30 !important;
+    pointer-events: auto !important;
+    user-select: none !important;
+}
+
+.position-clickable:hover {
+    background-color: #9ca3af !important;
+    transform: translate(-50%, -50%) scale(1.2) !important;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3) !important;
+    z-index: 35 !important;
+}
+
+.position-clickable.selected {
+    background-color: #10b981 !important;
+    border-color: #059669 !important;
+    box-shadow: 0 0 10px rgba(16, 185, 129, 0.5) !important;
+}
+
+.position-clickable.selected:hover {
+    background-color: #059669 !important;
+}
+
+.position-label {
+    color: white !important;
+    font-size: 8px !important;
+    font-weight: bold !important;
+    text-shadow: 0 0 2px black !important;
+    pointer-events: none !important;
+    user-select: none !important;
+}
+
+/* Position map container - 강화된 스타일 */
+.position-map-container {
+    position: relative !important;
+    user-select: none !important;
+    pointer-events: auto !important;
+    overflow: visible !important;
+}
+
+.position-map-container * {
+    pointer-events: auto !important;
+}
+
+/* 모든 자식 요소가 클릭을 방해하지 않도록 */
+.position-map-container > div:not(.position-clickable) {
+    pointer-events: none !important;
+}
+
+/* Section Content Animation */
+.section-content {
+    transition: all 0.3s ease;
+    overflow: hidden;
+}
+
+/* 추가 디버깅을 위한 스타일 */
+.position-clickable::before {
+    content: "";
+    position: absolute;
+    top: -5px;
+    left: -5px;
+    right: -5px;
+    bottom: -5px;
+    border-radius: 50%;
+    background: transparent;
+    pointer-events: auto;
+    z-index: -1;
+}
