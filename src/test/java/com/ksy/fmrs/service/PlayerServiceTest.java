@@ -7,6 +7,7 @@ import com.ksy.fmrs.domain.enums.MappingStatus;
 import com.ksy.fmrs.domain.player.FmPlayer;
 import com.ksy.fmrs.domain.player.Player;
 import com.ksy.fmrs.domain.Team;
+import com.ksy.fmrs.dto.nation.NationDto;
 import com.ksy.fmrs.dto.player.FmPlayerDetailsDto;
 import com.ksy.fmrs.dto.player.PlayerDetailsDto;
 import com.ksy.fmrs.dto.search.SearchPlayerCondition;
@@ -152,8 +153,8 @@ public class PlayerServiceTest {
         // given
         Pageable pageable = PageRequest.of(0, 10);
         Player player1 = createPlayer("p1", "p1", LocalDate.now(), "n1",  MappingStatus.MATCHED);
-        Player player2 = createPlayer("p1", "p1", LocalDate.now(), "n1",  MappingStatus.UNMAPPED);
-        Player player3 = createPlayer("p1", "p1", LocalDate.now(), "n1",  MappingStatus.FAILED);
+        Player player2 = createPlayer("p2", "p2", LocalDate.now(), "n2",  MappingStatus.UNMAPPED);
+        Player player3 = createPlayer("p3", "p3", LocalDate.now(), "n3",  MappingStatus.FAILED);
         SearchPlayerCondition condition = new SearchPlayerCondition();
 
         // when
@@ -162,14 +163,34 @@ public class PlayerServiceTest {
         SearchPlayerResponseDto actual = playerService.searchPlayerByDetailCondition(condition, pageable);
 
         // then
+        Assertions.assertThat(actual.getPlayers()).extracting("name")
+                .containsExactly(player1.getName(), player2.getName(), player3.getName());
+
+    }
 
 
+    @Test
+    @DisplayName("player 들의 국가 조회 테스트")
+    void get_nationNames_from_player(){
+        // given
+        Player player1 = createPlayer("p1", "p1", LocalDate.now(), "n1",  MappingStatus.MATCHED);
+        Player player2 = createPlayer("p2", "p2", LocalDate.now(), "n2",  MappingStatus.UNMAPPED);
+        Player player3 = createPlayer("p3", "p3", LocalDate.now(), "n3",  MappingStatus.FAILED);
+        List<String> nations = Arrays.asList(player1.getNationName(), player2.getNationName(), player3.getNationName());
+        // when
+        when(playerRepository.getNationNamesFromPlayers()).thenReturn(nations);
+        List<NationDto> actual = playerService.getNationsFromPlayers();
+
+        // then
+        Assertions.assertThat(actual).extracting("nationName")
+                .containsOnly("n1", "n2", "n3");
     }
 
     private Player createPlayer(String firstName, String lastName, LocalDate birth, String nation, MappingStatus mappingStatus) {
         return Player.builder()
                 .firstName(firstName)
                 .lastName(lastName)
+                .name(firstName+lastName)
                 .birth(birth)
                 .nationName(nation)
                 .mappingStatus(mappingStatus)
