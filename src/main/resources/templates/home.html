@@ -1,79 +1,79 @@
-<!DOCTYPE html>
-<html xmlns:th="http://www.thymeleaf.org" lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>FMRS - Football Manager Research System</title>
-    <script src="https://cdn.tailwindcss.com"></script>
-    <link href="https://cdn.jsdelivr.net/npm/lucide-static@0.321.0/font/lucide.min.css" rel="stylesheet">
-    <link rel="stylesheet" th:href="@{/css/home.css}">
-</head>
-<body class="bg-slate-100 min-h-screen flex flex-col text-sm">
-<!-- Header -->
-<header class="bg-white shadow-sm">
-    <nav class="w-full max-w-7xl mx-auto px-2 py-2">
-        <a href="/home" class="text-lg font-bold text-slate-800 flex items-center gap-1">
-            <i class="icon icon-soccer-ball text-emerald-600"></i>
-            FMRS
-        </a>
-    </nav>
-</header>
+<!--<!DOCTYPE html>-->
+<!--<html xmlns:th="http://www.thymeleaf.org" lang="en">-->
+<!--<head>-->
+<!--    <meta charset="UTF-8">-->
+<!--    <meta name="viewport" content="width=device-width, initial-scale=1.0">-->
+<!--    <title>FMRS - Football Manager Research System</title>-->
+<!--    <script src="https://cdn.tailwindcss.com"></script>-->
+<!--    <link href="https://cdn.jsdelivr.net/npm/lucide-static@0.321.0/font/lucide.min.css" rel="stylesheet">-->
+<!--    <link rel="stylesheet" th:href="@{/css/home.css}">-->
+<!--</head>-->
+<!--<body class="bg-slate-100 min-h-screen flex flex-col text-sm">-->
+<!--&lt;!&ndash; Header &ndash;&gt;-->
+<!--<header class="bg-white shadow-sm">-->
+<!--    <nav class="w-full max-w-7xl mx-auto px-2 py-2">-->
+<!--        <a href="/home" class="text-lg font-bold text-slate-800 flex items-center gap-1">-->
+<!--            <i class="icon icon-soccer-ball text-emerald-600"></i>-->
+<!--            FMRS-->
+<!--        </a>-->
+<!--    </nav>-->
+<!--</header>-->
 
-<!-- Hero Section -->
-<section class="hero-gradient text-white py-12">
-    <div class="w-full max-w-7xl mx-auto px-2 text-center">
-        <h1 class="text-3xl md:text-4xl font-bold">Football Manager Research System</h1>
-    </div>
-</section>
+<!--&lt;!&ndash; Hero Section &ndash;&gt;-->
+<!--<section class="hero-gradient text-white py-12">-->
+<!--    <div class="w-full max-w-7xl mx-auto px-2 text-center">-->
+<!--        <h1 class="text-3xl md:text-4xl font-bold">Football Manager Research System</h1>-->
+<!--    </div>-->
+<!--</section>-->
 
-<!-- Main Content -->
-<main class="flex-grow w-full max-w-7xl mx-auto px-4 py-8">
-    <!-- Search Container -->
-    <div class="bg-white rounded-lg shadow-md p-6 mb-8 max-w-3xl mx-auto">
-        <h2 class="text-xl font-semibold mb-4 text-slate-800">Player Search</h2>
-        <div class="search-container">
-            <div class="relative">
-                <i class="icon icon-search absolute left-4 top-1/2 transform -translate-y-1/2 text-slate-400 text-xl"></i>
-                <input type="text" id="player-search" name="name" placeholder="Enter player name..."
-                       class="search-input w-full pl-12 pr-4 py-4 rounded-lg border border-slate-300 focus:outline-none focus:ring-2 focus:ring-blue-500 transition duration-300 text-lg">
-            </div>
+<!--&lt;!&ndash; Main Content &ndash;&gt;-->
+<!--<main class="flex-grow w-full max-w-7xl mx-auto px-4 py-8">-->
+<!--    &lt;!&ndash; Search Container &ndash;&gt;-->
+<!--    <div class="bg-white rounded-lg shadow-md p-6 mb-8 max-w-3xl mx-auto">-->
+<!--        <h2 class="text-xl font-semibold mb-4 text-slate-800">Player Search</h2>-->
+<!--        <div class="search-container">-->
+<!--            <div class="relative">-->
+<!--                <i class="icon icon-search absolute left-4 top-1/2 transform -translate-y-1/2 text-slate-400 text-xl"></i>-->
+<!--                <input type="text" id="player-search" name="name" placeholder="Enter player name..."-->
+<!--                       class="search-input w-full pl-12 pr-4 py-4 rounded-lg border border-slate-300 focus:outline-none focus:ring-2 focus:ring-blue-500 transition duration-300 text-lg">-->
+<!--            </div>-->
 
-            <!-- Search Results Container -->
-            <div id="search-results" class="search-results absolute left-0 right-0 mt-1 bg-white border border-slate-200 rounded-lg shadow-lg z-10">
-                <!-- 기본값으로 빈 검색 결과 표시 -->
-                <div id="empty-results" class="p-4 text-center text-slate-500">Enter a player name to search</div>
+<!--            &lt;!&ndash; Search Results Container &ndash;&gt;-->
+<!--            <div id="search-results" class="search-results absolute left-0 right-0 mt-1 bg-white border border-slate-200 rounded-lg shadow-lg z-10">-->
+<!--                &lt;!&ndash; 기본값으로 빈 검색 결과 표시 &ndash;&gt;-->
+<!--                <div id="empty-results" class="p-4 text-center text-slate-500">Enter a player name to search</div>-->
 
-                <!-- Results will be populated here by JavaScript -->
-                <div id="results-container"></div>
+<!--                &lt;!&ndash; Results will be populated here by JavaScript &ndash;&gt;-->
+<!--                <div id="results-container"></div>-->
 
-                <!-- 스크롤 힌트 -->
-                <div id="scroll-hint" class="scroll-hint" style="display: none;">
-                    <i class="icon icon-chevron-down"></i> Scroll for more results
-                </div>
+<!--                &lt;!&ndash; 스크롤 힌트 &ndash;&gt;-->
+<!--                <div id="scroll-hint" class="scroll-hint" style="display: none;">-->
+<!--                    <i class="icon icon-chevron-down"></i> Scroll for more results-->
+<!--                </div>-->
 
-                <!-- Loading indicator -->
-                <div id="loading-indicator" class="loading-indicator">
-                    <div class="flex items-center justify-center">
-                        <svg class="loading-spinner -ml-1 mr-2 h-5 w-5 text-blue-500" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-                            <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
-                            <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-                        </svg>
-                        <span>Loading more results...</span>
-                    </div>
-                </div>
-            </div>
-        </div>
+<!--                &lt;!&ndash; Loading indicator &ndash;&gt;-->
+<!--                <div id="loading-indicator" class="loading-indicator">-->
+<!--                    <div class="flex items-center justify-center">-->
+<!--                        <svg class="loading-spinner -ml-1 mr-2 h-5 w-5 text-blue-500" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">-->
+<!--                            <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>-->
+<!--                            <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>-->
+<!--                        </svg>-->
+<!--                        <span>Loading more results...</span>-->
+<!--                    </div>-->
+<!--                </div>-->
+<!--            </div>-->
+<!--        </div>-->
 
-        <!-- Advanced Search Button -->
-        <div class="mt-4 text-center">
-            <a href="/players/detail-search" class="inline-flex items-center px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition">
-                <i class="icon icon-filter mr-2"></i>
-                Detailed Search
-            </a>
-        </div>
-    </div>
-</main>
+<!--        &lt;!&ndash; Advanced Search Button &ndash;&gt;-->
+<!--        <div class="mt-4 text-center">-->
+<!--            <a href="/players/detail-search" class="inline-flex items-center px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition">-->
+<!--                <i class="icon icon-filter mr-2"></i>-->
+<!--                Detailed Search-->
+<!--            </a>-->
+<!--        </div>-->
+<!--    </div>-->
+<!--</main>-->
 
-<script th:src="@{/js/home.js}"></script>
-</body>
-</html>
+<!--<script th:src="@{/js/home.js}"></script>-->
+<!--</body>-->
+<!--</html>-->
