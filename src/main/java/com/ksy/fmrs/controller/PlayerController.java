@@ -7,14 +7,14 @@ import com.ksy.fmrs.dto.search.SearchPlayerResponseDto;
 import com.ksy.fmrs.service.PlayerFacadeService;
 import com.ksy.fmrs.service.PlayerService;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.web.PageableDefault;
-import org.springframework.stereotype.Controller;
-import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
 
+@Slf4j
 @RequiredArgsConstructor
-@Controller
+@RestController
 public class PlayerController {
 
     private final PlayerFacadeService playerFacadeService;
@@ -25,44 +25,15 @@ public class PlayerController {
      * 2. 매핑된 상태라면 fmplayer 정보
      * 3. 실제 스탯
      */
-    @GetMapping("/players/{playerId}")
-    public String getPlayerDetail(@PathVariable Long playerId, Model model) {
-        PlayerOverviewDto playerOverviewDto = playerFacadeService.getPlayerOverview(playerId);
-        model.addAttribute("player", playerOverviewDto);
-        return "player-detail";
+    @GetMapping("/api/players/{playerId}")
+    public PlayerOverviewDto getPlayerDetail(@PathVariable Long playerId) {
+        return playerFacadeService.getPlayerOverview(playerId);
     }
 
-    // 상세 검색 결과 반환 페이지
-    @GetMapping("/players/detail-search")
-    public String search(
-            @ModelAttribute SearchPlayerCondition condition,
-            @PageableDefault Pageable pageable,
-            Model model
-    ) {
-        // 첫 페이지(조건 모두 null)이면 빈 폼만 보여줌
-        if (condition == null) {
-            model.addAttribute("searchPlayerCondition", new SearchPlayerCondition());
-            return "players-detail-search";
-        }
-
-        SearchPlayerResponseDto dto = playerService
-                .searchPlayerByDetailCondition(condition, pageable);
-
-        model.addAttribute("players", dto);
-        model.addAttribute("currentPage", pageable.getPageNumber());
-        model.addAttribute("pageSize", pageable.getPageSize());
-        model.addAttribute("totalPages", dto.getTotalPages());
-        model.addAttribute("totalElements", dto.getTotalElements());
-        model.addAttribute("searchPlayerCondition", condition);
-
-        return "players-detail-search";
-    }
-
-    @ResponseBody
     @GetMapping("/api/search/simple-player/{name}")
     public SearchPlayerResponseDto searchPlayerByName(
             @PathVariable String name,
-            Pageable pageable,
+            @PageableDefault Pageable pageable,
             @RequestParam(required = false) Long lastPlayerId,
             @RequestParam(required = false) Integer lastCurrentAbility,
             @RequestParam(required = false) MappingStatus lastMappingStatus
@@ -70,12 +41,12 @@ public class PlayerController {
         return playerService.searchPlayerByName(name, pageable, lastPlayerId, lastCurrentAbility, lastMappingStatus);
     }
 
-    @ResponseBody
     @GetMapping("/api/search/detail-player")
     public SearchPlayerResponseDto searchPlayerByDetailConditionResult(
-            @RequestBody(required = false) SearchPlayerCondition searchPlayerCondition,
+            @ModelAttribute SearchPlayerCondition searchPlayerCondition,
             @PageableDefault Pageable pageable
     ) {
+        log.info("searchPlayerByDetailConditionResult: dribble={}", searchPlayerCondition.getDribbling());
         return playerService.searchPlayerByDetailCondition(searchPlayerCondition, pageable);
     }
 

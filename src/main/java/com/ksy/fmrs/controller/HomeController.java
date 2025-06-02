@@ -16,11 +16,11 @@ public class HomeController {
     private final PlayerService playerService;
     private final InitializationService initializationService;
 
-    @GetMapping("/home")
-    public String home(Model model) {
-//
-//        model.addAttribute("featuredPlayers", searchPlayerResponseDto);
-        return "home";
-    }
+//    @GetMapping("/home")
+//    public String home(Model model) {
+////
+////        model.addAttribute("featuredPlayers", searchPlayerResponseDto);
+//        return "home";
+//    }
 
 }
