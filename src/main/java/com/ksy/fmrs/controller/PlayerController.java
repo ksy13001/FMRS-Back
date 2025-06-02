@@ -67,11 +67,11 @@ public class PlayerController {
             @RequestParam(required = false) Integer lastCurrentAbility,
             @RequestParam(required = false) MappingStatus lastMappingStatus
     ) {
-        return playerService.searchPlayerByName(name, pageable, lastMappingStatus, lastCurrentAbility, lastPlayerId);
+        return playerService.searchPlayerByName(name, pageable, lastPlayerId, lastCurrentAbility, lastMappingStatus);
     }
 
     @ResponseBody
-    @PostMapping("/api/search/detail-player")
+    @GetMapping("/api/search/detail-player")
     public SearchPlayerResponseDto searchPlayerByDetailConditionResult(
             @RequestBody(required = false) SearchPlayerCondition searchPlayerCondition,
             @PageableDefault Pageable pageable
