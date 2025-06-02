@@ -46,7 +46,7 @@ public class PlayerRepositoryCustomImpl implements PlayerRepositoryCustom {
     // 이름 검색
     @Override
     public Slice<Player> searchPlayerByName(
-            String name, Pageable pageable, MappingStatus lastmappingStatus, Integer lastCurrentAbility, Long lastPlayerId) {
+            String name, Pageable pageable, Long lastPlayerId,  Integer lastCurrentAbility, MappingStatus lastmappingStatus) {
 
         int limit = pageable.getPageSize();
         List<Player> players = jpaQueryFactory

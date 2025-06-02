@@ -1,201 +1,201 @@
-<!DOCTYPE html>
-<html xmlns:th="http://www.thymeleaf.org" lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title th:text="${league.name + ' - League Details | FMRS'}">League Details | FMRS</title>
-    <script src="https://cdn.tailwindcss.com"></script>
-    <link href="https://cdn.jsdelivr.net/npm/lucide-static@0.321.0/font/lucide.min.css" rel="stylesheet">
-    <style>
-        .hero-gradient {
-            background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%);
-        }
-    </style>
-</head>
-<body class="bg-slate-100 min-h-screen flex flex-col text-sm">
-<!-- Header -->
-<header class="bg-white shadow-sm">
-    <nav class="w-full max-w-7xl mx-auto px-4 py-2 flex justify-between items-center">
-        <a href="/home" class="text-xl font-bold text-slate-800 flex items-center gap-2">
-            <i class="icon icon-soccer-ball text-blue-600"></i>
-            FMRS
-        </a>
-        <div class="space-x-4">
-            <a href="/search/simple-players" class="text-slate-600 hover:text-blue-600 transition duration-300">Search</a>
-            <a href="/team" class="text-slate-600 hover:text-blue-600 transition duration-300">Teams</a>
-            <a href="/leagues" class="text-slate-600 hover:text-blue-600 transition duration-300">Leagues</a>
-        </div>
-    </nav>
-</header>
+<!--<!DOCTYPE html>-->
+<!--<html xmlns:th="http://www.thymeleaf.org" lang="en">-->
+<!--<head>-->
+<!--    <meta charset="UTF-8">-->
+<!--    <meta name="viewport" content="width=device-width, initial-scale=1.0">-->
+<!--    <title th:text="${league.name + ' - League Details | FMRS'}">League Details | FMRS</title>-->
+<!--    <script src="https://cdn.tailwindcss.com"></script>-->
+<!--    <link href="https://cdn.jsdelivr.net/npm/lucide-static@0.321.0/font/lucide.min.css" rel="stylesheet">-->
+<!--    <style>-->
+<!--        .hero-gradient {-->
+<!--            background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%);-->
+<!--        }-->
+<!--    </style>-->
+<!--</head>-->
+<!--<body class="bg-slate-100 min-h-screen flex flex-col text-sm">-->
+<!--&lt;!&ndash; Header &ndash;&gt;-->
+<!--<header class="bg-white shadow-sm">-->
+<!--    <nav class="w-full max-w-7xl mx-auto px-4 py-2 flex justify-between items-center">-->
+<!--        <a href="/home" class="text-xl font-bold text-slate-800 flex items-center gap-2">-->
+<!--            <i class="icon icon-soccer-ball text-blue-600"></i>-->
+<!--            FMRS-->
+<!--        </a>-->
+<!--        <div class="space-x-4">-->
+<!--            <a href="/search/simple-players" class="text-slate-600 hover:text-blue-600 transition duration-300">Search</a>-->
+<!--            <a href="/team" class="text-slate-600 hover:text-blue-600 transition duration-300">Teams</a>-->
+<!--            <a href="/leagues" class="text-slate-600 hover:text-blue-600 transition duration-300">Leagues</a>-->
+<!--        </div>-->
+<!--    </nav>-->
+<!--</header>-->
 
 
-<!-- Hero Section -->
-<section class="hero-gradient text-white py-4">
-    <div class="w-full max-w-7xl mx-auto px-4 flex items-center gap-4">
-        <div class="flex items-center gap-4">
-            <img th:src="${league.logoImageUrl}" th:alt="${league.name + ' logo'}" class="w-16 h-16 object-contain bg-white rounded-full p-1">
-            <div>
-                <h1 class="text-2xl font-bold" th:text="${league.name}">League Name</h1>
-                <div class="flex items-center gap-2 text-sm text-slate-300">
-                    <img th:if="${league.nationImageUrl}" th:src="${league.nationImageUrl}" th:alt="${league.nationName + ' flag'}" class="w-4 h-4 rounded-full object-cover">
-                    <span th:text="${league.nationName + ' - Season ' + league.currentSeason}">Country - Current Season</span>
-                </div>
-            </div>
-        </div>
-    </div>
-</section>
+<!--&lt;!&ndash; Hero Section &ndash;&gt;-->
+<!--<section class="hero-gradient text-white py-4">-->
+<!--    <div class="w-full max-w-7xl mx-auto px-4 flex items-center gap-4">-->
+<!--        <div class="flex items-center gap-4">-->
+<!--            <img th:src="${league.logoImageUrl}" th:alt="${league.name + ' logo'}" class="w-16 h-16 object-contain bg-white rounded-full p-1">-->
+<!--            <div>-->
+<!--                <h1 class="text-2xl font-bold" th:text="${league.name}">League Name</h1>-->
+<!--                <div class="flex items-center gap-2 text-sm text-slate-300">-->
+<!--                    <img th:if="${league.nationImageUrl}" th:src="${league.nationImageUrl}" th:alt="${league.nationName + ' flag'}" class="w-4 h-4 rounded-full object-cover">-->
+<!--                    <span th:text="${league.nationName + ' - Season ' + league.currentSeason}">Country - Current Season</span>-->
+<!--                </div>-->
+<!--            </div>-->
+<!--        </div>-->
+<!--    </div>-->
+<!--</section>-->
 
-<!-- Main Content -->
-<main class="flex-grow w-full max-w-7xl mx-auto px-4 py-4">
-    <div class="flex flex-col lg:flex-row gap-4">
-        <!-- Standings -->
-        <div class="lg:w-3/4 bg-white rounded-lg shadow-sm overflow-hidden">
-            <div class="p-4">
-                <h2 class="text-lg font-semibold mb-2 text-slate-800">League Standings</h2>
-                <div class="overflow-x-auto">
-                    <table class="w-full text-xs text-left text-slate-500">
-                        <thead class="text-xs text-slate-700 uppercase bg-slate-100">
-                        <tr>
-                            <th class="px-2 py-2">Pos</th>
-                            <th class="px-2 py-2">Team</th>
-                            <th class="px-2 py-2 text-right">P</th>
-                            <th class="px-2 py-2 text-right">W</th>
-                            <th class="px-2 py-2 text-right">D</th>
-                            <th class="px-2 py-2 text-right">L</th>
-                            <th class="px-2 py-2 text-right">GF</th>
-                            <th class="px-2 py-2 text-right">GA</th>
-                            <th class="px-2 py-2 text-right">GD</th>
-                            <th class="px-2 py-2 text-right font-bold">PTS</th>
-                        </tr>
-                        </thead>
-                        <tbody>
-                        <tr th:each="team : ${standing.standings}" th:class="${
-                                    team.description == 'Champions League' ? 'bg-blue-50' :
-                                    team.description == 'UEFA Europa League' ? 'bg-orange-50' :
-                                    team.description == 'Relegation' ? 'bg-red-50' : ''
-                                }">
-                            <td class="px-2 py-2 font-medium" th:text="${team.rank}">1</td>
-                            <td class="px-2 py-2">
-                                <div class="flex items-center gap-2">
-                                    <img th:src="${team.teamLogo}" th:alt="${team.teamName + ' logo'}" class="w-4 h-4 object-contain">
-                                    <span th:text="${team.teamName}">Team Name</span>
-                                </div>
-                            </td>
-                            <td class="px-2 py-2 text-right" th:text="${team.played}">0</td>
-                            <td class="px-2 py-2 text-right" th:text="${team.won}">0</td>
-                            <td class="px-2 py-2 text-right" th:text="${team.drawn}">0</td>
-                            <td class="px-2 py-2 text-right" th:text="${team.lost}">0</td>
-                            <td class="px-2 py-2 text-right" th:text="${team.goalsFor}">0</td>
-                            <td class="px-2 py-2 text-right" th:text="${team.goalsAgainst}">0</td>
-                            <td class="px-2 py-2 text-right" th:text="${team.goalsDifference > 0 ? '+' + team.goalsDifference : team.goalsDifference}">0</td>
-                            <td class="px-2 py-2 text-right font-bold" th:text="${team.points}">0</td>
-                        </tr>
-                        </tbody>
-                    </table>
-                </div>
-                <div class="mt-2 text-xs text-slate-500 flex gap-4">
-                    <div class="flex items-center gap-1">
-                        <div class="w-3 h-3 bg-blue-50"></div>
-                        <span>Champions League</span>
-                    </div>
-                    <div class="flex items-center gap-1">
-                        <div class="w-3 h-3 bg-orange-50"></div>
-                        <span>Europa League</span>
-                    </div>
-                    <div class="flex items-center gap-1">
-                        <div class="w-3 h-3 bg-red-50"></div>
-                        <span>Relegation</span>
-                    </div>
-                </div>
-            </div>
-        </div>
+<!--&lt;!&ndash; Main Content &ndash;&gt;-->
+<!--<main class="flex-grow w-full max-w-7xl mx-auto px-4 py-4">-->
+<!--    <div class="flex flex-col lg:flex-row gap-4">-->
+<!--        &lt;!&ndash; Standings &ndash;&gt;-->
+<!--        <div class="lg:w-3/4 bg-white rounded-lg shadow-sm overflow-hidden">-->
+<!--            <div class="p-4">-->
+<!--                <h2 class="text-lg font-semibold mb-2 text-slate-800">League Standings</h2>-->
+<!--                <div class="overflow-x-auto">-->
+<!--                    <table class="w-full text-xs text-left text-slate-500">-->
+<!--                        <thead class="text-xs text-slate-700 uppercase bg-slate-100">-->
+<!--                        <tr>-->
+<!--                            <th class="px-2 py-2">Pos</th>-->
+<!--                            <th class="px-2 py-2">Team</th>-->
+<!--                            <th class="px-2 py-2 text-right">P</th>-->
+<!--                            <th class="px-2 py-2 text-right">W</th>-->
+<!--                            <th class="px-2 py-2 text-right">D</th>-->
+<!--                            <th class="px-2 py-2 text-right">L</th>-->
+<!--                            <th class="px-2 py-2 text-right">GF</th>-->
+<!--                            <th class="px-2 py-2 text-right">GA</th>-->
+<!--                            <th class="px-2 py-2 text-right">GD</th>-->
+<!--                            <th class="px-2 py-2 text-right font-bold">PTS</th>-->
+<!--                        </tr>-->
+<!--                        </thead>-->
+<!--                        <tbody>-->
+<!--                        <tr th:each="team : ${standing.standings}" th:class="${-->
+<!--                                    team.description == 'Champions League' ? 'bg-blue-50' :-->
+<!--                                    team.description == 'UEFA Europa League' ? 'bg-orange-50' :-->
+<!--                                    team.description == 'Relegation' ? 'bg-red-50' : ''-->
+<!--                                }">-->
+<!--                            <td class="px-2 py-2 font-medium" th:text="${team.rank}">1</td>-->
+<!--                            <td class="px-2 py-2">-->
+<!--                                <div class="flex items-center gap-2">-->
+<!--                                    <img th:src="${team.teamLogo}" th:alt="${team.teamName + ' logo'}" class="w-4 h-4 object-contain">-->
+<!--                                    <span th:text="${team.teamName}">Team Name</span>-->
+<!--                                </div>-->
+<!--                            </td>-->
+<!--                            <td class="px-2 py-2 text-right" th:text="${team.played}">0</td>-->
+<!--                            <td class="px-2 py-2 text-right" th:text="${team.won}">0</td>-->
+<!--                            <td class="px-2 py-2 text-right" th:text="${team.drawn}">0</td>-->
+<!--                            <td class="px-2 py-2 text-right" th:text="${team.lost}">0</td>-->
+<!--                            <td class="px-2 py-2 text-right" th:text="${team.goalsFor}">0</td>-->
+<!--                            <td class="px-2 py-2 text-right" th:text="${team.goalsAgainst}">0</td>-->
+<!--                            <td class="px-2 py-2 text-right" th:text="${team.goalsDifference > 0 ? '+' + team.goalsDifference : team.goalsDifference}">0</td>-->
+<!--                            <td class="px-2 py-2 text-right font-bold" th:text="${team.points}">0</td>-->
+<!--                        </tr>-->
+<!--                        </tbody>-->
+<!--                    </table>-->
+<!--                </div>-->
+<!--                <div class="mt-2 text-xs text-slate-500 flex gap-4">-->
+<!--                    <div class="flex items-center gap-1">-->
+<!--                        <div class="w-3 h-3 bg-blue-50"></div>-->
+<!--                        <span>Champions League</span>-->
+<!--                    </div>-->
+<!--                    <div class="flex items-center gap-1">-->
+<!--                        <div class="w-3 h-3 bg-orange-50"></div>-->
+<!--                        <span>Europa League</span>-->
+<!--                    </div>-->
+<!--                    <div class="flex items-center gap-1">-->
+<!--                        <div class="w-3 h-3 bg-red-50"></div>-->
+<!--                        <span>Relegation</span>-->
+<!--                    </div>-->
+<!--                </div>-->
+<!--            </div>-->
+<!--        </div>-->
 
-        <!-- Top Scorers and Assistants -->
-        <div class="lg:w-1/4 space-y-4">
-            <!-- Top Scorers -->
-            <div class="bg-white rounded-lg shadow-sm overflow-hidden">
-                <div class="p-3">
-                    <h2 class="text-base font-semibold mb-2 text-slate-800">Top Scorers</h2>
-                    <div class="space-y-2">
-                        <div th:each="player, iterStat : ${topScorers}" th:if="${iterStat.index < 5}"
-                             class="flex items-center gap-2 p-1 hover:bg-slate-50 rounded transition duration-300">
-                            <img th:src="${player.imageUrl}" th:alt="${player.name}" class="w-8 h-8 rounded-full object-cover">
-                            <div class="flex-grow">
-                                <h3 class="font-semibold text-xs" th:text="${player.name}">Player Name</h3>
-                                <p class="text-xs text-slate-600" th:text="${player.teamName}">Team Name</p>
-                            </div>
-                            <div class="text-center">
-                                <p class="text-sm font-bold" th:class="${iterStat.index == 0 ? 'text-blue-600' : 'text-black'}" th:text="${player.goal}">0</p>
-                            </div>
-                        </div>
-                    </div>
-                    <a href="#" class="text-xs text-blue-600 hover:text-blue-700 transition duration-300 flex items-center justify-center mt-2">
-                        View More
-                        <i class="icon icon-arrow-right ml-1"></i>
-                    </a>
-                </div>
-            </div>
+<!--        &lt;!&ndash; Top Scorers and Assistants &ndash;&gt;-->
+<!--        <div class="lg:w-1/4 space-y-4">-->
+<!--            &lt;!&ndash; Top Scorers &ndash;&gt;-->
+<!--            <div class="bg-white rounded-lg shadow-sm overflow-hidden">-->
+<!--                <div class="p-3">-->
+<!--                    <h2 class="text-base font-semibold mb-2 text-slate-800">Top Scorers</h2>-->
+<!--                    <div class="space-y-2">-->
+<!--                        <div th:each="player, iterStat : ${topScorers}" th:if="${iterStat.index < 5}"-->
+<!--                             class="flex items-center gap-2 p-1 hover:bg-slate-50 rounded transition duration-300">-->
+<!--                            <img th:src="${player.imageUrl}" th:alt="${player.name}" class="w-8 h-8 rounded-full object-cover">-->
+<!--                            <div class="flex-grow">-->
+<!--                                <h3 class="font-semibold text-xs" th:text="${player.name}">Player Name</h3>-->
+<!--                                <p class="text-xs text-slate-600" th:text="${player.teamName}">Team Name</p>-->
+<!--                            </div>-->
+<!--                            <div class="text-center">-->
+<!--                                <p class="text-sm font-bold" th:class="${iterStat.index == 0 ? 'text-blue-600' : 'text-black'}" th:text="${player.goal}">0</p>-->
+<!--                            </div>-->
+<!--                        </div>-->
+<!--                    </div>-->
+<!--                    <a href="#" class="text-xs text-blue-600 hover:text-blue-700 transition duration-300 flex items-center justify-center mt-2">-->
+<!--                        View More-->
+<!--                        <i class="icon icon-arrow-right ml-1"></i>-->
+<!--                    </a>-->
+<!--                </div>-->
+<!--            </div>-->
 
-            <!-- Top Assistants -->
-            <div class="bg-white rounded-lg shadow-sm overflow-hidden mt-4">
-                <div class="p-3">
-                    <h2 class="text-base font-semibold mb-2 text-slate-800">Top Assistants</h2>
-                    <div class="space-y-2">
-                        <div th:each="player, iterStat : ${topAssistants}" th:if="${iterStat.index < 5}"
-                             class="flex items-center gap-2 p-1 hover:bg-slate-50 rounded transition duration-300">
-                            <img th:src="${player.imageUrl}" th:alt="${player.name}" class="w-8 h-8 rounded-full object-cover">
-                            <div class="flex-grow">
-                                <h3 class="font-semibold text-xs" th:text="${player.name}">Player Name</h3>
-                                <p class="text-xs text-slate-600" th:text="${player.teamName}">Team Name</p>
-                            </div>
-                            <div class="text-center">
-                                <p class="text-sm font-bold" th:class="${iterStat.index == 0 ? 'text-blue-600' : 'text-black'}" th:text="${player.assist}">0</p>
-                            </div>
-                        </div>
-                    </div>
-                    <a href="#" class="text-xs text-blue-600 hover:text-blue-700 transition duration-300 flex items-center justify-center mt-2">
-                        View More
-                        <i class="icon icon-arrow-right ml-1"></i>
-                    </a>
-                </div>
-            </div>
-        </div>
-    </div>
-</main>
+<!--            &lt;!&ndash; Top Assistants &ndash;&gt;-->
+<!--            <div class="bg-white rounded-lg shadow-sm overflow-hidden mt-4">-->
+<!--                <div class="p-3">-->
+<!--                    <h2 class="text-base font-semibold mb-2 text-slate-800">Top Assistants</h2>-->
+<!--                    <div class="space-y-2">-->
+<!--                        <div th:each="player, iterStat : ${topAssistants}" th:if="${iterStat.index < 5}"-->
+<!--                             class="flex items-center gap-2 p-1 hover:bg-slate-50 rounded transition duration-300">-->
+<!--                            <img th:src="${player.imageUrl}" th:alt="${player.name}" class="w-8 h-8 rounded-full object-cover">-->
+<!--                            <div class="flex-grow">-->
+<!--                                <h3 class="font-semibold text-xs" th:text="${player.name}">Player Name</h3>-->
+<!--                                <p class="text-xs text-slate-600" th:text="${player.teamName}">Team Name</p>-->
+<!--                            </div>-->
+<!--                            <div class="text-center">-->
+<!--                                <p class="text-sm font-bold" th:class="${iterStat.index == 0 ? 'text-blue-600' : 'text-black'}" th:text="${player.assist}">0</p>-->
+<!--                            </div>-->
+<!--                        </div>-->
+<!--                    </div>-->
+<!--                    <a href="#" class="text-xs text-blue-600 hover:text-blue-700 transition duration-300 flex items-center justify-center mt-2">-->
+<!--                        View More-->
+<!--                        <i class="icon icon-arrow-right ml-1"></i>-->
+<!--                    </a>-->
+<!--                </div>-->
+<!--            </div>-->
+<!--        </div>-->
+<!--    </div>-->
+<!--</main>-->
 
 
-<!-- Footer -->
-<footer class="bg-slate-800 text-white py-4 text-xs">
-    <div class="w-full max-w-7xl mx-auto px-2">
-        <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
-            <div>
-                <h3 class="text-sm font-semibold mb-1">About FMRS</h3>
-                <p class="text-slate-400 text-xs">Comprehensive, up-to-date information about professional soccer players, teams, and leagues worldwide.</p>
-            </div>
-            <div>
-                <h3 class="text-sm font-semibold mb-2">Quick Links</h3>
-                <ul class="space-y-1">
-                    <li><a href="/about" class="text-slate-400 hover:text-white transition duration-300">About</a></li>
-                    <li><a href="/contact" class="text-slate-400 hover:text-white transition duration-300">Contact</a></li>
-                    <li><a href="/privacy" class="text-slate-400 hover:text-white transition duration-300">Privacy Policy</a></li>
-                    <li><a href="/terms" class="text-slate-400 hover:text-white transition duration-300">Terms of Service</a></li>
-                </ul>
-            </div>
-            <div>
-                <h3 class="text-sm font-semibold mb-2">Connect With Us</h3>
-                <div class="flex space-x-4">
-                    <a href="#" class="text-slate-400 hover:text-white transition duration-300"><i class="icon icon-twitter"></i></a>
-                    <a href="#" class="text-slate-400 hover:text-white transition duration-300"><i class="icon icon-facebook"></i></a>
-                    <a href="#" class="text-slate-400 hover:text-white transition duration-300"><i class="icon icon-instagram"></i></a>
-                    <a href="#" class="text-slate-400 hover:text-white transition duration-300"><i class="icon icon-linkedin"></i></a>
-                </div>
-            </div>
-        </div>
-        <div class="mt-3 pt-3 border-t border-slate-700 text-center">
-            <p class="text-slate-400 text-xs">&copy; 2023 FMRS. All rights reserved.</p>
-        </div>
-    </div>
-</footer>
-</body>
-</html>
+<!--&lt;!&ndash; Footer &ndash;&gt;-->
+<!--<footer class="bg-slate-800 text-white py-4 text-xs">-->
+<!--    <div class="w-full max-w-7xl mx-auto px-2">-->
+<!--        <div class="grid grid-cols-1 md:grid-cols-3 gap-4">-->
+<!--            <div>-->
+<!--                <h3 class="text-sm font-semibold mb-1">About FMRS</h3>-->
+<!--                <p class="text-slate-400 text-xs">Comprehensive, up-to-date information about professional soccer players, teams, and leagues worldwide.</p>-->
+<!--            </div>-->
+<!--            <div>-->
+<!--                <h3 class="text-sm font-semibold mb-2">Quick Links</h3>-->
+<!--                <ul class="space-y-1">-->
+<!--                    <li><a href="/about" class="text-slate-400 hover:text-white transition duration-300">About</a></li>-->
+<!--                    <li><a href="/contact" class="text-slate-400 hover:text-white transition duration-300">Contact</a></li>-->
+<!--                    <li><a href="/privacy" class="text-slate-400 hover:text-white transition duration-300">Privacy Policy</a></li>-->
+<!--                    <li><a href="/terms" class="text-slate-400 hover:text-white transition duration-300">Terms of Service</a></li>-->
+<!--                </ul>-->
+<!--            </div>-->
+<!--            <div>-->
+<!--                <h3 class="text-sm font-semibold mb-2">Connect With Us</h3>-->
+<!--                <div class="flex space-x-4">-->
+<!--                    <a href="#" class="text-slate-400 hover:text-white transition duration-300"><i class="icon icon-twitter"></i></a>-->
+<!--                    <a href="#" class="text-slate-400 hover:text-white transition duration-300"><i class="icon icon-facebook"></i></a>-->
+<!--                    <a href="#" class="text-slate-400 hover:text-white transition duration-300"><i class="icon icon-instagram"></i></a>-->
+<!--                    <a href="#" class="text-slate-400 hover:text-white transition duration-300"><i class="icon icon-linkedin"></i></a>-->
+<!--                </div>-->
+<!--            </div>-->
+<!--        </div>-->
+<!--        <div class="mt-3 pt-3 border-t border-slate-700 text-center">-->
+<!--            <p class="text-slate-400 text-xs">&copy; 2023 FMRS. All rights reserved.</p>-->
+<!--        </div>-->
+<!--    </div>-->
+<!--</footer>-->
+<!--</body>-->
+<!--</html>-->
 

@@ -149,12 +149,12 @@ public class PlayerService {
     public SearchPlayerResponseDto searchPlayerByName(
             String name,
             Pageable pageable,
-            MappingStatus lastMappingStatus,
+            Long lastPlayerId,
             Integer lastCurrentAbility,
-            Long lastPlayerId
+            MappingStatus lastMappingStatus
     ) {
         Slice<Player> result = playerRepository.searchPlayerByName(
-                name, pageable, lastMappingStatus, lastCurrentAbility, lastPlayerId);
+                name, pageable,lastPlayerId, lastCurrentAbility, lastMappingStatus);
         return SearchPlayerResponseDto.fromSlice(
                 result.getContent().stream().map(this::convertPlayerToPlayerDetailsDto).toList(),
                 result.hasNext());

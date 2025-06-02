@@ -120,9 +120,9 @@ class PlayerRepositoryCustomTest {
             actual = playerRepository.searchPlayerByName(
                     name,
                     PAGEABLE,
-                    actual.getContent().getLast().getMappingStatus(),
+                    actual.getContent().getLast().getId(),
                     actual.getContent().getLast().getFmPlayerCurrentAbility(),
-                    actual.getContent().getLast().getId()
+                    actual.getContent().getLast().getMappingStatus()
             );
         }
         Assertions.assertThat(actualMappingStatus.subList(0, 20))
@@ -174,9 +174,10 @@ class PlayerRepositoryCustomTest {
             actual = playerRepository.searchPlayerByName(
                     name,
                     PAGEABLE,
-                    actual.getContent().getLast().getMappingStatus(),
+                    actual.getContent().getLast().getId(),
                     actual.getContent().getLast().getFmPlayerCurrentAbility(),
-                    actual.getContent().getLast().getId());
+                    actual.getContent().getLast().getMappingStatus());
+
         }
         Assertions.assertThat(actual.hasNext()).isFalse();
         Assertions.assertThat(actualPage).isEqualTo(totalPage);
