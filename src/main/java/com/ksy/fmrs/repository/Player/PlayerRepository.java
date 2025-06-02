@@ -35,6 +35,8 @@ public interface PlayerRepository extends JpaRepository<Player, Long>, PlayerRep
             "HAVING COUNT(fp.id) > 1")
     List<Player> findPlayerDuplicatedWithFmPlayer();
 
+    @Query("SELECT DISTINCT p.nationName FROM Player p")
+    List<String> getNationNamesFromPlayers();
 //    @Query("SELECT p FROM Player p " +
 //            "GROUP BY p.firstName, p.lastName, p.birth, p.nationName " +
 //            "HAVING COUNT(p) > 1 ")
