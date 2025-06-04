@@ -6,6 +6,7 @@ import com.ksy.fmrs.domain.enums.MappingStatus;
 import com.ksy.fmrs.domain.player.*;
 import com.ksy.fmrs.domain.Team;
 import com.ksy.fmrs.dto.apiFootball.LeagueApiPlayersDto;
+import com.ksy.fmrs.dto.nation.NationDto;
 import com.ksy.fmrs.dto.player.FmPlayerDetailsDto;
 import com.ksy.fmrs.dto.player.PlayerDetailsDto;
 import com.ksy.fmrs.dto.search.SearchPlayerCondition;
@@ -194,5 +195,10 @@ public class PlayerService {
     @Transactional(readOnly = true)
     public List<Player> getDuplicatePlayers() {
         return playerRepository.findDuplicatedPlayers();
+    }
+
+    @Transactional(readOnly = true)
+    public List<NationDto> getNationsFromPlayers() {
+        return playerRepository.getNationNamesFromPlayers().stream().map(NationDto::new).toList();
     }
 }

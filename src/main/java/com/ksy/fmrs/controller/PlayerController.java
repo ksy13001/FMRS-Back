@@ -1,6 +1,7 @@
 package com.ksy.fmrs.controller;
 
 import com.ksy.fmrs.domain.enums.MappingStatus;
+import com.ksy.fmrs.dto.nation.NationDto;
 import com.ksy.fmrs.dto.player.PlayerOverviewDto;
 import com.ksy.fmrs.dto.search.SearchPlayerCondition;
 import com.ksy.fmrs.dto.search.SearchPlayerResponseDto;
@@ -11,6 +12,8 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.web.PageableDefault;
 import org.springframework.web.bind.annotation.*;
+
+import java.util.List;
 
 @Slf4j
 @RequiredArgsConstructor
@@ -50,4 +53,8 @@ public class PlayerController {
         return playerService.searchPlayerByDetailCondition(searchPlayerCondition, pageable);
     }
 
+    @GetMapping("/api/nations")
+    public List<NationDto> getNationsFromPlayers() {
+        return playerService.getNationsFromPlayers();
+    }
 }

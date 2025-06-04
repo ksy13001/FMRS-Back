@@ -200,6 +200,27 @@ class PlayerRepositoryTest {
         );
     }
 
+    @Test
+    @DisplayName("player 국가 조회 테스트")
+    void getNationNamesFromPlayer(){
+        // given
+        Player player1 = createPlayer("p1", "p1", LocalDate.now(), "n1", MappingStatus.MATCHED);
+        Player player2 = createPlayer("p1", "p1", LocalDate.now(), "n2", MappingStatus.MATCHED);
+        Player player3 = createPlayer("p1", "p1", LocalDate.now(), "n3", MappingStatus.MATCHED);
+        Player player4 = createPlayer("p1", "p1", LocalDate.now(), "n3", MappingStatus.MATCHED);
+        tem.persist(player1);
+        tem.persist(player2);
+        tem.persist(player3);
+        tem.persist(player4);
+        tem.flush();
+
+        // when
+        List<String> actual = playerRepository.getNationNamesFromPlayers();
+
+        // then
+        Assertions.assertThat(actual).containsExactlyInAnyOrder("n1", "n2", "n3");
+    }
+
     private Team createTeam(String name) {
         return Team.builder().name(name).build();
     }
