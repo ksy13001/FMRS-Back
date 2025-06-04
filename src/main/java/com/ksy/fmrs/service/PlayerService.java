@@ -17,6 +17,8 @@ import com.ksy.fmrs.repository.BulkRepository;
 import com.ksy.fmrs.repository.Player.PlayerRepository;
 import com.ksy.fmrs.repository.Team.TeamRepository;
 import com.ksy.fmrs.util.StringUtils;
+import jakarta.persistence.EntityNotFoundException;
+import jakarta.persistence.criteria.CriteriaBuilder;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
@@ -25,9 +27,7 @@ import org.springframework.data.domain.Slice;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.util.List;
-import java.util.Objects;
-import java.util.Optional;
+import java.util.*;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
@@ -35,6 +35,8 @@ import java.util.stream.Collectors;
 @RequiredArgsConstructor
 @Service
 public class PlayerService {
+
+    private static final Integer TOTAL_ATTRIBUTE = 36;
 
     private final PlayerRepository playerRepository;
     private final TeamRepository teamRepository;
@@ -175,6 +177,28 @@ public class PlayerService {
                 result.getTotalPages(),
                 result.getTotalElements());
     }
+
+    /**
+     *  TOP N 개 능력치 반환
+     * */
+    @Transactional(readOnly = true)
+    public List<String> getTopNAttributes(Long playerId, int n) {
+        Player player =  playerRepository.findById(playerId)
+                .orElseThrow(() -> new EntityNotFoundException("Player not found: " + playerId));
+
+        if(!player.isMatched()){
+            return Collections.emptyList();
+        }
+
+        FmPlayer fmPlayer = player.getFmPlayer();
+        Map<String, Integer> allAttributes = fmPlayer.getAllAttributes();
+
+        if(n<=0 || n > allAttributes.size()){
+            return Collections.emptyList();
+        }
+        return fmPlayer.getTopNAttributes(n, allAttributes);
+    }
+
 
     /**
      * 하나의 player 에 대응되는 fmPlayer 가 여러개인 경우 Failed 처리
