@@ -1,6 +1,7 @@
 package com.ksy.fmrs.repository;
 
 import com.ksy.fmrs.config.TestQueryDSLConfig;
+import com.ksy.fmrs.config.TestTimeProviderConfig;
 import com.ksy.fmrs.domain.League;
 import org.assertj.core.api.Assertions;
 import org.junit.jupiter.api.AfterEach;
@@ -17,7 +18,7 @@ import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.*;
 
-@Import(TestQueryDSLConfig.class)
+@Import({TestQueryDSLConfig.class, TestTimeProviderConfig.class})
 @DataJpaTest
 @AutoConfigureTestDatabase(replace = AutoConfigureTestDatabase.Replace.NONE) // default 는 h2 사용
 class LeagueRepositoryTest {

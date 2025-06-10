@@ -1,9 +1,7 @@
 package com.ksy.fmrs.service;
 
 import com.ksy.fmrs.domain.enums.MappingStatus;
-import com.ksy.fmrs.domain.player.FmPlayer;
-import com.ksy.fmrs.domain.player.Player;
-import com.ksy.fmrs.domain.player.PlayerStat;
+import com.ksy.fmrs.domain.player.*;
 import com.ksy.fmrs.dto.player.PlayerOverviewDto;
 import com.ksy.fmrs.dto.player.FmPlayerDetailsDto;
 import com.ksy.fmrs.dto.player.PlayerDetailsDto;
@@ -58,10 +56,99 @@ class PlayerFacadeServiceTest {
                 .lastName("lastName")
                 .birth(date)
                 .nationName("nationName")
+                .position(Position.builder()
+                        .goalkeeper(0)
+                        .defenderCentral(0)
+                        .defenderLeft(0)
+                        .defenderRight(0)
+                        .wingBackLeft(0)
+                        .wingBackRight(0)
+                        .defensiveMidfielder(0)
+                        .midfielderLeft(0)
+                        .midfielderRight(0)
+                        .midfielderCentral(0)
+                        .attackingMidCentral(10)
+                        .attackingMidLeft(5)
+                        .attackingMidRight(8)
+                        .striker(20)
+                        .build())
+                .personalityAttributes(PersonalityAttributes.builder()
+                        .adaptability(15)
+                        .ambition(18)
+                        .loyalty(20)
+                        .pressure(17)
+                        .professional(19)
+                        .sportsmanship(16)
+                        .temperament(15)
+                        .controversy(3)
+                        .build())
+                .technicalAttributes(TechnicalAttributes.builder()
+                        .corners(14)
+                        .crossing(18)
+                        .dribbling(20)
+                        .finishing(20)
+                        .firstTouch(20)
+                        .freeKicks(18)
+                        .heading(12)
+                        .longShots(18)
+                        .longThrows(5)
+                        .marking(10)
+                        .passing(19)
+                        .penaltyTaking(18)
+                        .tackling(10)
+                        .technique(20)
+                        .build())
+                .mentalAttributes(MentalAttributes.builder()
+                        .aggression(10)
+                        .anticipation(20)
+                        .bravery(15)
+                        .composure(18)
+                        .concentration(16)
+                        .decisions(19)
+                        .determination(20)
+                        .flair(20)
+                        .leadership(13)
+                        .offTheBall(20)
+                        .positioning(13)
+                        .teamwork(17)
+                        .vision(20)
+                        .workRate(15)
+                        .build())
+                .physicalAttributes(PhysicalAttributes.builder()
+                        .acceleration(19)
+                        .agility(19)
+                        .balance(20)
+                        .jumpingReach(8)
+                        .naturalFitness(17)
+                        .pace(19)
+                        .stamina(17)
+                        .strength(13)
+                        .build())
+                .goalKeeperAttributes(GoalKeeperAttributes.builder()
+                        .aerialAbility(1)
+                        .commandOfArea(1)
+                        .communication(1)
+                        .eccentricity(1)
+                        .handling(1)
+                        .kicking(1)
+                        .oneOnOnes(1)
+                        .reflexes(1)
+                        .rushingOut(1)
+                        .tendencyToPunch(1)
+                        .throwing(1)
+                        .build())
+                .hiddenAttributes(HiddenAttributes.builder()
+                        .consistency(19)
+                        .dirtiness(3)
+                        .importantMatches(20)
+                        .injuryProneness(8)
+                        .versatility(15)
+                        .build())
+                .currentAbility(190)
+                .potentialAbility(195)
                 .build();
         PlayerStat playerStat = PlayerStat.builder()
                 .build();
-        player.updateFmPlayer(fmPlayer);
         player.updateFmPlayer(fmPlayer);
 
 
@@ -94,7 +181,7 @@ class PlayerFacadeServiceTest {
         // when
         when(playerService.getPlayerDetails(playerId)).thenReturn(playerDetailsDto);
         when(playerService.getFmPlayerDetails(playerId)).thenReturn(Optional.empty());
-        when(playerStatService.getPlayerStatByPlayerId(playerId)).thenReturn(playerStatDto);
+        when(playerStatService.saveAndGetPlayerStat(playerId)).thenReturn(Optional.of(playerStatDto));
         PlayerOverviewDto result = playerFacadeService.getPlayerOverview(playerId);
         // then
         Assertions.assertThat(result.fmPlayerDetailsDto()).isNull();

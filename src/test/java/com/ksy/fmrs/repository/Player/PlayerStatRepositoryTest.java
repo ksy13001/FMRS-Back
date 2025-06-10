@@ -1,6 +1,7 @@
 package com.ksy.fmrs.repository.Player;
 
 import com.ksy.fmrs.config.TestQueryDSLConfig;
+import com.ksy.fmrs.config.TestTimeProviderConfig;
 import com.ksy.fmrs.domain.player.Player;
 import com.ksy.fmrs.domain.player.PlayerStat;
 import com.querydsl.jpa.impl.JPAQueryFactory;
@@ -19,7 +20,7 @@ import java.util.Optional;
 import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
 import static org.junit.jupiter.api.Assertions.*;
 
-@Import(TestQueryDSLConfig.class)
+@Import({TestQueryDSLConfig.class, TestTimeProviderConfig.class})
 @DataJpaTest
 class PlayerStatRepositoryTest {
 

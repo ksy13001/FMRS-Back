@@ -63,17 +63,14 @@ public class PlayerServiceTest {
         // given
         Long teamId = 1L;
         Team team = Team.builder().name("Team A").build();
-//        Nation nation = Nation.builder().name("Nation A").build();
 
         Player player1 = Player.builder().build();
         ReflectionTestUtils.setField(player1, "id", 1L);
         ReflectionTestUtils.setField(player1, "team", team);
-//        ReflectionTestUtils.setField(player1, "nation", nation);
 
         Player player2 = Player.builder().build();
         ReflectionTestUtils.setField(player2, "id", 2L);
         ReflectionTestUtils.setField(player2, "team", team);
-//        ReflectionTestUtils.setField(player2, "nation", nation);
 
         when(playerRepository.findAllByTeamId(teamId)).thenReturn(Arrays.asList(player1, player2));
 
