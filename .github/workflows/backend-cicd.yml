@@ -1,11 +1,10 @@
 name: Backend CI/CD
 
 on:
-  push:      # 기존
+  push:
     branches: [ main ]
-  pull_request:  # PR 에도
+  pull_request:
     branches: [ main ]
-  workflow_dispatch: {}  # 수동 실행
 
 jobs:
   build-and-deploy:
@@ -16,22 +15,25 @@ jobs:
         uses: actions/checkout@v4
 
       - name: Set up JDK 21
-        uses: actions/setup-java@v4
+        uses: actions/setup-java@v3
         with:
           distribution: temurin
           java-version: 21
 
-      - name: Build with Maven
-        run: mvn clean package -DskipTests
+      - name: Grant execute permission for Gradle wrapper
+        run: chmod +x gradlew
+
+      - name: Build with Gradle
+        run: ./gradlew clean build -x test
 
       - name: Run tests
-        run: mvn test
+        run: ./gradlew test
 
       - name: Upload artifact
         uses: actions/upload-artifact@v4
         with:
           name: fmrs-backend-jar
-          path: target/fmrs-0.0.1-SNAPSHOT.jar
+          path: build/libs/*.jar
 
   deploy:
     needs: build-and-deploy
@@ -50,7 +52,7 @@ jobs:
           host: ${{ secrets.EC2_HOST }}
           username: ${{ secrets.EC2_USER }}
           key: ${{ secrets.EC2_SSH_KEY }}
-          source: fmrs-0.0.1-SNAPSHOT.jar
+          source: '*.jar'
           target: /opt/fmrs/fmrs-0.0.1-SNAPSHOT.jar
 
       - name: Restart fmrs.service on EC2
