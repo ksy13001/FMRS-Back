@@ -1,9 +1,8 @@
 name: Backend CI/CD
 
 on:
+  workflow_dispatch:    # 수동 트리거
   push:
-    branches: [ main ]
-  pull_request:
     branches: [ main ]
 
 jobs:
