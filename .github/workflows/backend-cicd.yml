@@ -1,10 +1,11 @@
 name: Backend CI/CD
 
 on:
-  push:
+  push:      # 기존
     branches: [ main ]
-  pull_request:
+  pull_request:  # PR 에도
     branches: [ main ]
+  workflow_dispatch: {}  # 수동 실행
 
 jobs:
   build-and-deploy:
