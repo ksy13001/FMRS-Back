@@ -46,12 +46,22 @@ public class InitializationConfig {
     }
 
     @Bean
+    @ConditionalOnProperty(name = "INITIAL_DATA_INSERT", havingValue = "player_from_player_raw")
+    public ApplicationRunner initializePlayerFromPlayerRaw(InitializationService initializationService) {
+
+        return args -> {
+            log.info("Initializing player started");
+            initializationService.initializePlayerFromPlayerRaw();
+        };
+    }
+
+    @Bean
     @ConditionalOnProperty(name = "INITIAL_DATA_INSERT", havingValue = "player")
     public ApplicationRunner initializePlayer(InitializationService initializationService) {
 
         return args -> {
             log.info("Initializing player started");
-            initializationService.initializePlayerFromPlayerRaw();
+            initializationService.saveInitialPlayers().subscribe();
         };
     }
 
