@@ -11,6 +11,7 @@ import com.ksy.fmrs.dto.player.FmPlayerDto;
 import com.ksy.fmrs.repository.BulkRepository;
 import com.ksy.fmrs.repository.LeagueRepository;
 import com.ksy.fmrs.repository.Player.FmPlayerRepository;
+import com.ksy.fmrs.repository.Player.PlayerRawRepository;
 import com.ksy.fmrs.repository.Player.PlayerRepository;
 import com.ksy.fmrs.util.NationNormalizer;
 import com.ksy.fmrs.util.StringUtils;
@@ -37,11 +38,10 @@ import static java.util.stream.Collectors.groupingBy;
 @Service
 public class InitializationService {
     private final ObjectMapper objectMapper;
-    private final PlayerRepository playerRepository;
     private final LeagueRepository leagueRepository;
     private final BulkRepository bulkRepository;
-    private final FmPlayerRepository fmPlayerRepository;
     private final FootballApiService footballApiService;
+    private final PlayerRawRepository playerRawRepository;
     private final LeagueService leagueService;
     private final TeamService teamService;
     private final PlayerService playerService;
@@ -170,6 +170,16 @@ public class InitializationService {
                 .onErrorContinue((e, o) -> {
                     log.info("저장 중 애러 발생 : {}", e.getMessage());
                 }).then();
+    }
+
+    public void initializePlayerFromPlayerRaw(){
+        playerRawRepository.findAll().forEach(playerRaw -> {
+            try {
+                playerService.savePlayersByPlayerRaw(playerRaw);
+            } catch (JsonProcessingException e) {
+                throw new RuntimeException(e);
+            }
+        });
     }
 
     public void saveFmPlayers(String dirPath) {
