@@ -21,9 +21,7 @@ public class InitializationConfig {
         return args -> {
             log.info("Initial league insert started");
 
-            initializationService.saveInitialTeams()
-                    .then(initializationService.saveInitialPlayers())
-                    .subscribe();
+            initializationService.saveInitialLeague().subscribe();
         };
     }
 
