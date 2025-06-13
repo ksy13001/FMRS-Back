@@ -192,90 +192,55 @@ public class InitializationService {
     }
 
     public Mono<Void> savePlayerRaws() {
-        AtomicInteger cnt = new AtomicInteger();
-
+        AtomicInteger cnt = new AtomicInteger(0);
         return Mono.fromCallable(leagueRepository::findAll)
-                .subscribeOn(Schedulers.boundedElastic())   // 블로킹 조회 격리
+                .subscribeOn(Schedulers.boundedElastic())
                 .flatMapMany(Flux::fromIterable)
                 .delayElements(Duration.ofMillis(DELAY_MS))
-
-                // 리그별 동시 3개 처리
-                .flatMap(league ->
-                                footballApiService
-                                        .getPlayerStatisticsToStringByLeagueId(
-                                                league.getLeagueApiId(), league.getCurrentSeason(), DEFAULT_PAGE
-                                        )
-                                        .delaySubscription(Duration.ofMillis(DELAY_MS))
-                                        .timeout(Duration.ofSeconds(60))
-                                        // 첫 페이지 에러 발생 시 해당 리그 전체 취소
-                                        .onErrorResume(e -> {
-                                            log.error("리그 {} 첫 페이지 호출 실패: {}", league.getLeagueApiId(), e.getMessage());
-                                            return Mono.empty();
-                                        })
-                                        // JSON 문자열 순차 확장
-                                        .expand(response -> {
-                                            // 1) JSON 파싱
-                                            LeagueApiPlayersDto dto;
-                                            try {
-                                                // 파싱은 boundedElastic 위에서
-                                                dto = Mono.fromCallable(() ->
-                                                                objectMapper.readValue(response, LeagueApiPlayersDto.class))
-                                                        .subscribeOn(Schedulers.boundedElastic())
-                                                        .block();
-                                            } catch (Exception e) {
-                                                log.error("리그 to dto 애러 - id:{}, name:{}, error: {}",
-                                                        league.getLeagueApiId(), league.getName(), e.getMessage());
-                                                // 파싱 실패하면 더 이상 페이지 확장하지 않음
-                                                return Mono.empty();
-                                            }
-
-                                            // 2) 누적 카운트 및 로그
-                                            int pageSize = dto.response().size();
-                                            cnt.addAndGet(pageSize);
-                                            log.info("리그 {} 페이지 {} 처리, 선수 {}명, 누적 {}건",
-                                                    league.getLeagueApiId(),
-                                                    dto.paging().current(),
-                                                    pageSize,
-                                                    cnt.get()
-                                            );
-
-                                            // 3) 다음 페이지 여부 판단
-                                            int current = dto.paging().current();
-                                            int total = dto.paging().total();
-                                            if (current < total) {
-                                                int nextPage = current + 1;
-                                                return footballApiService
-                                                        .getPlayerStatisticsToStringByLeagueId(
-                                                                league.getLeagueApiId(), league.getCurrentSeason(), nextPage
-                                                        )
-                                                        .delaySubscription(Duration.ofMillis(DELAY_MS))
-                                                        .timeout(Duration.ofSeconds(60))
-                                                        // 개별 페이지 에러 시 해당 리그 이어갸 아님 바로 종료
-                                                        .onErrorResume(e -> {
-                                                            log.error("리그 {} 페이지 {} 호출 실패: {}",
-                                                                    league.getLeagueApiId(), nextPage, e.getMessage());
-                                                            return Mono.empty();
-                                                        });
-                                            }
-
-                                            log.info("리그 페이지 끝: {}", league.getLeagueApiId());
-                                            return Mono.empty();
-                                        })
-                        , 3)
-
-                // null 필터링은 불필요하지만 안전 차원에서
+                .flatMap(league -> {
+                    return footballApiService.getPlayerStatisticsToStringByLeagueId(
+                                    league.getLeagueApiId(), league.getCurrentSeason(), DEFAULT_PAGE)
+                            .delaySubscription(Duration.ofMillis(DELAY_MS))
+                            .timeout(Duration.ofSeconds(60))
+                            .onErrorContinue((e, o) -> log.info("league 페이지 애러: {}", league.getLeagueApiId()))
+                            .doOnNext(json -> log.info("리그 처리 시작:{}, 페이지:{}", league.getLeagueApiId(), DEFAULT_PAGE))
+                            .expand(response -> {
+                                LeagueApiPlayersDto dto = null;
+                                try {
+                                    dto = objectMapper
+                                            .readValue(response, LeagueApiPlayersDto.class);
+                                    cnt.addAndGet(dto.response().size());
+                                    log.info("리그 처리 시작:{}, 페이지:{}, 선수 수:{}, 현재 페이지 수:{}",
+                                            league.getLeagueApiId(), dto.paging().current(), dto.response().size(), cnt.get());
+                                } catch (JsonProcessingException e) {
+                                    log.info("리그 to dto 애러- id:{}, name:{}", league.getLeagueApiId(), league.getName());
+                                }
+                                int total = dto.paging().total();
+                                int current = dto.paging().current();
+                                if (current < total) {
+                                    int nextPage = current + 1;
+                                    return footballApiService.getPlayerStatisticsToStringByLeagueId(
+                                                    league.getLeagueApiId(), league.getCurrentSeason(), nextPage)
+                                            .delaySubscription(Duration.ofMillis(DELAY_MS))
+                                            .timeout(Duration.ofSeconds(60))
+                                            .onErrorContinue((e, ex) -> {
+                                                log.info(e.getMessage(), e);
+                                            });
+                                } else {
+                                    log.info("리그 페이지 끝 : {}", league.getLeagueApiId());
+                                    return Mono.empty();
+                                }
+                            });
+                }, 3)
                 .filter(Objects::nonNull)
-
-                // 청크 단위로 묶어서 bulk insert
+                .collectList()
+                .flatMapMany(Flux::fromIterable)
                 .buffer(CHUNK_SIZE)
                 .flatMap(chunk ->
-                                Mono.fromRunnable(() ->
-                                                bulkRepository.bulkInsertPlayerRaws(chunk))
+                                Mono.fromRunnable(() -> bulkRepository.bulkInsertPlayerRaws(chunk))
                                         .subscribeOn(Schedulers.boundedElastic())
-                                        .doOnError(e ->
-                                                log.error("bulk insert 실패, size={}", chunk.size(), e))
+                                        .doOnError(e -> log.error("bulk insert 실패, size={}", chunk.size(), e))
                         , 3)
-
                 .then();
     }
 
