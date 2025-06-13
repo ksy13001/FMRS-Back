@@ -13,7 +13,6 @@ public class InitializationConfig {
 
     /**
      * 서버 restart 시 환경 변수 파일에 INITIAL_DATA_INSERT=true 일 경우 서버 실행시 1번 실행됨
-     *
      */
     @Bean
     @ConditionalOnProperty(name = "INITIAL_DATA_INSERT", havingValue = "true")
@@ -21,10 +20,10 @@ public class InitializationConfig {
 
         return args -> {
             log.info("Initial data insert started-------------------");
-            initializationService.saveInitialLeague()
-                    .then(initializationService.saveInitialTeams())
+
+            initializationService.saveInitialTeams()
                     .then(initializationService.saveInitialPlayers())
-            .subscribe();
+                    .subscribe();
         };
     }
 
