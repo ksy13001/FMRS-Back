@@ -64,7 +64,6 @@ public class FootballApiService {
     }
 
     public Mono<List<TeamStandingDto>> getLeagueStandings(Integer leagueApiId, int currentSeason) {
-        log.info("url: {}",UrlEnum.buildStandingUrl(leagueApiId, currentSeason));
         return webClientService.getApiResponse(
                 UrlEnum.buildStandingUrl(leagueApiId, currentSeason),
                 StandingsAPIResponseDto.class).mapNotNull(this::getValidatedLeagueDetails);
