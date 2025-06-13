@@ -18,6 +18,7 @@ import com.ksy.fmrs.service.apiClient.RestClientService;
 import com.ksy.fmrs.service.apiClient.WebClientService;
 import com.ksy.fmrs.util.StringUtils;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import reactor.core.publisher.Mono;
 
@@ -25,6 +26,7 @@ import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
 
+@Slf4j
 @RequiredArgsConstructor
 @Service
 public class FootballApiService {
@@ -62,6 +64,7 @@ public class FootballApiService {
     }
 
     public Mono<List<TeamStandingDto>> getLeagueStandings(Integer leagueApiId, int currentSeason) {
+        log.info("url: {}",UrlEnum.buildStandingUrl(leagueApiId, currentSeason));
         return webClientService.getApiResponse(
                 UrlEnum.buildStandingUrl(leagueApiId, currentSeason),
                 StandingsAPIResponseDto.class).mapNotNull(this::getValidatedLeagueDetails);
