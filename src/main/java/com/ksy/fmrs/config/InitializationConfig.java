@@ -20,7 +20,7 @@ public class InitializationConfig {
     public ApplicationRunner initializeDataInsert(InitializationService initializationService) {
 
         return args -> {
-            log.info("Initial data insert started");
+            log.info("Initial data insert started-------------------");
             initializationService.saveInitialLeague()
                     .then(initializationService.saveInitialTeams())
                     .then(initializationService.saveInitialPlayers())
