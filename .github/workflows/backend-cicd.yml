@@ -1,6 +1,6 @@
 name: Backend CI/CD
 
-# 환경변수는 fmrs.env에서 관리
+# INITIAL_DATA_INSERT 환경변수는 fmrs.env에서 직접 관리
   
 on:
   workflow_dispatch:    # 수동 트리거
