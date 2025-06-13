@@ -1,11 +1,13 @@
 package com.ksy.fmrs.config;
 
 import com.ksy.fmrs.service.InitializationService;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.boot.ApplicationRunner;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
+@Slf4j
 @Configuration
 public class InitializationConfig {
 
@@ -18,6 +20,7 @@ public class InitializationConfig {
     public ApplicationRunner initializeDataInsert(InitializationService initializationService) {
 
         return args -> {
+            log.info("Initial data insert started");
             initializationService.saveInitialLeague()
                     .then(initializationService.saveInitialTeams())
                     .then(initializationService.saveInitialPlayers())
