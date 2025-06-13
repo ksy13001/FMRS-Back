@@ -1,7 +1,7 @@
 name: Backend CI/CD
 
 env:
-  INITIAL_DATA_INSERT: "${{ secret.INITIAL_DATA_INSERT }}"
+  INITIAL_DATA_INSERT: "${{ secrets.INITIAL_DATA_INSERT }}"
   
 on:
   workflow_dispatch:    # 수동 트리거
