@@ -45,7 +45,7 @@ jobs:
           name: fmrs-backend-jar
 
       - name: Copy JAR to EC2
-        uses: appleboy/scp-action@v0.1.10
+        uses: appleboy/scp-action@v1
         with:
           host: ${{ secrets.EC2_HOST }}
           username: ${{ secrets.EC2_USER }}
