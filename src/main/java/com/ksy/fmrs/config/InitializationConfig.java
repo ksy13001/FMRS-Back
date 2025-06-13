@@ -20,6 +20,7 @@ public class InitializationConfig {
 
         return args -> {
             log.info("Initial data insert started-------------------");
+
             initializationService.saveInitialTeams()
                     .then(initializationService.saveInitialPlayers())
                     .subscribe();
