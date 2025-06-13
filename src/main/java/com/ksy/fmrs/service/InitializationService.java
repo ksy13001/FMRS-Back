@@ -65,9 +65,9 @@ public class InitializationService {
         List<Integer> leagueApiIds = createAllLeagueApiIds();
         return Flux.fromIterable(leagueApiIds)
                 .delayElements(Duration.ofMillis(DELAY_MS))
-                .timeout(Duration.ofSeconds(TIME_OUT))
                 .flatMap(leagueApiId ->
                                 footballApiService.getLeagueInfo(leagueApiId)
+                                        .timeout(Duration.ofSeconds(TIME_OUT))
                                         .publishOn(Schedulers.boundedElastic())
                                         .doOnNext(response -> {
                                             if (response.isPresent()) {
@@ -86,8 +86,9 @@ public class InitializationService {
                 .collectList()
                 .doOnNext(leagues -> log.info("최종 저장할 리그 개수: {}", leagues.size()))
                 .flatMap(leagues ->
-                        Mono.fromRunnable(() -> leagueService.saveAllByLeagueDetails(leagues)))
-                .then();
+                        Mono.fromRunnable(() -> leagueService.saveAllByLeagueDetails(leagues))
+                                .subscribeOn(Schedulers.boundedElastic())
+                .then());
     }
 
 
@@ -99,8 +100,8 @@ public class InitializationService {
                 .delayElements(Duration.ofMillis(DELAY_MS))
                 .flatMap(league ->
                                 footballApiService.getLeagueStandings(league.getLeagueApiId(), league.getCurrentSeason())
+                                        .timeout(Duration.ofSeconds(TIME_OUT))
                         , 3)
-                .timeout(Duration.ofSeconds(TIME_OUT))
                 .doOnNext(response -> {
                     if (response.isEmpty()) {
                         log.info("leagueApiId {}: 응답 없음", response.getFirst().getLeagueApiId());
@@ -116,6 +117,7 @@ public class InitializationService {
                 .collectList()
                 .flatMap(teamStandingDtos ->
                         Mono.fromRunnable(() -> teamService.saveAllByTeamStanding(teamStandingDtos))
+                                .subscribeOn(Schedulers.boundedElastic())
                 )
                 .then();
     }
@@ -172,15 +174,6 @@ public class InitializationService {
                 }).then();
     }
 
-    public void initializePlayerFromPlayerRaw(){
-        playerRawRepository.findAll().forEach(playerRaw -> {
-            try {
-                playerService.savePlayersByPlayerRaw(playerRaw);
-            } catch (JsonProcessingException e) {
-                throw new RuntimeException(e);
-            }
-        });
-    }
 
     public void saveFmPlayers(String dirPath) {
         List<FmPlayerDto> fmPlayerDtos = getPlayersFromFmPlayers(dirPath);
@@ -249,6 +242,16 @@ public class InitializationService {
                                         .doOnError(e -> log.error("bulk insert 실패, size={}", chunk.size(), e))
                         , 3)
                 .then();
+    }
+
+    public void initializePlayerFromPlayerRaw(){
+        playerRawRepository.findAll().forEach(playerRaw -> {
+            try {
+                playerService.savePlayersByPlayerRaw(playerRaw);
+            } catch (JsonProcessingException e) {
+                throw new RuntimeException(e);
+            }
+        });
     }
 
 
