@@ -102,7 +102,7 @@ public class InitializationService {
                         , 3)
                 .timeout(Duration.ofSeconds(TIME_OUT))
                 .doOnNext(response -> {
-                    if (!response.isEmpty()) {
+                    if (response.isEmpty()) {
                         log.info("leagueApiId {}: 응답 없음", response.getFirst().getLeagueApiId());
                     } else {
                         log.info("leagueApiId {}: 응답 있음", response.getFirst().getLeagueApiId());
