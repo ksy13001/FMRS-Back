@@ -26,8 +26,10 @@ import reactor.core.publisher.Mono;
 import reactor.core.scheduler.Schedulers;
 import reactor.util.function.Tuple2;
 import reactor.util.function.Tuples;
+import reactor.util.retry.Retry;
 
 import java.io.File;
+import java.io.IOException;
 import java.time.Duration;
 import java.time.LocalDateTime;
 import java.util.*;
@@ -195,74 +197,66 @@ public class InitializationService {
     }
 
     public Mono<Void> savePlayerRaws() {
-        AtomicInteger cnt = new AtomicInteger(0);
+        AtomicInteger totalCnt = new AtomicInteger(0);
+
+        log.info("▶ savePlayerRaws START");
+
         return Mono.fromCallable(leagueRepository::findAll)
                 .subscribeOn(Schedulers.boundedElastic())
+                .doOnNext(list -> log.info("전체 리그 개수: {}", list.size()))
                 .flatMapMany(Flux::fromIterable)
                 .delayElements(Duration.ofMillis(DELAY_MS))
-                .concatMap(league -> {
-                    return footballApiService.getPlayerStatisticsToStringByLeagueId(
+                .flatMap(league -> {
+                    log.info("[League START] id={}, name={}", league.getLeagueApiId(), league.getName());
+                    return footballApiService.getPlayerStatisticsByLeagueId(
                                     league.getLeagueApiId(), league.getCurrentSeason(), DEFAULT_PAGE)
-                            .map(response-> Tuples.of(response, DEFAULT_PAGE))
                             .delaySubscription(Duration.ofMillis(DELAY_MS))
                             .timeout(Duration.ofSeconds(60))
-                            .onErrorContinue((e, o) -> log.info("league 페이지 애러: {}", league.getLeagueApiId()))
-                            .doOnNext(json -> log.info("리그 처리 시작:{}, 페이지:{}", league.getLeagueApiId(), DEFAULT_PAGE))
-                            .expand(tuple -> { // 리그의 한 페이지
-                                LeagueApiPlayersDto dto;
-                                String response = tuple.getT1();
-                                int currentPage = tuple.getT2();
-                                try {
-                                    dto = objectMapper
-                                            .readValue(response, LeagueApiPlayersDto.class);
-                                    cnt.addAndGet(dto.response().size());
-                                    log.info("리그 처리 시작:{}, 페이지:{}, 선수 수:{}, 현재 페이지 수:{}",
-                                            league.getLeagueApiId(), dto.paging().current(), dto.response().size(), cnt.get());
-                                } catch (JsonProcessingException e) {
-                                    log.error("파싱 실패 – league {}, page {} → 건너뛰고 다음 페이지로",
-                                            league.getLeagueApiId(), currentPage, e);
-                                    int nextPage = currentPage + 1;
-
-                                    return footballApiService
-                                            .getPlayerStatisticsToStringByLeagueId(
-                                                    league.getLeagueApiId(), league.getCurrentSeason(), nextPage
-                                            )
-                                            .delaySubscription(Duration.ofMillis(DELAY_MS))
-                                            .timeout(Duration.ofSeconds(60))
-                                            .map(resp2->Tuples.of(resp2, nextPage))
-                                            .onErrorContinue((e2, ex) -> {
-                                                log.info(e2.getMessage(), e2);
-                                            });
-                                }
-
-                                int total = dto.paging().total();
+                            .doOnError(e -> log.warn("리그 {} 첫 페이지 호출 에러: {}", league.getLeagueApiId(), e.getMessage()))
+                            .retryWhen(Retry.backoff(2, Duration.ofSeconds(1))
+                                    .filter(IOException.class::isInstance)
+                                    .onRetryExhaustedThrow((spec, sig) -> sig.failure())
+                            )
+                            .doOnNext(dto -> log.debug("리그 {} 페이지 {} 데이터 수신: {}명",
+                                    league.getLeagueApiId(), dto.paging().current(), dto.response().size()))
+                            .expand(dto -> {
                                 int current = dto.paging().current();
+                                int total   = dto.paging().total();
                                 if (current < total) {
-                                    int nextPage = current + 1;
-                                    return footballApiService.getPlayerStatisticsToStringByLeagueId(
-                                                    league.getLeagueApiId(), league.getCurrentSeason(), nextPage)
+                                    int next = current + 1;
+                                    return footballApiService.getPlayerStatisticsByLeagueId(
+                                                    league.getLeagueApiId(), league.getCurrentSeason(), next)
                                             .delaySubscription(Duration.ofMillis(DELAY_MS))
                                             .timeout(Duration.ofSeconds(60))
-                                            .map(resp2->Tuples.of(resp2, nextPage))
-                                            .onErrorContinue((e, ex) -> {
-                                                log.info(e.getMessage(), e);
-                                            });
+                                            .doOnError(e -> log.warn("리그 {} 페이지 {} 호출 에러: {}", league.getLeagueApiId(), next, e.getMessage()))
+                                            .retryWhen(Retry.backoff(2, Duration.ofSeconds(1))
+                                                    .filter(IOException.class::isInstance)
+                                                    .onRetryExhaustedThrow((s, sig) -> sig.failure())
+                                            );
                                 } else {
-                                    log.info("리그 페이지 끝 : {}", league.getLeagueApiId());
+                                    log.info("[League END] id={} 완료 총페이지={}", league.getLeagueApiId(), total);
                                     return Mono.empty();
                                 }
                             });
                 }, 3)
-                .filter(Objects::nonNull)
-                .collectList()
-                .flatMapMany(Flux::fromIterable)
-                .buffer(CHUNK_SIZE)
-                .flatMap(chunk ->
-                                Mono.fromRunnable(() -> bulkRepository.bulkInsertPlayerRaws(chunk.stream().map(Tuple2::getT1).toList()))
-                                        .subscribeOn(Schedulers.boundedElastic())
-                                        .doOnError(e -> log.error("bulk insert 실패, size={}", chunk.size(), e))
-                        , 3)
-                .then();
+                // DTO → Player 엔티티 변환
+                .flatMap(dto -> Flux.fromIterable(convertPlayerStatisticsDtoToPlayer(dto)))
+                .doOnNext(p -> log.debug("엔티티 변환: playerApiId={}", p.getPlayerApiId()))
+                // 200개씩 묶어서
+                .buffer(200)
+                .flatMap(batch -> {
+                    log.info("▶ bulk insert 시작: size={}", batch.size());
+                    return Mono.fromRunnable(() -> bulkRepository.bulkInsertPlayers(batch))
+                            .subscribeOn(Schedulers.boundedElastic())
+                            .doOnSuccess(v -> {
+                                int done = totalCnt.addAndGet(batch.size());
+                                log.info("✔ bulk insert 성공: batchSize={}, 누적 저장수={}", batch.size(), done);
+                            })
+                            .doOnError(e -> log.error("✖ bulk insert 실패: size={}", batch.size(), e));
+                }, 3)
+                .then()
+                .doOnSuccess(v -> log.info("✔ savePlayerRaws COMPLETE. 최종 누적 저장수={}", totalCnt.get()))
+                .doOnError(e -> log.error("✖ savePlayerRaws FAILED", e));
     }
 
 
