@@ -6,8 +6,8 @@ import java.util.Map;
 
 public record LeagueApiPlayersDto(
         String get,
-        ParametersDto parameters,
-        List<Map<String, Object>> errors,
+//        ParametersDto parameters,
+//        List<Map<String, Object>> errors,
         int results,
         PagingDto paging,
         List<PlayerWrapperDto> response
