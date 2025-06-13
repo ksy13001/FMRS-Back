@@ -2,6 +2,7 @@ package com.ksy.fmrs.service;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.ksy.fmrs.domain.League;
 import com.ksy.fmrs.domain.enums.LeagueType;
 import com.ksy.fmrs.domain.enums.MappingStatus;
 import com.ksy.fmrs.domain.player.*;
@@ -233,6 +234,7 @@ public class InitializationService {
                                                 log.info(e2.getMessage(), e2);
                                             });
                                 }
+
                                 int total = dto.paging().total();
                                 int current = dto.paging().current();
                                 if (current < total) {
@@ -262,6 +264,7 @@ public class InitializationService {
                         , 3)
                 .then();
     }
+
 
 
 
