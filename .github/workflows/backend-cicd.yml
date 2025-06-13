@@ -6,7 +6,7 @@ on:
     branches: [ main ]
 
 jobs:
-  build-and-deploy:
+  build:
     runs-on: ubuntu-latest
 
     steps:
@@ -35,7 +35,7 @@ jobs:
           path: build/libs/*.jar
 
   deploy:
-    needs: build-and-deploy
+    needs: build
     runs-on: ubuntu-latest
 
     steps:
