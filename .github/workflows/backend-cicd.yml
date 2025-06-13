@@ -1,7 +1,6 @@
 name: Backend CI/CD
 
-env:
-  INITIAL_DATA_INSERT: "${{ secrets.INITIAL_DATA_INSERT }}"
+# 환경변수는 fmrs.env에서 관리
   
 on:
   workflow_dispatch:    # 수동 트리거
