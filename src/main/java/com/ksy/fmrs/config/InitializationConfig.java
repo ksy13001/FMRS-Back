@@ -50,7 +50,7 @@ public class InitializationConfig {
     public ApplicationRunner initializePlayerFromPlayerRaw(InitializationService initializationService) {
 
         return args -> {
-            log.info("Initializing player started");
+            log.info("Initializing player row started");
             initializationService.initializePlayerFromPlayerRaw();
         };
     }

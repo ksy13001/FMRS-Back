@@ -204,7 +204,7 @@ public class InitializationService {
                             .timeout(Duration.ofSeconds(60))
                             .onErrorContinue((e, o) -> log.info("league 페이지 애러: {}", league.getLeagueApiId()))
                             .doOnNext(json -> log.info("리그 처리 시작:{}, 페이지:{}", league.getLeagueApiId(), DEFAULT_PAGE))
-                            .expand(response -> {
+                            .expand(response -> { // 리그의 한 페이지
                                 LeagueApiPlayersDto dto = null;
                                 try {
                                     dto = objectMapper
