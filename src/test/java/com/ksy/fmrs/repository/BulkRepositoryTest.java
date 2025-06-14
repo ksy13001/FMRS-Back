@@ -15,7 +15,9 @@ import java.util.ArrayList;
 import java.util.List;
 
 
-@SpringBootTest
+@SpringBootTest(
+        properties = {"api-football.key=test_key", "api-football.host=test_host"}
+)
 class BulkRepositoryTest {
 
     @Autowired
