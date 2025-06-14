@@ -228,6 +228,8 @@ public class InitializationService {
                                                     league.getLeagueApiId(), league.getCurrentSeason(), next)
                                             .delaySubscription(Duration.ofMillis(DELAY_MS))
                                             .timeout(Duration.ofSeconds(60))
+                                            .doOnNext(dto1->
+                                                    log.info("현재 리그 : {} , 현재 페이지 : {}",league.getLeagueApiId(), current))
                                             .doOnError(e -> log.warn("리그 {} 페이지 {} 호출 에러: {}", league.getLeagueApiId(), next, e.getMessage()))
                                             .retryWhen(Retry.backoff(2, Duration.ofSeconds(1))
                                                     .filter(IOException.class::isInstance)

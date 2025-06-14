@@ -25,7 +25,7 @@ public class BulkRepository {
     private final JdbcTemplate jdbcTemplate;
 
     public void bulkInsertPlayers(List<Player> players) {
-        String sql = "INSERT IGNORE INTO PLAYER " +
+        String sql = "INSERT IGNORE INTO player " +
                 "(player_api_id, first_name, last_name, nation_name, nation_logo_url, birth, height, weight, image_url, mapping_status) " +
                 "VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
 
