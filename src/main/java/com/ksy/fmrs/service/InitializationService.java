@@ -356,6 +356,7 @@ public class InitializationService {
                     .imageUrl(player.photo())
                     .firstName(StringUtils.getFirstName(player.firstname()).toUpperCase())
                     .lastName(StringUtils.getLastName(player.name()).toUpperCase())
+                    .name(player.name())
                     .nationName(NationNormalizer.normalize(player.nationality().toUpperCase()))
                     .nationLogoUrl(Objects.requireNonNull(dto.statistics().getFirst().league().flag()))
                     .birth(player.birth().date())
