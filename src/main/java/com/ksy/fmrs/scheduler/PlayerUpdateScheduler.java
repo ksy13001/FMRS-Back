@@ -26,7 +26,6 @@ import java.util.stream.Collectors;
 @Service
 public class PlayerUpdateScheduler {
 
-    private final PlayerRepository playerRepository;
     private final TeamRepository teamRepository;
     private final BulkRepository bulkRepository;
     private final FootballApiService footballApiService;
@@ -34,7 +33,7 @@ public class PlayerUpdateScheduler {
     private static final int DELAY_MS = 150;
     private static final int TIME_OUT = 10;
 
-    @Scheduled(cron = "0 57 15 * * *", zone = "Asia/Seoul")
+    @Scheduled(cron = "${init.update_squad_time}", zone = "Asia/Seoul")
     public void updateAllSquad() {
         Mono.fromCallable(teamRepository::findAll)
                 .subscribeOn(Schedulers.boundedElastic())
