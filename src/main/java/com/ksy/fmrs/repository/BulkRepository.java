@@ -187,7 +187,7 @@ public class BulkRepository {
 
     public int updatePlayersAsFailedByDuplicatedFmPlayer() {
         String sql = """
-                UPDATE player p\s
+                UPDATE player p
                 JOIN (SELECT f.first_name, f.last_name, f.birth, f.nation_name, COUNT(*)
                 FROM fmplayer f
                 GROUP BY 1,2,3,4 HAVING COUNT(*) > 1
@@ -197,7 +197,7 @@ public class BulkRepository {
                 	AND p.birth = dup.birth
                 	AND p.nation_name = dup.nation_name
                 SET p.mapping_status="FAILED"
-                WHERE p.mapping_status = 'UNMAPPED' 
+                WHERE p.mapping_status = 'UNMAPPED'
                 """;
         return jdbcTemplate.update(sql);
     }
@@ -252,7 +252,7 @@ public class BulkRepository {
     }
 
     public void  updatePlayersTeam(List<Integer> playerApiIds, Long teamId) {
-        String sql = "UPDATE Player " +
+        String sql = "UPDATE player " +
                 "SET team_id = ? " +
                 "WHERE player_api_id = ?";
         jdbcTemplate.batchUpdate(sql, new BatchPreparedStatementSetter() {
