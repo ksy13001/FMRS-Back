@@ -181,6 +181,7 @@ public class InitializationService {
 
 
     public void saveFmPlayers(String dirPath) {
+        log.info("dir 위치 : {}",dirPath);
         List<FmPlayerDto> fmPlayerDtos = getPlayersFromFmPlayers(dirPath);
         log.info("fmPlayer 저장 시작: {}", fmPlayerDtos.size());
         List<FmPlayer> fmPlayers = new ArrayList<>();
