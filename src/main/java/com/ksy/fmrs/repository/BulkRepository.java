@@ -72,7 +72,7 @@ public class BulkRepository {
                 "attacking_mid_central", "attacking_mid_left", "attacking_mid_right", "striker",
                 "first_name", "last_name", "birth", "nation_name"
         );
-        String sql = buildInsertSql("FMPLAYER", columns);
+        String sql = buildInsertSql("fmplayer", columns);
         jdbcTemplate.batchUpdate(sql, new BatchPreparedStatementSetter() {
 
             @Override
