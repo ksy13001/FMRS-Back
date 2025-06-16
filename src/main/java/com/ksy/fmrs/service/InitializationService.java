@@ -181,6 +181,7 @@ public class InitializationService {
 
 
     public void saveFmPlayers(String dirPath) {
+        log.info("dir 위치 : {}",dirPath);
         List<FmPlayerDto> fmPlayerDtos = getPlayersFromFmPlayers(dirPath);
         log.info("fmPlayer 저장 시작: {}", fmPlayerDtos.size());
         List<FmPlayer> fmPlayers = new ArrayList<>();
@@ -356,6 +357,7 @@ public class InitializationService {
                     .imageUrl(player.photo())
                     .firstName(StringUtils.getFirstName(player.firstname()).toUpperCase())
                     .lastName(StringUtils.getLastName(player.name()).toUpperCase())
+                    .name(player.name())
                     .nationName(NationNormalizer.normalize(player.nationality().toUpperCase()))
                     .nationLogoUrl(Objects.requireNonNull(dto.statistics().getFirst().league().flag()))
                     .birth(player.birth().date())
