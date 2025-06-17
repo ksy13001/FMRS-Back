@@ -7,6 +7,7 @@ import com.ksy.fmrs.dto.search.SearchPlayerCondition;
 import com.ksy.fmrs.util.time.TimeProvider;
 import com.querydsl.core.BooleanBuilder;
 import com.querydsl.core.Tuple;
+import com.querydsl.core.types.Expression;
 import com.querydsl.core.types.dsl.BooleanExpression;
 import com.querydsl.core.types.dsl.CaseBuilder;
 import com.querydsl.core.types.dsl.Expressions;
@@ -46,14 +47,14 @@ public class PlayerRepositoryCustomImpl implements PlayerRepositoryCustom {
     // 이름 검색
     @Override
     public Slice<Player> searchPlayerByName(
-            String name, Pageable pageable, Long lastPlayerId,  Integer lastCurrentAbility, MappingStatus lastmappingStatus) {
+            String name, Pageable pageable, Long lastPlayerId, Integer lastCurrentAbility, MappingStatus lastmappingStatus) {
 
         int limit = pageable.getPageSize();
         List<Player> players = jpaQueryFactory
                 .selectFrom(player)
                 .leftJoin(player.fmPlayer, fmPlayer).fetchJoin()
-                .where(nameContains(name),
-                        mappingStatusAndIdCursorPredicate(lastmappingStatus, lastCurrentAbility, lastPlayerId))
+                .where(firstNameStartWith(name).or(lastNameStartWith(name))
+                        , mappingStatusAndIdCursorPredicate(lastmappingStatus, lastCurrentAbility, lastPlayerId))
                 .orderBy(mappingStatusRankExpr().asc(), fmPlayer.currentAbility.desc(), player.id.asc())
                 .limit(limit + 1) // limit + 1만큼 불러 와지면 다음 페이지가 존재함
                 .fetch();
@@ -94,6 +95,20 @@ public class PlayerRepositoryCustomImpl implements PlayerRepositoryCustom {
             return null;
         }
         return QPlayer.player.name.containsIgnoreCase(name);
+    }
+
+    private BooleanExpression firstNameStartWith(String firstName) {
+        if (firstName == null || firstName.isEmpty()) {
+            return null;
+        }
+        return player.firstName.startsWithIgnoreCase(firstName);
+    }
+
+    private BooleanExpression lastNameStartWith(String lastName) {
+        if (lastName == null || lastName.isEmpty()) {
+            return null;
+        }
+        return player.lastName.startsWithIgnoreCase(lastName);
     }
 
     /**
@@ -236,7 +251,7 @@ public class PlayerRepositoryCustomImpl implements PlayerRepositoryCustom {
     }
 
     private BooleanExpression playerDetailSearchCondition(SearchPlayerCondition c) {
-        if(c == null){
+        if (c == null) {
             return null;
         }
         return Expressions.allOf(
@@ -317,21 +332,21 @@ public class PlayerRepositoryCustomImpl implements PlayerRepositoryCustom {
     }
 
     private BooleanExpression goeStat(Integer stat, NumberExpression<Integer> expr) {
-        if(stat == null) {
+        if (stat == null) {
             return null;
         }
         return expr.goe(stat);
     }
 
     private BooleanExpression teamIdEq(Long teamId) {
-        if(teamId == null) {
+        if (teamId == null) {
             return null;
         }
         return player.team.id.eq(teamId);
     }
 
-    private BooleanExpression leagueIdEq(Long leagueId){
-        if(leagueId == null) {
+    private BooleanExpression leagueIdEq(Long leagueId) {
+        if (leagueId == null) {
             return null;
         }
         return player.team.league.id.eq(leagueId);
