@@ -14,4 +14,6 @@ public interface TeamRepository extends JpaRepository<Team, Long>, TeamRepositor
     @Query("select t from Team t " +
             "join fetch t.league")
     List<Team> findAllTeamsWithLeague();
+
+    List<Team> findAllByNameStartingWithOrderByNameAsc(String name);
 }
