@@ -47,9 +47,9 @@ class PlayerRepositoryCustomTest {
     @DisplayName("검색 시 lastPlayerId or lastMappingStatus null 이면 첫 페이지 반환")
     void search_player_byName_firstPage(){
         // given
-        String name = "messi";
+        String firstName = "messi";
 
-        createPlayers(name);
+        createPlayers(firstName);
 
         // when
         Slice<Player> actual = playerRepository.searchPlayerByName(
@@ -80,28 +80,28 @@ class PlayerRepositoryCustomTest {
     @DisplayName("검색 시 mappingStatus 가 MATCHED, UNMAPPED, FAILED 순으로 검색됨")
     void search_valid_orderByMappingStatus(){
         // given
-        String name = "messi";
+        String firstName = "messi";
         int totalPlayerSize = 60;
         int totalPage = totalPlayerSize / LIMIT;
         for(int i=0;i<20;i++){
-            Player player = Player.builder().name(name + i).mappingStatus(MappingStatus.MATCHED).build();
-            FmPlayer fmPlayer = FmPlayer.builder().name(name + i).currentAbility(100 + i*10).build();
+            Player player = Player.builder().firstName(firstName + i).mappingStatus(MappingStatus.MATCHED).build();
+            FmPlayer fmPlayer = FmPlayer.builder().firstName(firstName + i).currentAbility(100 + i*10).build();
             player.updateFmPlayer(fmPlayer);
             tem.persist(player);
             tem.persist(fmPlayer);
         }
         for(int i=20;i<40;i++){
-            tem.persist(Player.builder().name(name + i).mappingStatus(MappingStatus.UNMAPPED).build());
+            tem.persist(Player.builder().firstName(firstName + i).mappingStatus(MappingStatus.UNMAPPED).build());
         }
         for(int i=40;i<60;i++){
-            tem.persist(Player.builder().name(name + i).mappingStatus(MappingStatus.FAILED).build());
+            tem.persist(Player.builder().firstName(firstName + i).mappingStatus(MappingStatus.FAILED).build());
         }
         tem.flush();
         tem.clear();
         List<MappingStatus> actualMappingStatus = new ArrayList<>();
         // when
         Slice<Player> actual = playerRepository.searchPlayerByName(
-                name, PAGEABLE, null, null, null);
+                firstName, PAGEABLE, null, null, null);
         int actualPage = 0;
         // then
         while(true){
@@ -112,13 +112,13 @@ class PlayerRepositoryCustomTest {
             Assertions.assertThat(actual.getContent()).hasSize(LIMIT);
 
             Assertions.assertThat(actual.getContent())
-                    .extracting(Player::getName)
-                    .allMatch(n -> n.startsWith(name));
+                    .extracting(Player::getFirstName)
+                    .allMatch(n -> n.startsWith(firstName));
             if (!actual.hasNext()){
                 break;
             }
             actual = playerRepository.searchPlayerByName(
-                    name,
+                    firstName,
                     PAGEABLE,
                     actual.getContent().getLast().getId(),
                     actual.getContent().getLast().getFmPlayerCurrentAbility(),
@@ -142,8 +142,8 @@ class PlayerRepositoryCustomTest {
         // given
         String name = "messi";
         for(int i=0;i<30;i++){
-            Player player = Player.builder().name(name + i).mappingStatus(MappingStatus.MATCHED).build();
-            FmPlayer fmPlayer = FmPlayer.builder().name(name + i).currentAbility(100 + i*10).build();
+            Player player = Player.builder().firstName(name + i).mappingStatus(MappingStatus.MATCHED).build();
+            FmPlayer fmPlayer = FmPlayer.builder().firstName(name + i).currentAbility(100 + i*10).build();
             player.updateFmPlayer(fmPlayer);
             tem.persist(player);
             tem.persist(fmPlayer);
@@ -162,7 +162,7 @@ class PlayerRepositoryCustomTest {
             Assertions.assertThat(actual.getContent()).hasSize(LIMIT);
 
             Assertions.assertThat(actual.getContent())
-                    .extracting(Player::getName)
+                    .extracting(Player::getFirstName)
                     .allMatch(n -> n.startsWith(name));
 
             Assertions.assertThat(actual.getContent()).extracting(Player::getMappingStatus)
@@ -191,9 +191,9 @@ class PlayerRepositoryCustomTest {
         // now - 2000.8.14
         int minAge = 20;
         int maxAge = 30;
-        Player ob = Player.builder().name("ob").birth(LocalDate.of(1000, 8, 14)).build();
-        Player p = Player.builder().name("p").birth(LocalDate.of(1980, 8, 14)).build();
-        Player yb = Player.builder().name("yb").birth(LocalDate.of(3000, 8, 14)).build();
+        Player ob = Player.builder().firstName("ob").birth(LocalDate.of(1000, 8, 14)).build();
+        Player p = Player.builder().firstName("p").birth(LocalDate.of(1980, 8, 14)).build();
+        Player yb = Player.builder().firstName("yb").birth(LocalDate.of(3000, 8, 14)).build();
 
         persistAndFlushPlayers(List.of(ob, p, yb));
 
@@ -206,15 +206,15 @@ class PlayerRepositoryCustomTest {
 
         // then
         Assertions.assertThat(actual.getContent()).hasSize(1);
-        Assertions.assertThat(actual.getContent().getFirst().getName())
-                .isEqualTo(p.getName());
+        Assertions.assertThat(actual.getContent().getFirst().getFirstName())
+                .isEqualTo(p.getFirstName());
     }
 
     private void createPlayers(String name){
         List<Player> players = new ArrayList<>();
         for (int i=0;i<LIMIT;i++){
             Player player = Player.builder()
-                    .name(name + i)
+                    .firstName(name + i)
                     .mappingStatus(MappingStatus.MATCHED)
                     .build();
             players.add(player);
@@ -222,12 +222,30 @@ class PlayerRepositoryCustomTest {
 
         for (int i=LIMIT;i<LIMIT*2;i++){
             Player player = Player.builder()
-                    .name(name + i)
+                    .firstName(name + i)
                     .mappingStatus(MappingStatus.UNMAPPED)
                     .build();
             players.add(player);
         }
         persistAndFlushPlayers(players);
+    }
+
+
+    @Test
+    @DisplayName("이름 검색 시 대소문자 무시")
+    void simple_search_ignore_case(){
+        // given
+        Player player1 = Player.builder().firstName("LIONEL").lastName("MESSI").mappingStatus(MappingStatus.UNMAPPED).build();
+        Player player2 = Player.builder().firstName("LIONEL").lastName("RONALDO").mappingStatus(MappingStatus.UNMAPPED).build();
+        Player player3 = Player.builder().firstName("CRISTIAN").lastName("RONALDO").mappingStatus(MappingStatus.UNMAPPED).build();
+
+        persistAndFlushPlayers(List.of(player1, player2, player3));
+
+        // when
+        Slice<Player> actual =
+                playerRepository.searchPlayerByName("lio", PAGEABLE, null, null, null);
+        // then
+        Assertions.assertThat(actual.getContent()).containsExactly(player1, player2);
     }
 
     private void persistAndFlushPlayers(List<Player> players){
