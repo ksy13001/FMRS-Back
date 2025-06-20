@@ -1,6 +1,7 @@
 package com.ksy.fmrs.domain.player;
 
 
+import com.ksy.fmrs.domain.Comment;
 import com.ksy.fmrs.domain.Team;
 import com.ksy.fmrs.domain.enums.MappingStatus;
 import com.ksy.fmrs.util.time.TimeUtils;
@@ -8,6 +9,7 @@ import jakarta.persistence.*;
 import lombok.*;
 
 import java.time.LocalDate;
+import java.util.List;
 import java.util.Optional;
 
 @Getter
@@ -60,6 +62,9 @@ public class Player {
     @OneToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "player_stat_id", unique = true)
     private PlayerStat playerStat;
+
+    @OneToMany(fetch = FetchType.LAZY)
+    private List<Comment> comments;
 
     @Column(name = "is_gk")
     private Boolean isGK;

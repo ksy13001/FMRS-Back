@@ -1,4 +1,4 @@
-package com.ksy.fmrs.service;
+package com.ksy.fmrs.service.player;
 
 import com.ksy.fmrs.dto.player.PlayerOverviewDto;
 import com.ksy.fmrs.dto.player.FmPlayerDetailsDto;

@@ -1,17 +1,9 @@
 package com.ksy.fmrs.controller;
 
-import com.ksy.fmrs.dto.league.LeagueDetailsResponseDto;
-import com.ksy.fmrs.dto.league.LeagueStandingDto;
-import com.ksy.fmrs.dto.player.PlayerSimpleDto;
-import com.ksy.fmrs.service.FootballApiService;
-import com.ksy.fmrs.service.LeagueService;
+import com.ksy.fmrs.service.global.FootballApiService;
+import com.ksy.fmrs.service.league.LeagueService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Controller;
-import org.springframework.ui.Model;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
-
-import java.util.List;
 
 @RequiredArgsConstructor
 @Controller

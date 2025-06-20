@@ -1,25 +1,17 @@
 package com.ksy.fmrs.service;
 
 import com.ksy.fmrs.domain.enums.LeagueType;
-import com.ksy.fmrs.domain.player.Player;
 import com.ksy.fmrs.dto.league.LeagueDetailsRequestDto;
-import com.ksy.fmrs.dto.player.FmPlayerDto;
-import com.ksy.fmrs.repository.LeagueRepository;
+import com.ksy.fmrs.repository.league.LeagueRepository;
 import com.ksy.fmrs.repository.Player.PlayerRepository;
-import com.ksy.fmrs.util.StringUtils;
-import org.assertj.core.api.Assertions;
+import com.ksy.fmrs.service.global.FootballApiService;
+import com.ksy.fmrs.service.global.InitializationService;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
-
-import java.time.LocalDate;
-import java.util.ArrayList;
-import java.util.List;
-
-import static org.mockito.Mockito.when;
 
 
 @ExtendWith(MockitoExtension.class)
