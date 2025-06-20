@@ -1,12 +1,10 @@
 package com.ksy.fmrs.scheduler;
 
 
-import com.ksy.fmrs.domain.player.Player;
 import com.ksy.fmrs.dto.apiFootball.SquadApiResponseDto;
-import com.ksy.fmrs.repository.BulkRepository;
-import com.ksy.fmrs.repository.Player.PlayerRepository;
+import com.ksy.fmrs.repository.global.BulkRepository;
 import com.ksy.fmrs.repository.Team.TeamRepository;
-import com.ksy.fmrs.service.FootballApiService;
+import com.ksy.fmrs.service.global.FootballApiService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.scheduling.annotation.Scheduled;
@@ -16,9 +14,6 @@ import reactor.core.publisher.Mono;
 import reactor.core.scheduler.Schedulers;
 
 import java.time.Duration;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Optional;
 import java.util.stream.Collectors;
 
 @Slf4j

@@ -1,6 +1,6 @@
 package com.ksy.fmrs.config;
 
-import com.ksy.fmrs.service.InitializationService;
+import com.ksy.fmrs.service.global.InitializationService;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.ApplicationRunner;

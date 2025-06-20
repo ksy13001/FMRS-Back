@@ -1,15 +1,9 @@
 package com.ksy.fmrs.service;
 
-import static org.junit.jupiter.api.Assertions.*;
-import static org.mockito.Mockito.*;
-
-import com.ksy.fmrs.domain.player.PlayerStat;
-import com.ksy.fmrs.dto.player.PlayerStatDto;
 import com.ksy.fmrs.repository.Player.PlayerRepository;
 
-import java.util.Optional;
-
 import com.ksy.fmrs.repository.Player.PlayerStatRepository;
+import com.ksy.fmrs.service.global.FootballApiService;
 import org.assertj.core.api.Assertions;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;

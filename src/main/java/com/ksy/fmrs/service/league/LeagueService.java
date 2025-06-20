@@ -1,10 +1,10 @@
-package com.ksy.fmrs.service;
+package com.ksy.fmrs.service.league;
 
 import com.ksy.fmrs.domain.League;
 import com.ksy.fmrs.domain.enums.LeagueType;
 import com.ksy.fmrs.dto.league.LeagueDetailsRequestDto;
 import com.ksy.fmrs.dto.league.LeagueDetailsResponseDto;
-import com.ksy.fmrs.repository.LeagueRepository;
+import com.ksy.fmrs.repository.league.LeagueRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;

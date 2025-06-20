@@ -1,20 +1,17 @@
-package com.ksy.fmrs.service;
+package com.ksy.fmrs.service.team;
 
 import com.ksy.fmrs.domain.League;
 import com.ksy.fmrs.domain.Team;
-import com.ksy.fmrs.domain.player.Player;
 import com.ksy.fmrs.dto.team.TeamDetailsDto;
 import com.ksy.fmrs.dto.team.TeamStandingDto;
-import com.ksy.fmrs.repository.LeagueRepository;
+import com.ksy.fmrs.repository.league.LeagueRepository;
 import com.ksy.fmrs.repository.Team.TeamRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.util.HashSet;
 import java.util.List;
-import java.util.Set;
 import java.util.stream.Collectors;
 
 @Slf4j

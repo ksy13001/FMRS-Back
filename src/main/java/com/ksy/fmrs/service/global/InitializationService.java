@@ -1,19 +1,19 @@
-package com.ksy.fmrs.service;
+package com.ksy.fmrs.service.global;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.ksy.fmrs.domain.League;
 import com.ksy.fmrs.domain.enums.LeagueType;
 import com.ksy.fmrs.domain.enums.MappingStatus;
 import com.ksy.fmrs.domain.player.*;
 import com.ksy.fmrs.dto.apiFootball.LeagueApiPlayersDto;
 import com.ksy.fmrs.dto.league.LeagueDetailsRequestDto;
 import com.ksy.fmrs.dto.player.FmPlayerDto;
-import com.ksy.fmrs.repository.BulkRepository;
-import com.ksy.fmrs.repository.LeagueRepository;
-import com.ksy.fmrs.repository.Player.FmPlayerRepository;
+import com.ksy.fmrs.repository.global.BulkRepository;
+import com.ksy.fmrs.repository.league.LeagueRepository;
 import com.ksy.fmrs.repository.Player.PlayerRawRepository;
-import com.ksy.fmrs.repository.Player.PlayerRepository;
+import com.ksy.fmrs.service.league.LeagueService;
+import com.ksy.fmrs.service.team.TeamService;
+import com.ksy.fmrs.service.player.PlayerService;
 import com.ksy.fmrs.util.NationNormalizer;
 import com.ksy.fmrs.util.StringUtils;
 import lombok.RequiredArgsConstructor;
@@ -24,8 +24,6 @@ import org.springframework.web.servlet.LocaleResolver;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 import reactor.core.scheduler.Schedulers;
-import reactor.util.function.Tuple2;
-import reactor.util.function.Tuples;
 import reactor.util.retry.Retry;
 
 import java.io.File;
