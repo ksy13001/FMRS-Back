@@ -23,8 +23,10 @@ import org.mockito.Spy;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.test.util.ReflectionTestUtils;
 
+import java.time.Instant;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.util.Date;
 import java.util.List;
 import java.util.Optional;
 
@@ -48,7 +50,9 @@ class PlayerStatServiceTest {
     private TimeProvider timeProvider =
             new TestTimeProvider(
                     LocalDateTime.of(2000, 8, 14, 0, 0),
-                    LocalDate.of(2000, 8, 14)
+                    LocalDate.of(2000, 8, 14),
+                    new Date(),
+                    Instant.EPOCH
             );
 
     @Test
