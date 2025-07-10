@@ -1,4 +1,4 @@
-package com.ksy.fmrs.service;
+package com.ksy.fmrs.service.player;
 
 import com.ksy.fmrs.domain.League;
 import com.ksy.fmrs.domain.Team;
@@ -8,6 +8,7 @@ import com.ksy.fmrs.dto.player.PlayerStatDto;
 import com.ksy.fmrs.mapper.PlayerStatMapper;
 import com.ksy.fmrs.repository.Player.PlayerRepository;
 import com.ksy.fmrs.repository.Player.PlayerStatRepository;
+import com.ksy.fmrs.service.global.FootballApiService;
 import com.ksy.fmrs.util.time.TimeProvider;
 import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;

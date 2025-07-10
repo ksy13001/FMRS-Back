@@ -1,8 +1,8 @@
 package com.ksy.fmrs.repository;
 
-import com.ksy.fmrs.config.InitializationConfig;
 import com.ksy.fmrs.domain.enums.MappingStatus;
 import com.ksy.fmrs.domain.player.Player;
+import com.ksy.fmrs.repository.global.BulkRepository;
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.TypedQuery;
 import org.assertj.core.api.Assertions;
@@ -11,7 +11,6 @@ import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.context.ActiveProfiles;
-import org.springframework.test.context.TestPropertySource;
 
 import java.time.LocalDate;
 import java.util.ArrayList;

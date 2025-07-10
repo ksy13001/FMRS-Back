@@ -42,9 +42,6 @@ dependencies {
 	annotationProcessor "jakarta.annotation:jakarta.annotation-api"
 	annotationProcessor "jakarta.persistence:jakarta.persistence-api"
 
-	// redis
-	implementation 'org.springframework.boot:spring-boot-starter-data-redis'
-
 	//json
 	implementation 'com.googlecode.json-simple:json-simple:1.1'
 
@@ -53,6 +50,14 @@ dependencies {
 
 	// 테스트용 db
 	testImplementation group: 'com.h2database', name: 'h2', version: '2.1.214'
+
+	// spring security
+	implementation 'org.springframework.boot:spring-boot-starter-security'
+
+	//jwt
+	implementation 'io.jsonwebtoken:jjwt-api:0.12.3'
+	implementation 'io.jsonwebtoken:jjwt-impl:0.12.3'
+	implementation 'io.jsonwebtoken:jjwt-jackson:0.12.3'
 }
 
 tasks.named('test') {

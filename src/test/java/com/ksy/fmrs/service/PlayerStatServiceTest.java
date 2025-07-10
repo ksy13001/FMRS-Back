@@ -9,6 +9,8 @@ import com.ksy.fmrs.dto.player.PlayerStatDto;
 import com.ksy.fmrs.mapper.PlayerStatMapper;
 import com.ksy.fmrs.repository.Player.PlayerRepository;
 import com.ksy.fmrs.repository.Player.PlayerStatRepository;
+import com.ksy.fmrs.service.global.FootballApiService;
+import com.ksy.fmrs.service.player.PlayerStatService;
 import com.ksy.fmrs.util.time.TestTimeProvider;
 import com.ksy.fmrs.util.time.TimeProvider;
 import org.assertj.core.api.Assertions;
@@ -19,12 +21,12 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.Spy;
 import org.mockito.junit.jupiter.MockitoExtension;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.context.annotation.Import;
 import org.springframework.test.util.ReflectionTestUtils;
 
+import java.time.Instant;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.util.Date;
 import java.util.List;
 import java.util.Optional;
 
@@ -48,7 +50,9 @@ class PlayerStatServiceTest {
     private TimeProvider timeProvider =
             new TestTimeProvider(
                     LocalDateTime.of(2000, 8, 14, 0, 0),
-                    LocalDate.of(2000, 8, 14)
+                    LocalDate.of(2000, 8, 14),
+                    new Date(),
+                    Instant.EPOCH
             );
 
     @Test

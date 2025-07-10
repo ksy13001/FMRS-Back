@@ -1,8 +1,12 @@
 package com.ksy.fmrs.util;
 
+import lombok.extern.slf4j.Slf4j;
+
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
+import java.util.Optional;
 
+@Slf4j
 public class StringUtils {
 
     private StringUtils(){}
@@ -67,5 +71,19 @@ public class StringUtils {
             throw new IllegalArgumentException("No numeric value found in: " + value);
         }
         return Integer.parseInt(numeric);
+    }
+
+    public static Optional<String> extractTokenFromBearer(String header) {
+        if (header == null){
+            log.info("Authorization header not found");
+            return Optional.empty();
+        }
+
+        if(!header.startsWith("Bearer ") || header.length() < 8){
+            log.info("Authorization header is invalid");
+            return Optional.empty();
+        }
+
+        return Optional.of(header.substring(7));
     }
 }
