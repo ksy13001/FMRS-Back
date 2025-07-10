@@ -94,7 +94,7 @@ class JwtFilterTest {
         request.addHeader("Authorization", bearerToken + token);
 
         // when
-        doThrow(ExpiredJwtException.class).when(jwtTokenProvider).validateToken(token);
+        doThrow(ExpiredJwtException.class).when(jwtTokenProvider).parseAndValidateToken(token);
         jwtFilter.doFilterInternal(request, response, filterChain);
 
         // then
@@ -112,7 +112,7 @@ class JwtFilterTest {
         request.addHeader("Authorization", bearerToken + token);
 
         // when
-        doThrow(JwtException.class).when(jwtTokenProvider).validateToken(token);
+        doThrow(JwtException.class).when(jwtTokenProvider).parseAndValidateToken(token);
         jwtFilter.doFilterInternal(request, response, filterChain);
 
         // then
@@ -138,8 +138,8 @@ class JwtFilterTest {
         request.addHeader("Authorization", bearerToken + token);
 
         // when
-        doNothing().when(jwtTokenProvider).validateToken(token);
-        when(jwtTokenProvider.getEmailFromToken(token)).thenReturn(username);
+        doReturn(null).when(jwtTokenProvider).parseAndValidateToken(token);
+        when(jwtTokenProvider.getUsernameFromToken(token)).thenReturn(username);
         when(userDetailsService.loadUserByUsername(username)).thenReturn(userDetails);
         jwtFilter.doFilterInternal(request, response, filterChain);
 
