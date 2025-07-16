@@ -59,11 +59,11 @@ public class AuthService {
     }
 
     @Transactional
-    public ResponseEntity<Void> logout(Long userId, String oldRefresh) {
+    public ResponseEntity<Void> logout(String oldRefresh) {
         Claims claims = jwtTokenProvider.parseAndValidateToken(
                 oldRefresh);
-
-        validateToken(claims, userId, TokenType.REFRESH_TOKEN);
+        Long userId = Long.parseLong(claims.getSubject());
+        validateToken(claims, TokenType.REFRESH_TOKEN);
 
         String jti = claims.getId();
         Date expiryDate = claims.getExpiration();
@@ -75,19 +75,20 @@ public class AuthService {
     }
 
     @Transactional
-    public TokenPair reissueToken(Long userId, String oldRefresh) {
+    public TokenPair reissueToken(String oldRefresh) {
         // 검증시 통일된 예외처리 필요
         // 토큰 검증
         Claims claims = jwtTokenProvider.parseAndValidateToken(
                 oldRefresh);
 
+        Long userId = Long.parseLong(claims.getSubject());
         String username = claims.get("username", String.class);
         Date expiryDate = claims.getExpiration();
         String oldJti = claims.getId();
 
-        validateToken(claims, userId, TokenType.REFRESH_TOKEN);
+        validateToken(claims, TokenType.REFRESH_TOKEN);
 
-        String access  = generateJwtAccessToken(userId, username);
+        String access = generateJwtAccessToken(userId, username);
         String refresh = generateJwtRefreshToken(userId, username);
         rotateRefreshToken(userId, oldJti, expiryDate.toInstant(), refresh);
 
@@ -124,9 +125,8 @@ public class AuthService {
                 .build());
     }
 
-    private void validateToken(Claims claims, Long userId, TokenType tokenType) {
+    private void validateToken(Claims claims, TokenType tokenType) {
         tokenValidator.validateTokenInBlacklist(claims);
-        tokenValidator.validateUserId(claims, userId);
         tokenValidator.validateTokenType(claims, tokenType);
     }
 }

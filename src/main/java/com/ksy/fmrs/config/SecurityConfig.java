@@ -21,6 +21,7 @@ import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.CorsConfigurationSource;
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 
+import java.util.Collections;
 import java.util.List;
 
 @RequiredArgsConstructor
@@ -75,15 +76,17 @@ public class SecurityConfig {
     public CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration config = new CorsConfiguration();
         config.setAllowedOriginPatterns(List.of(
-                "https://www.fmrs.football/",
-                "http://localhost:*",
-                "https://localhost:*",
+                "https://www.fmrs.football",
+                "http://localhost:8443",
+                "https://localhost:8443",
                 "http://localhost:3000",
                 "https://localhost:3000"
         ));
 //        config.setAllowedOriginPatterns(List.of("*"));
         config.setAllowedMethods(List.of("GET", "POST", "PUT", "DELETE", "OPTIONS"));
         config.setAllowedHeaders(List.of("*"));
+        config.setExposedHeaders(Collections.singletonList("Set-Cookie"));
+        config.setExposedHeaders(Collections.singletonList("Authorization"));
         config.setAllowCredentials(true);
         UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
         source.registerCorsConfiguration("/**", config);
