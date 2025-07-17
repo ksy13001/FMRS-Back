@@ -8,6 +8,7 @@ import com.ksy.fmrs.security.JwtFilter;
 import com.ksy.fmrs.security.JwtTokenProvider;
 import com.ksy.fmrs.service.user.AuthService;
 import jakarta.servlet.http.HttpServletRequest;
+import org.hamcrest.Matchers;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -18,6 +19,7 @@ import org.springframework.data.jpa.mapping.JpaMetamodelMappingContext;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
+import org.springframework.mock.web.MockCookie;
 import org.springframework.mock.web.MockHttpServletRequest;
 import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.test.context.support.WithMockUser;
@@ -54,10 +56,10 @@ class AuthControllerTest {
     @MockitoBean
     private JpaMetamodelMappingContext jpaMetamodelMappingContext;
 
-    private static final String REFRESH = "refreshToken";
+    private static final String REFRESH = "refresh_token";
 
     @Test
-    @DisplayName("로그인 성공시 Authorization 헤도와 HTTPONLY 쿠키에 토큰 설정, " +
+    @DisplayName("로그인 성공시 Authorization 헤더와 HTTPONLY 쿠키에 토큰 설정, " +
             "userId, userName 바디에 반환")
     void login_success() throws Exception {
         // given
@@ -84,8 +86,14 @@ class AuthControllerTest {
                 .andExpect(status().isOk())
                 .andExpect(header().string(HttpHeaders.AUTHORIZATION
                         , "Bearer " + accessToken))
-                .andExpect(cookie().httpOnly(REFRESH, true))
-                .andExpect(cookie().value(REFRESH, refreshToken))
+                .andExpect(header().string(HttpHeaders.SET_COOKIE,
+                        Matchers.startsWith(REFRESH + "=" + refreshToken + ";")))
+                .andExpect(header().string(HttpHeaders.SET_COOKIE,
+                        Matchers.containsString("HttpOnly")))
+                .andExpect(header().string(HttpHeaders.SET_COOKIE,
+                        Matchers.containsString("Secure")))
+                .andExpect(header().string(HttpHeaders.SET_COOKIE,
+                        Matchers.containsString("SameSite=None")))
                 .andExpect(jsonPath("$.success").value(true))
                 .andExpect(jsonPath("$.userId").value(userId))
                 .andExpect(jsonPath("$.username").value(username));
@@ -93,7 +101,7 @@ class AuthControllerTest {
 
     @Test
     @DisplayName("로그인 실패시, 401 반환")
-    void login_failed() throws Exception{
+    void login_failed() throws Exception {
         // given
         String username = "invalid_user";
         String password = "invalid_password";
@@ -109,17 +117,27 @@ class AuthControllerTest {
         actions.andExpect(status().isUnauthorized())
                 .andExpect(jsonPath("$.success").value(false));
     }
-
-    @Test
-    @DisplayName("로그아웃시, 쿠키에서 리프레시 토큰 추출 후 서비스 레이어에 전달 및 쿠키 삭제")
-    void logout_success() throws Exception{
-        // given
-        HttpServletRequest request = new MockHttpServletRequest();
-        String oldRefresh = "refreshToken";
-        given(authService.logout(oldRefresh)).willReturn(ResponseEntity.ok().build());
-        // when
-
-        // then
-    }
+//
+//    @Test
+//    @DisplayName("로그아웃시, 쿠키에서 리프레시 토큰 추출 후 서비스 레이어에 전달 및 쿠키 삭제")
+//    void logout_success() throws Exception {
+//        // given
+//        HttpServletRequest request = new MockHttpServletRequest();
+//        String oldRefresh = "refreshToken";
+//        MockCookie cookie = new MockCookie(REFRESH, oldRefresh);
+//        request.setAttribute(REFRESH, cookie);
+//
+//        given(authService.logout(oldRefresh)).willReturn(ResponseEntity.ok().build());
+//        // when
+//        ResultActions actions = mvc.perform(post("api/auth/logout")
+//                .contentType(MediaType.APPLICATION_JSON)
+//                        .cookie(cookie)
+//                        .with(csrf()));
+//
+//        // then
+//        actions.andExpect(status().isOk())
+//                .andExpect(header().string(HttpHeaders.SET_COOKIE,
+//                        Matchers.startsWith(REFRESH + "=" + "" + ";")));
+//    }
 
 }
