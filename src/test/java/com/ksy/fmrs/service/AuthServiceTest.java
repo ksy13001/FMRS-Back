@@ -90,7 +90,6 @@ class AuthServiceTest {
                 userDetails, null, userDetails.getAuthorities());
         this.claims = Jwts.claims()
                 .id(jti)
-                .subject(userId.toString())
                 .add("username", username)
                 .expiration(Date.from(this.expiry))
                 .build();
@@ -149,7 +148,7 @@ class AuthServiceTest {
         // when
         when(jwtTokenProvider.parseAndValidateToken(oldRefreshToken))
                 .thenReturn(claims);
-        ResponseEntity<Void> actual = authService.logout(oldRefreshToken);
+        ResponseEntity<Void> actual = authService.logout(userId, oldRefreshToken);
 
         // then
         ArgumentCaptor<BlackList> blackListCaptor = ArgumentCaptor.forClass(BlackList.class);
@@ -157,7 +156,7 @@ class AuthServiceTest {
                 .deleteByToken(oldRefreshToken);
         verify(blackListRepository, times(1))
                 .save(blackListCaptor.capture());
-        verifyValidateToken(claims);
+        verifyValidateToken(claims, TokenType.REFRESH_TOKEN);
 
         Assertions.assertThat(actual.getStatusCode())
                 .isEqualTo(HttpStatusCode.valueOf(200));
@@ -200,12 +199,12 @@ class AuthServiceTest {
                 .thenReturn(newRefresh);
         when(timeProvider.getCurrentInstant()).thenReturn(now);
 
-        TokenPair actual = authService.reissueToken(oldRefresh);
+        TokenPair actual = authService.reissueToken(userId, oldRefresh);
 
         // then
         ArgumentCaptor<RefreshToken> refreshCaptor = ArgumentCaptor.forClass(RefreshToken.class);
         ArgumentCaptor<BlackList> blackListCaptor = ArgumentCaptor.forClass(BlackList.class);
-        verifyValidateToken(claims);
+        verifyValidateToken(claims, TokenType.REFRESH_TOKEN);
         verify(refreshTokenRepository, times(1))
                 .save(refreshCaptor.capture());
         verify(blackListRepository, times(1))
@@ -230,9 +229,11 @@ class AuthServiceTest {
         return user;
     }
 
-    private void verifyValidateToken(Claims claims) {
+    private void verifyValidateToken(Claims claims, TokenType tokenType) {
         verify(tokenValidator, times(1))
                 .validateTokenInBlacklist(claims);
+        verify(tokenValidator, times(1))
+                .validateUserId(claims, testUser.getId());
         verify(tokenValidator, times(1))
                 .validateTokenType(claims, TokenType.REFRESH_TOKEN);
     }

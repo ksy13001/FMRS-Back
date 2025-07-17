@@ -1,60 +1,54 @@
 package com.ksy.fmrs.controller;
 
 import com.ksy.fmrs.dto.user.*;
+import com.ksy.fmrs.security.CustomUserDetails;
 import com.ksy.fmrs.service.user.AuthService;
+import com.ksy.fmrs.util.StringUtils;
 import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
-import org.springframework.http.HttpHeaders;
-import org.springframework.http.ResponseCookie;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.core.AuthenticationException;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RestController;
 
-import java.util.Arrays;
-
-@Slf4j
 @RequiredArgsConstructor
 @RestController
 public class AuthController {
 
-    private static final String REFRESH = "refresh_token";
+    private static final String REFRESH = "refreshToken";
 
     private final AuthService authService;
 
     @PostMapping("/api/auth/login")
     public ResponseEntity<LoginResponseDto> login(@RequestBody LoginRequestDto dto, HttpServletResponse response) {
-        TokenPairWithId tokenPairWithId;
-        try {
-            tokenPairWithId = authService.login(dto.username(), dto.password());
-        } catch (AuthenticationException e) {
+        TokenPairWithId tokenPairWithId = authService.login(dto.username(), dto.password());
+        if (tokenPairWithId == null) {
             return LoginResponseDto.authenticationFailed();
         }
+
+        Cookie refreshTokenCookie = createCookie(REFRESH, tokenPairWithId.refresh());
         response.setHeader("Authorization", "Bearer " + tokenPairWithId.access());
-        response.setHeader(HttpHeaders.SET_COOKIE,
-                createCookie(REFRESH, tokenPairWithId.refresh(), 7 * 24 * 60 * 60).toString());
+        response.addCookie(refreshTokenCookie);
 
         return LoginResponseDto.success(tokenPairWithId.userId(), dto.username());
     }
 
     @PostMapping("/api/auth/logout")
-    public ResponseEntity<Void> logout(HttpServletRequest request,  HttpServletResponse response) {
-        response.setHeader(HttpHeaders.SET_COOKIE,
-                createCookie(REFRESH, "", 0).toString());
-        return authService.logout(extractTokenFromCookie(request));
+    public ResponseEntity<Void> logout(@AuthenticationPrincipal CustomUserDetails userDetails,
+                                       HttpServletRequest request) {
+        return authService.logout(userDetails.getId(), extractToken(request));
     }
 
     @PostMapping("/api/auth/reissue")
-    public ResponseEntity<ReissueResponseDto> reissue(HttpServletRequest request, HttpServletResponse response) {
-        TokenPair tokenPair = authService.reissueToken(extractTokenFromCookie(request));
+    public ResponseEntity<ReissueResponseDto> reissue(@AuthenticationPrincipal CustomUserDetails userDetails,
+                                                      HttpServletRequest request, HttpServletResponse response) {
+        TokenPair tokenPair = authService.reissueToken(userDetails.getId(), extractToken(request));
         response.setHeader("Authorization", "Bearer " + tokenPair.access());
-        response.setHeader(HttpHeaders.SET_COOKIE,
-                createCookie(REFRESH, tokenPair.refresh(), 7 * 24 * 60 * 60).toString());
+        response.addCookie(createCookie(REFRESH, tokenPair.refresh()));
 
         return ReissueResponseDto.success();
     }
@@ -64,26 +58,18 @@ public class AuthController {
         return ResponseEntity.ok().build();
     }
 
-    private String extractTokenFromCookie(HttpServletRequest request) {
-        Cookie[] cookies = request.getCookies();
-        if (cookies == null || cookies.length == 0) {
-            throw new IllegalStateException("Cookie is null");
-        }
-
-        return Arrays.stream(cookies)
-                .filter(c -> REFRESH.equals(c.getName()))
-                .findFirst()
-                .map(Cookie::getValue)
-                .orElseThrow(() -> new IllegalArgumentException("쿠키에서 리프레시 토큰을 찾을수없습니다"));
+    private String extractToken(HttpServletRequest request) {
+        return StringUtils.extractTokenFromBearer(request.getHeader("Authorization"))
+                .orElseThrow(() -> new IllegalArgumentException("Invalid Authorization Header"));
     }
 
-    private ResponseCookie createCookie(String tokenName, String tokenValue, int maxAge) {
-        return ResponseCookie.from(tokenName, tokenValue)
-                .httpOnly(true)
-                .secure(true)
-                .path("/")
-                .maxAge(maxAge)
-                .sameSite("None")
-                .build();
+
+    private Cookie createCookie(String tokenName, String tokenValue) {
+        Cookie accessTokenCookie = new Cookie(tokenName, tokenValue);
+        accessTokenCookie.setHttpOnly(true);
+        accessTokenCookie.setSecure(true); // HTTPS에서만
+        accessTokenCookie.setPath("/");
+        accessTokenCookie.setMaxAge(30 * 60); // 30분
+        return accessTokenCookie;
     }
 }
