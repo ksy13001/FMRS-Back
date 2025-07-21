@@ -23,7 +23,10 @@ import java.util.Arrays;
 @RestController
 public class AuthController {
 
-    private static final String REFRESH = "refresh_token";
+    private static final String REFRESH_TOKEN = "refresh_token";
+    private static final String ACCESS_TOKEN = "access_token";
+    private static final int REFRESH_EXP = 7 * 24 * 60 * 60;
+    private static final int ACCESS_EXP = 30 * 60;
 
     private final AuthService authService;
 
@@ -35,26 +38,31 @@ public class AuthController {
         } catch (AuthenticationException e) {
             return LoginResponseDto.authenticationFailed();
         }
-        response.setHeader("Authorization", "Bearer " + tokenPairWithId.access());
-        response.setHeader(HttpHeaders.SET_COOKIE,
-                createCookie(REFRESH, tokenPairWithId.refresh(), 7 * 24 * 60 * 60).toString());
+        response.addHeader(HttpHeaders.SET_COOKIE,
+                createCookie(ACCESS_TOKEN, tokenPairWithId.access(), ACCESS_EXP).toString());
+        response.addHeader(HttpHeaders.SET_COOKIE,
+                createCookie(REFRESH_TOKEN, tokenPairWithId.refresh(), REFRESH_EXP).toString());
 
         return LoginResponseDto.success(tokenPairWithId.userId(), dto.username());
     }
 
     @PostMapping("/api/auth/logout")
     public ResponseEntity<Void> logout(HttpServletRequest request,  HttpServletResponse response) {
-        response.setHeader(HttpHeaders.SET_COOKIE,
-                createCookie(REFRESH, "", 0).toString());
+        response.addHeader(HttpHeaders.SET_COOKIE,
+                createCookie(ACCESS_TOKEN, "", 0).toString());
+        response.addHeader(HttpHeaders.SET_COOKIE,
+                createCookie(REFRESH_TOKEN, "", 0).toString());
         return authService.logout(extractTokenFromCookie(request));
     }
 
     @PostMapping("/api/auth/reissue")
     public ResponseEntity<ReissueResponseDto> reissue(HttpServletRequest request, HttpServletResponse response) {
+        log.info(request.getCookies().toString());
         TokenPair tokenPair = authService.reissueToken(extractTokenFromCookie(request));
-        response.setHeader("Authorization", "Bearer " + tokenPair.access());
-        response.setHeader(HttpHeaders.SET_COOKIE,
-                createCookie(REFRESH, tokenPair.refresh(), 7 * 24 * 60 * 60).toString());
+        response.addHeader(HttpHeaders.SET_COOKIE,
+                createCookie(ACCESS_TOKEN, tokenPair.access(), ACCESS_EXP).toString());
+        response.addHeader(HttpHeaders.SET_COOKIE,
+                createCookie(REFRESH_TOKEN, tokenPair.refresh(), REFRESH_EXP).toString());
 
         return ReissueResponseDto.success();
     }
@@ -71,7 +79,7 @@ public class AuthController {
         }
 
         return Arrays.stream(cookies)
-                .filter(c -> REFRESH.equals(c.getName()))
+                .filter(c -> REFRESH_TOKEN.equals(c.getName()))
                 .findFirst()
                 .map(Cookie::getValue)
                 .orElseThrow(() -> new IllegalArgumentException("쿠키에서 리프레시 토큰을 찾을수없습니다"));
