@@ -18,10 +18,10 @@ public class ReissueResponseDto {
         return ResponseEntity.status(HttpStatus.OK).body(dto);
     }
 
-    public static ResponseEntity<ReissueResponseDto> invalidHeader() {
+    public static ResponseEntity<ReissueResponseDto> badRequest() {
         ReissueResponseDto dto = new ReissueResponseDto();
         dto.success = false;
-        dto.message = "Invalid header";
+        dto.message = "not exist refresh token";
         return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(dto);
     }
 

@@ -34,6 +34,7 @@ import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
+import org.springframework.security.core.AuthenticationException;
 import org.springframework.test.util.ReflectionTestUtils;
 
 import java.time.Instant;
@@ -207,6 +208,8 @@ class AuthServiceTest {
         ArgumentCaptor<BlackList> blackListCaptor = ArgumentCaptor.forClass(BlackList.class);
         verifyValidateToken(claims);
         verify(refreshTokenRepository, times(1))
+                .deleteByToken(oldRefresh);
+        verify(refreshTokenRepository, times(1))
                 .save(refreshCaptor.capture());
         verify(blackListRepository, times(1))
                 .save(blackListCaptor.capture());
@@ -216,6 +219,24 @@ class AuthServiceTest {
                 .isEqualTo(userId);
         Assertions.assertThat(actual.access()).isEqualTo(newAccess);
         Assertions.assertThat(actual.refresh()).isEqualTo(newRefresh);
+
+    }
+
+    @Test
+    @DisplayName("블랙리스트에 등록된 리프레시토큰으로 토큰 재발급 요청시," +
+            "UnauthorizedException")
+    void reissueToken_invalid_refresh() throws Exception{
+        // given
+
+        // when
+        when(jwtTokenProvider.parseAndValidateToken(refreshToken))
+                .thenReturn(claims);
+        doThrow(UnauthorizedException.class).when(tokenValidator)
+                .validateTokenInBlacklist(claims);
+
+        // then
+        Assertions.assertThatThrownBy(()->authService.reissueToken(refreshToken))
+                .isInstanceOf(UnauthorizedException.class);
 
     }
 

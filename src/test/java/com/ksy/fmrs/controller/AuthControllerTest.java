@@ -1,14 +1,18 @@
 package com.ksy.fmrs.controller;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.ksy.fmrs.domain.User;
+import com.ksy.fmrs.domain.enums.TokenType;
 import com.ksy.fmrs.dto.user.LoginRequestDto;
+import com.ksy.fmrs.dto.user.ReissueResponseDto;
+import com.ksy.fmrs.dto.user.TokenPair;
 import com.ksy.fmrs.dto.user.TokenPairWithId;
 import com.ksy.fmrs.security.JwtFilter;
 import com.ksy.fmrs.security.JwtTokenProvider;
+import com.ksy.fmrs.security.TokenResolver;
 import com.ksy.fmrs.service.user.AuthService;
+import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletRequest;
-import org.hamcrest.Matchers;
+import org.assertj.core.api.Assertions;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -19,18 +23,21 @@ import org.springframework.data.jpa.mapping.JpaMetamodelMappingContext;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
-import org.springframework.mock.web.MockCookie;
-import org.springframework.mock.web.MockHttpServletRequest;
+import org.springframework.mock.web.MockHttpServletResponse;
 import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.test.context.support.WithMockUser;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.ResultActions;
 
+import java.util.Objects;
+import java.util.Optional;
+
+import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
+import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.BDDMockito.given;
 import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.csrf;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
 @WithMockUser("test_user")
@@ -56,10 +63,11 @@ class AuthControllerTest {
     @MockitoBean
     private JpaMetamodelMappingContext jpaMetamodelMappingContext;
 
-    private static final String REFRESH = "refresh_token";
+    @MockitoBean
+    private TokenResolver tokenResolver;
 
     @Test
-    @DisplayName("로그인 성공시 Authorization 헤더와 HTTPONLY 쿠키에 토큰 설정, " +
+    @DisplayName("로그인 성공시 HTTPONLY 쿠키에 토큰 설정, " +
             "userId, userName 바디에 반환")
     void login_success() throws Exception {
         // given
@@ -75,28 +83,21 @@ class AuthControllerTest {
         );
 
         // when
-        ResultActions actions = mvc.perform(post("/api/auth/login")
-                .contentType(MediaType.APPLICATION_JSON)
-                .content(objectMapper.writeValueAsString(loginRequestDto))
-                .with(csrf())
-        );
-
-        // then
-        actions
-                .andExpect(status().isOk())
-                .andExpect(header().string(HttpHeaders.AUTHORIZATION
-                        , "Bearer " + accessToken))
-                .andExpect(header().string(HttpHeaders.SET_COOKIE,
-                        Matchers.startsWith(REFRESH + "=" + refreshToken + ";")))
-                .andExpect(header().string(HttpHeaders.SET_COOKIE,
-                        Matchers.containsString("HttpOnly")))
-                .andExpect(header().string(HttpHeaders.SET_COOKIE,
-                        Matchers.containsString("Secure")))
-                .andExpect(header().string(HttpHeaders.SET_COOKIE,
-                        Matchers.containsString("SameSite=None")))
+        MockHttpServletResponse response = mvc.perform(post("/api/auth/login")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(loginRequestDto))
+                        .with(csrf()))
                 .andExpect(jsonPath("$.success").value(true))
                 .andExpect(jsonPath("$.userId").value(userId))
-                .andExpect(jsonPath("$.username").value(username));
+                .andExpect(jsonPath("$.username").value(username))
+                .andReturn()
+                .getResponse();
+
+        // then
+        Cookie[] cookies = response.getCookies();
+
+        tokenTest(cookies, TokenType.REFRESH_TOKEN.getType(), refreshToken, TokenType.REFRESH_TOKEN.getExp());
+        tokenTest(cookies, TokenType.ACCESS_TOKEN.getType(), accessToken, TokenType.ACCESS_TOKEN.getExp());
     }
 
     @Test
@@ -113,31 +114,70 @@ class AuthControllerTest {
                 .content(objectMapper.writeValueAsString(loginRequestDto))
                 .with(csrf())
         );
+
         // then
         actions.andExpect(status().isUnauthorized())
                 .andExpect(jsonPath("$.success").value(false));
     }
-//
-//    @Test
-//    @DisplayName("로그아웃시, 쿠키에서 리프레시 토큰 추출 후 서비스 레이어에 전달 및 쿠키 삭제")
-//    void logout_success() throws Exception {
-//        // given
-//        HttpServletRequest request = new MockHttpServletRequest();
-//        String oldRefresh = "refreshToken";
-//        MockCookie cookie = new MockCookie(REFRESH, oldRefresh);
-//        request.setAttribute(REFRESH, cookie);
-//
-//        given(authService.logout(oldRefresh)).willReturn(ResponseEntity.ok().build());
-//        // when
-//        ResultActions actions = mvc.perform(post("api/auth/logout")
-//                .contentType(MediaType.APPLICATION_JSON)
-//                        .cookie(cookie)
-//                        .with(csrf()));
-//
-//        // then
-//        actions.andExpect(status().isOk())
-//                .andExpect(header().string(HttpHeaders.SET_COOKIE,
-//                        Matchers.startsWith(REFRESH + "=" + "" + ";")));
-//    }
 
+    @Test
+    @DisplayName("로그아웃 시, 쿠키의 토큰 모두 제거(만료기간 즉시로 추가)")
+    void logout_success() throws Exception {
+        // given
+        String oldRefresh = "old_refresh";
+        given(tokenResolver.extractTokenFromCookie(any(HttpServletRequest.class), anyString()))
+                .willReturn(Optional.of(oldRefresh));
+        given(authService.logout(oldRefresh))
+                .willReturn(ResponseEntity.ok().build());
+
+        // when
+        ResultActions actions = mvc.perform(post("/api/auth/logout")
+                .contentType(MediaType.APPLICATION_JSON)
+                .with(csrf()));
+
+        // then
+        actions.andExpect(status().isOk());
+        Cookie[] cookies = actions.andReturn()
+                .getResponse().getCookies();
+        tokenTest(cookies, TokenType.ACCESS_TOKEN.getType(), "", 0);
+        tokenTest(cookies, TokenType.REFRESH_TOKEN.getType(), "", 0);
+    }
+
+    @Test
+    @DisplayName("유효한 리프레시 토큰으로 토큰 재발급 요청시, 기존 리프레시 토큰 삭제 및 새 토큰 쌍 쿠키에 저장")
+    void reissue_success() throws Exception {
+        // given
+        String oldRefresh = "old_refresh";
+        String newRefresh = "new_refresh";
+        String newAccess = "new_access";
+        TokenPair tokenPair = new TokenPair(newAccess, newRefresh);
+
+        given(tokenResolver.extractTokenFromCookie(any(HttpServletRequest.class), anyString()))
+                .willReturn(Optional.of(oldRefresh));
+        given(authService.reissueToken(oldRefresh))
+                .willReturn(tokenPair);
+        // when
+
+        ResultActions actions = mvc.perform(post("/api/auth/reissue")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .with(csrf()));
+        // then
+        actions.andExpect(status().isOk())
+                .andExpect(jsonPath("$.success").value(true));
+        Cookie[] cookies = actions.andReturn().getResponse().getCookies();
+        tokenTest(cookies, TokenType.ACCESS_TOKEN.getType(), newAccess, TokenType.ACCESS_TOKEN.getExp());
+        tokenTest(cookies, TokenType.REFRESH_TOKEN.getType(), newRefresh, TokenType.REFRESH_TOKEN.getExp());
+    }
+
+    void tokenTest(Cookie[] cookies, String tokenType, String tokenValue, int maxAge) {
+        Assertions.assertThat(cookies)
+                .filteredOn(cookie -> Objects.equals(cookie.getName(), tokenType))
+                .singleElement()
+                .satisfies(token -> {
+                    assertThat(token.getValue()).isEqualTo(tokenValue);
+                    assertThat(token.getSecure()).isTrue();
+                    assertThat(token.isHttpOnly()).isTrue();
+                    assertThat(token.getMaxAge()).isEqualTo(maxAge);
+                });
+    }
 }
