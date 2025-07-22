@@ -1,6 +1,7 @@
 package com.ksy.fmrs.security;
 
 import com.ksy.fmrs.domain.User;
+import com.ksy.fmrs.domain.enums.TokenType;
 import io.jsonwebtoken.ExpiredJwtException;
 import io.jsonwebtoken.JwtException;
 import jakarta.servlet.FilterChain;
@@ -22,6 +23,7 @@ import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
 
 import java.io.IOException;
+import java.util.Optional;
 
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.*;
@@ -35,6 +37,8 @@ class JwtFilterTest {
     private JwtTokenProvider jwtTokenProvider;
     @Mock
     private UserDetailsService userDetailsService;
+    @Mock
+    private TokenResolver tokenResolver;
 
     private final String bearerToken = "Bearer ";
 
@@ -56,27 +60,11 @@ class JwtFilterTest {
     }
 
     @Test
-    @DisplayName("헤더에 Authorization 존재하지 않을 경우, 인증정보 세팅하지 않고 다음 필터로 전달")
+    @DisplayName("요청에 토큰 존재하지 않을 경우, 인증정보 세팅하지 않고 다음 필터로 전달")
     void Header_without_Authorization() throws ServletException, IOException {
-        // given
-
-        // when
-        jwtFilter.doFilterInternal(request, response, filterChain);
-
-        // then
-        Assertions.assertThat(SecurityContextHolder.getContext().getAuthentication())
-                .isNull();
-        verify(filterChain, times(1))
-                .doFilter(request, response);
-    }
-
-    @Test
-    @DisplayName("Authorization 헤더가 Bearer 로 시작하지 않을 경우, 인증정보 세팅하지 않고 다음 필터로 전달")
-    void Authorization_not_start_with_Bearer () throws ServletException, IOException {
-        // given
-        request.addHeader("Authorization", "Bearer123123123");
-        // when
-
+        // given & when
+        when(tokenResolver.extractTokenFromCookie(request, TokenType.ACCESS_TOKEN.getType()))
+                .thenReturn(Optional.empty());
         jwtFilter.doFilterInternal(request, response, filterChain);
 
         // then
@@ -91,9 +79,10 @@ class JwtFilterTest {
     void DoFilterInternal_with_expired_token() throws ServletException, IOException {
         // given
         String token = "token";
-        request.addHeader("Authorization", bearerToken + token);
 
         // when
+        when(tokenResolver.extractTokenFromCookie(request, TokenType.ACCESS_TOKEN.getType()))
+                .thenReturn(Optional.of(token));
         doThrow(ExpiredJwtException.class).when(jwtTokenProvider).parseAndValidateToken(token);
         jwtFilter.doFilterInternal(request, response, filterChain);
 
@@ -109,9 +98,10 @@ class JwtFilterTest {
     void DoFilterInternal_with_invalid_token() throws ServletException, IOException {
         // given
         String token = "token";
-        request.addHeader("Authorization", bearerToken + token);
 
         // when
+        when(tokenResolver.extractTokenFromCookie(request, TokenType.ACCESS_TOKEN.getType()))
+                .thenReturn(Optional.of(token));
         doThrow(JwtException.class).when(jwtTokenProvider).parseAndValidateToken(token);
         jwtFilter.doFilterInternal(request, response, filterChain);
 
@@ -135,9 +125,10 @@ class JwtFilterTest {
 
         UserDetails userDetails = new CustomUserDetails(user);
         String token = "123123123";
-        request.addHeader("Authorization", bearerToken + token);
 
         // when
+        when(tokenResolver.extractTokenFromCookie(request, TokenType.ACCESS_TOKEN.getType()))
+                .thenReturn(Optional.of(token));
         doReturn(null).when(jwtTokenProvider).parseAndValidateToken(token);
         when(jwtTokenProvider.getUsernameFromToken(token)).thenReturn(username);
         when(userDetailsService.loadUserByUsername(username)).thenReturn(userDetails);
