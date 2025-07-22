@@ -1,6 +1,5 @@
 package com.ksy.fmrs.security;
 
-import com.ksy.fmrs.util.StringUtils;
 import io.jsonwebtoken.ExpiredJwtException;
 import io.jsonwebtoken.JwtException;
 import jakarta.annotation.Nonnull;
@@ -20,16 +19,20 @@ import org.springframework.web.filter.OncePerRequestFilter;
 import java.io.IOException;
 import java.util.Optional;
 
+import static com.ksy.fmrs.domain.enums.TokenType.ACCESS_TOKEN;
+
 @Slf4j
 @Component
 public class JwtFilter extends OncePerRequestFilter {
 
     private final JwtTokenProvider jwtTokenProvider;
     private final UserDetailsService userDetailsService;
+    private final TokenResolver tokenResolver;
 
-    public JwtFilter(JwtTokenProvider jwtTokenProvider, UserDetailsService userDetailsService) {
+    public JwtFilter(JwtTokenProvider jwtTokenProvider, UserDetailsService userDetailsService,  TokenResolver tokenResolver) {
         this.jwtTokenProvider = jwtTokenProvider;
         this.userDetailsService = userDetailsService;
+        this.tokenResolver = tokenResolver;
     }
 
     @Override
@@ -38,9 +41,9 @@ public class JwtFilter extends OncePerRequestFilter {
             @NonNull HttpServletResponse response,
             @Nonnull FilterChain filterChain) throws ServletException, IOException {
 
-        Optional<String> token = extractToken(request);
+        Optional<String> token = tokenResolver.extractTokenFromCookie(request, ACCESS_TOKEN.getType());
         if (token.isEmpty()) {
-            log.info("Authorization token not found");
+            log.info("JwtFilter: token not found in Cookie");
             filterChain.doFilter(request, response);
             return;
         }
@@ -70,7 +73,4 @@ public class JwtFilter extends OncePerRequestFilter {
         SecurityContextHolder.getContext().setAuthentication(auth);
     }
 
-    private Optional<String> extractToken(HttpServletRequest request) {
-        return StringUtils.extractTokenFromBearer(request.getHeader("Authorization"));
-    }
 }

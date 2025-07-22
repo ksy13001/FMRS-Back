@@ -90,13 +90,13 @@ public class AuthService {
 
         String access = generateJwtAccessToken(userId, username);
         String refresh = generateJwtRefreshToken(userId, username);
-        rotateRefreshToken(userId, oldJti, expiryDate.toInstant(), refresh);
+        rotateRefreshToken(userId, oldJti, expiryDate.toInstant(), refresh, oldRefresh);
 
         return new TokenPair(access, refresh);
     }
 
-
-    private void rotateRefreshToken(Long userId, String oldJti, Instant expiry, String newRefresh) {
+    private void rotateRefreshToken(Long userId, String oldJti, Instant expiry, String newRefresh, String oldRefresh) {
+        refreshTokenRepository.deleteByToken(oldRefresh);
         saveBlackListToken(userId, oldJti, expiry);
         saveRefreshToken(userId, newRefresh);
     }
