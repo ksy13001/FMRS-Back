@@ -15,6 +15,11 @@ public class TeamController {
     private final TeamService teamService;
 
 
+    @GetMapping("/api/teams/{id}")
+    public TeamDetailsDto getTeamDetails(@PathVariable Long id) {
+        return teamService.findTeamById(id);
+    }
+
     @GetMapping("/api/teams/search/{name}")
     public List<TeamDetailsDto> getTeam(@PathVariable String name) {
         return teamService.findTeamsByName(name);
