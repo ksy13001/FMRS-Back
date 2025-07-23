@@ -6,6 +6,7 @@ import com.ksy.fmrs.dto.team.TeamDetailsDto;
 import com.ksy.fmrs.dto.team.TeamStandingDto;
 import com.ksy.fmrs.repository.league.LeagueRepository;
 import com.ksy.fmrs.repository.Team.TeamRepository;
+import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -20,6 +21,13 @@ import java.util.stream.Collectors;
 public class TeamService {
     private final TeamRepository teamRepository;
     private final LeagueRepository leagueRepository;
+
+    @Transactional(readOnly = true)
+    public TeamDetailsDto findTeamById(Long id) {
+        return teamRepository.findById(id)
+                .map(TeamDetailsDto::new)
+                .orElseThrow(()-> new EntityNotFoundException("team not found"));
+    }
 
     @Transactional(readOnly = true)
     public List<TeamDetailsDto> findTeamsByName(String name) {
