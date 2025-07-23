@@ -1,4 +1,4 @@
-package com.ksy.fmrs.service.league;
+package com.ksy.fmrs.service;
 
 import com.ksy.fmrs.domain.League;
 import com.ksy.fmrs.domain.enums.LeagueType;

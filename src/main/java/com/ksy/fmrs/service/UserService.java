@@ -1,4 +1,4 @@
-package com.ksy.fmrs.service.user;
+package com.ksy.fmrs.service;
 
 import com.ksy.fmrs.domain.User;
 import com.ksy.fmrs.domain.enums.Role;

@@ -1,7 +1,7 @@
 package com.ksy.fmrs.controller;
 
 import com.ksy.fmrs.dto.team.TeamDetailsDto;
-import com.ksy.fmrs.service.team.TeamService;
+import com.ksy.fmrs.service.TeamService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;

@@ -3,13 +3,12 @@ package com.ksy.fmrs.controller;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.ksy.fmrs.domain.enums.TokenType;
 import com.ksy.fmrs.dto.user.LoginRequestDto;
-import com.ksy.fmrs.dto.user.ReissueResponseDto;
 import com.ksy.fmrs.dto.user.TokenPair;
 import com.ksy.fmrs.dto.user.TokenPairWithId;
 import com.ksy.fmrs.security.JwtFilter;
 import com.ksy.fmrs.security.JwtTokenProvider;
 import com.ksy.fmrs.security.TokenResolver;
-import com.ksy.fmrs.service.user.AuthService;
+import com.ksy.fmrs.service.AuthService;
 import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletRequest;
 import org.assertj.core.api.Assertions;
@@ -20,7 +19,6 @@ import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMock
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 
 import org.springframework.data.jpa.mapping.JpaMetamodelMappingContext;
-import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.mock.web.MockHttpServletResponse;

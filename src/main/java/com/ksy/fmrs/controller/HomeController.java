@@ -1,7 +1,7 @@
 package com.ksy.fmrs.controller;
 
-import com.ksy.fmrs.service.player.PlayerService;
-import com.ksy.fmrs.service.global.InitializationService;
+import com.ksy.fmrs.service.PlayerService;
+import com.ksy.fmrs.service.InitializationService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Controller;
 

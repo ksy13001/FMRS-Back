@@ -13,7 +13,6 @@ import com.ksy.fmrs.repository.RefreshTokenRepository;
 import com.ksy.fmrs.security.CustomUserDetails;
 import com.ksy.fmrs.security.JwtTokenProvider;
 import com.ksy.fmrs.security.TokenValidator;
-import com.ksy.fmrs.service.user.AuthService;
 import com.ksy.fmrs.util.time.TimeProvider;
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.Jwts;

@@ -4,7 +4,7 @@ package com.ksy.fmrs.scheduler;
 import com.ksy.fmrs.dto.apiFootball.SquadApiResponseDto;
 import com.ksy.fmrs.repository.BulkRepository;
 import com.ksy.fmrs.repository.Team.TeamRepository;
-import com.ksy.fmrs.service.global.FootballApiService;
+import com.ksy.fmrs.service.FootballApiService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.scheduling.annotation.Scheduled;

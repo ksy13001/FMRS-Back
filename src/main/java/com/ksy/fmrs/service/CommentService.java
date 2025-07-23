@@ -1,4 +1,4 @@
-package com.ksy.fmrs.service.comment;
+package com.ksy.fmrs.service;
 
 import com.ksy.fmrs.repository.CommentRepository;
 import lombok.RequiredArgsConstructor;

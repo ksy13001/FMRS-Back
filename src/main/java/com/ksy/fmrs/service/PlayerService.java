@@ -1,4 +1,4 @@
-package com.ksy.fmrs.service.player;
+package com.ksy.fmrs.service;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;

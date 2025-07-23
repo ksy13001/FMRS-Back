@@ -9,8 +9,6 @@ import com.ksy.fmrs.dto.player.PlayerStatDto;
 import com.ksy.fmrs.mapper.PlayerStatMapper;
 import com.ksy.fmrs.repository.Player.PlayerRepository;
 import com.ksy.fmrs.repository.Player.PlayerStatRepository;
-import com.ksy.fmrs.service.global.FootballApiService;
-import com.ksy.fmrs.service.player.PlayerStatService;
 import com.ksy.fmrs.util.time.TestTimeProvider;
 import com.ksy.fmrs.util.time.TimeProvider;
 import org.assertj.core.api.Assertions;
