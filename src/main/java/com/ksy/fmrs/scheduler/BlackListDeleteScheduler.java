@@ -1,14 +1,11 @@
 package com.ksy.fmrs.scheduler;
 
-import com.ksy.fmrs.domain.BlackList;
-import com.ksy.fmrs.repository.user.BlackListRepository;
+import com.ksy.fmrs.repository.BlackListRepository;
 import com.ksy.fmrs.util.time.TimeProvider;
 import lombok.RequiredArgsConstructor;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-
-import java.util.List;
 
 @RequiredArgsConstructor
 @Service

@@ -12,7 +12,7 @@ import com.ksy.fmrs.dto.player.PlayerDetailsDto;
 import com.ksy.fmrs.dto.search.*;
 import com.ksy.fmrs.dto.team.TeamPlayersResponseDto;
 import com.ksy.fmrs.mapper.PlayerMapper;
-import com.ksy.fmrs.repository.global.BulkRepository;
+import com.ksy.fmrs.repository.BulkRepository;
 import com.ksy.fmrs.repository.Player.PlayerRepository;
 import com.ksy.fmrs.repository.Team.TeamRepository;
 import com.ksy.fmrs.util.StringUtils;

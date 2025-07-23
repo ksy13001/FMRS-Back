@@ -8,7 +8,6 @@ import com.ksy.fmrs.domain.player.Player;
 import com.ksy.fmrs.domain.Team;
 import com.ksy.fmrs.repository.Team.TeamRepository;
 import com.ksy.fmrs.util.StringUtils;
-import jakarta.persistence.EntityManager;
 import org.assertj.core.api.Assertions;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;

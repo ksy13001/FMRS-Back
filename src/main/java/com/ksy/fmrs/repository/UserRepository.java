@@ -1,4 +1,4 @@
-package com.ksy.fmrs.repository.user;
+package com.ksy.fmrs.repository;
 
 import com.ksy.fmrs.domain.User;
 import org.springframework.data.jpa.repository.JpaRepository;

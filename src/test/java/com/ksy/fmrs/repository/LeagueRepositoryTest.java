@@ -3,7 +3,6 @@ package com.ksy.fmrs.repository;
 import com.ksy.fmrs.config.TestQueryDSLConfig;
 import com.ksy.fmrs.config.TestTimeProviderConfig;
 import com.ksy.fmrs.domain.League;
-import com.ksy.fmrs.repository.league.LeagueRepository;
 import org.assertj.core.api.Assertions;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.DisplayName;

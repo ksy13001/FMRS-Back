@@ -1,4 +1,4 @@
-package com.ksy.fmrs.repository.global;
+package com.ksy.fmrs.repository;
 
 
 import com.ksy.fmrs.domain.player.FmPlayer;

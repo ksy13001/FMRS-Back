@@ -4,7 +4,7 @@ import com.ksy.fmrs.domain.User;
 import com.ksy.fmrs.domain.enums.Role;
 import com.ksy.fmrs.dto.user.SignupRequestDto;
 import com.ksy.fmrs.dto.user.SignupResponseDto;
-import com.ksy.fmrs.repository.user.UserRepository;
+import com.ksy.fmrs.repository.UserRepository;
 import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;

@@ -3,6 +3,7 @@ package com.ksy.fmrs.repository.user;
 import com.ksy.fmrs.config.TestQueryDSLConfig;
 import com.ksy.fmrs.config.TestTimeProviderConfig;
 import com.ksy.fmrs.domain.BlackList;
+import com.ksy.fmrs.repository.BlackListRepository;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -12,12 +13,9 @@ import org.springframework.context.annotation.Import;
 
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
-import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
 import java.util.stream.IntStream;
-
-import static org.junit.jupiter.api.Assertions.*;
 
 @Import({TestQueryDSLConfig.class, TestTimeProviderConfig.class})
 @DataJpaTest
