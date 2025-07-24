@@ -7,6 +7,7 @@ import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 
+import java.util.ArrayList;
 import java.util.List;
 
 @Getter
@@ -30,7 +31,7 @@ public class User {
     private Role role;
     
     @OneToMany(mappedBy = "user")
-    private List<Comment> comments;
+    private List<Comment> comments =  new ArrayList<>();
 
     @Builder
     public User(String username, String password, Role role) {

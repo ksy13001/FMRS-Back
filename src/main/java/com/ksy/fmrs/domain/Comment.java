@@ -22,7 +22,7 @@ public class Comment extends BaseTime{
 
     private String content;
 
-    private boolean deleted = Boolean.FALSE;
+    private boolean deleted = false;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "user_id")
@@ -41,6 +41,10 @@ public class Comment extends BaseTime{
         comment.user.getComments().add(comment);
         comment.player.getComments().add(comment);
         return comment;
+    }
+
+    public void deleteComment() {
+        this.deleted = Boolean.TRUE;
     }
 
 //    public void updateUser(User user) {

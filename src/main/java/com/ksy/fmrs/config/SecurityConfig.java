@@ -49,12 +49,14 @@ public class SecurityConfig {
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers(HttpMethod.POST,
                                 "/api/auth/signup", "/api/auth/login","/api/auth/logout", "/api/auth/reissue").permitAll()
-                        .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()
+                        .requestMatchers(HttpMethod.OPTIONS,
+                                "/**").permitAll()
                         .requestMatchers(HttpMethod.GET,
                                 "/api/auth/status").authenticated()
-                        .requestMatchers("/api/admin/**").hasRole("ADMIN")
                         .requestMatchers(HttpMethod.GET,
                                 "/**").permitAll()
+                        .requestMatchers(
+                                "/api/admin/**").hasRole("ADMIN")
                         .anyRequest().authenticated()
                 )
                 .addFilterBefore(jwtFilter, UsernamePasswordAuthenticationFilter.class);

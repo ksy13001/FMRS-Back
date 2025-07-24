@@ -4,19 +4,16 @@ import com.ksy.fmrs.domain.Comment;
 import com.ksy.fmrs.domain.User;
 import com.ksy.fmrs.domain.player.Player;
 import com.ksy.fmrs.dto.comment.CommentListResponseDto;
-import com.ksy.fmrs.dto.comment.CommentRequestDto;
 import com.ksy.fmrs.dto.comment.CommentResponseDto;
 import com.ksy.fmrs.repository.CommentRepository;
 import com.ksy.fmrs.repository.Player.PlayerRepository;
 import com.ksy.fmrs.repository.UserRepository;
 import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
-import org.springframework.http.HttpStatus;
-import org.springframework.http.ResponseEntity;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-
-import java.util.List;
 
 @RequiredArgsConstructor
 @Service
@@ -28,7 +25,7 @@ public class CommentService {
 
     @Transactional
     public CommentResponseDto save(Long userId, Long playerId, String content) {
-        if (content.length() > 500 || content == null) {
+        if (content == null || content.length() > 500) {
             throw new IllegalArgumentException("content length must be less than 500");
         }
 
@@ -41,9 +38,9 @@ public class CommentService {
     }
 
     @Transactional(readOnly = true)
-    public CommentListResponseDto getPlayerComments(Long playerId) {
+    public CommentListResponseDto getPlayerComments(Long playerId, Pageable pageable) {
 
-        List<Comment> comments = commentRepository.findByPlayerId(playerId);
+        Page<Comment> comments = commentRepository.findByPlayerId(playerId, pageable);
         return new CommentListResponseDto(comments.stream()
                 .map(comment -> {
                     return new CommentResponseDto(

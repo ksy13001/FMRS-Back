@@ -1,5 +1,6 @@
 package com.ksy.fmrs.controller;
 
+import com.ksy.fmrs.dto.ApiResponse;
 import com.ksy.fmrs.dto.comment.CommentListResponseDto;
 import com.ksy.fmrs.dto.comment.CommentRequestDto;
 import com.ksy.fmrs.dto.comment.CommentResponseDto;
@@ -16,23 +17,25 @@ import org.springframework.web.bind.annotation.*;
 @RequiredArgsConstructor
 @RestController
 public class CommentController {
-    private CommentService commentService;
 
-    @GetMapping("/api/comment/{playerId}/comments")
-    public ResponseEntity<CommentListResponseDto> comment(@PathVariable Long playerId) {
-        return  ResponseEntity.status(HttpStatus.OK)
-                .body(commentService.getPlayerComments(playerId));
+    private final CommentService commentService;
+
+    @GetMapping("/api/players/{playerId}/comments")
+    public ResponseEntity<ApiResponse<CommentListResponseDto>> comment(@PathVariable Long playerId, Pageable pageable) {
+        return  ApiResponse.ok(
+                commentService.getPlayerComments(playerId, pageable),
+                "comment get success");
     }
 
     @PostMapping("/api/players/{playerId}/comments")
-    public ResponseEntity<CommentResponseDto> comment(
+    public ResponseEntity<ApiResponse<CommentResponseDto>> comment(
             @PathVariable Long playerId,
             @RequestBody CommentRequestDto commentRequestDto,
-            @AuthenticationPrincipal CustomUserDetails userDetails,
-            Pageable pageable
+            @AuthenticationPrincipal CustomUserDetails userDetails
     ) {
-        return ResponseEntity.status(HttpStatus.OK)
-                .body(commentService.save(userDetails.getId(), playerId, commentRequestDto.content()));
+        return ApiResponse.ok(
+                commentService.save(userDetails.getId(), playerId, commentRequestDto.content()),
+                "comment save success");
     }
 
 }
