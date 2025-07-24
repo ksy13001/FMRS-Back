@@ -22,6 +22,8 @@ public class Comment extends BaseTime{
 
     private String content;
 
+    private boolean deleted = Boolean.FALSE;
+
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "user_id")
     private User user;
@@ -30,10 +32,24 @@ public class Comment extends BaseTime{
     @JoinColumn(name = "player_id")
     private Player player;
 
-    @Builder
-    public Comment(String content, User user, Player player) {
-        this.content = content;
-        this.user = user;
-        this.player = player;
+
+    public static Comment of(User user, Player player, String content){
+        Comment comment = new Comment();
+        comment.content = content;
+        comment.user = user;
+        comment.player = player;
+        comment.user.getComments().add(comment);
+        comment.player.getComments().add(comment);
+        return comment;
     }
+
+//    public void updateUser(User user) {
+//        this.user = user;
+//        user.getComments().add(this);
+//    }
+//
+//    public void updatePlayer(Player player) {
+//        this.player = player;
+//        player.getComments().add(this);
+//    }
 }
