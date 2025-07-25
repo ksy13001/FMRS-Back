@@ -49,6 +49,17 @@ public class CommentService {
         );
     }
 
+    @Transactional
+    public void delete(Long commentId){
+        Comment comment = commentRepository.findById(commentId)
+                .orElseThrow(() -> new EntityNotFoundException("comment not found"));
+        if (comment.isDeleted()) {
+            throw new IllegalArgumentException("comment is already deleted");
+        }
+
+        comment.deleteComment();
+    }
+
 
     private List<CommentResponseDto> getComments(Page<Comment> comments) {
         return comments.stream()

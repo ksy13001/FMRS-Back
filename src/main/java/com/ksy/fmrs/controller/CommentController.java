@@ -41,4 +41,15 @@ public class CommentController {
                 "comment save success");
     }
 
+    @PatchMapping("/api/players/{playerId}/comments/{commentId}")
+    public ResponseEntity<ApiResponse<Void>> delete(
+            @PathVariable Long commentId
+    ){
+        commentService.delete(commentId);
+        return ApiResponse.ok(
+                null,
+                "comment delete success"
+        );
+    }
+
 }

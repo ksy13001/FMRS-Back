@@ -202,6 +202,25 @@ class CommentServiceTest {
         Assertions.assertThat(actual.getPagination().isHasPrevious())
                 .isEqualTo(true);
     }
+    @Test
+    @DisplayName("comment 삭제 시, deleted=ture")
+    void delete_comment_success(){
+        // given
+        Long commentId = 123L;
+        Comment comment = Comment.of(user, player, "hello");
+        given(commentRepository.findById(commentId))
+                .willReturn(Optional.of(comment));
+
+        // when
+        Assertions.assertThat(comment.isDeleted())
+                .isEqualTo(false);
+
+        commentService.delete(commentId);
+
+        // then
+        Assertions.assertThat(comment.isDeleted())
+                .isEqualTo(true);
+    }
 
     public Player createPlayer() {
         return Player.builder().build();

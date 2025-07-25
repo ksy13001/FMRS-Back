@@ -16,6 +16,7 @@ public class CommentResponseDto{
     private Long userId;
     private String username;
     private String content;
+    private boolean deleted;
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;
 
@@ -25,6 +26,7 @@ public class CommentResponseDto{
         this.username = username;
         this.commentId = comment.getId();
         this.content = comment.getContent();
+        this.deleted = comment.isDeleted();
         this.createdAt = comment.getCreatedAt();
         this.updatedAt = comment.getModifiedDate();
     }

@@ -44,7 +44,7 @@ public class Comment extends BaseTime{
     }
 
     public void deleteComment() {
-        this.deleted = Boolean.TRUE;
+        this.deleted = true;
     }
 
 //    public void updateUser(User user) {
