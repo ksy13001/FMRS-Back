@@ -1,4 +1,4 @@
-package com.ksy.fmrs.service.global;
+package com.ksy.fmrs.service;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -8,12 +8,9 @@ import com.ksy.fmrs.domain.player.*;
 import com.ksy.fmrs.dto.apiFootball.LeagueApiPlayersDto;
 import com.ksy.fmrs.dto.league.LeagueDetailsRequestDto;
 import com.ksy.fmrs.dto.player.FmPlayerDto;
-import com.ksy.fmrs.repository.global.BulkRepository;
-import com.ksy.fmrs.repository.league.LeagueRepository;
+import com.ksy.fmrs.repository.BulkRepository;
+import com.ksy.fmrs.repository.LeagueRepository;
 import com.ksy.fmrs.repository.Player.PlayerRawRepository;
-import com.ksy.fmrs.service.league.LeagueService;
-import com.ksy.fmrs.service.team.TeamService;
-import com.ksy.fmrs.service.player.PlayerService;
 import com.ksy.fmrs.util.NationNormalizer;
 import com.ksy.fmrs.util.StringUtils;
 import lombok.RequiredArgsConstructor;

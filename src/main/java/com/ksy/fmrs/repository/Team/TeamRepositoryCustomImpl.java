@@ -1,6 +1,5 @@
 package com.ksy.fmrs.repository.Team;
 
-import com.ksy.fmrs.domain.QTeam;
 import com.querydsl.jpa.impl.JPAQueryFactory;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Repository;

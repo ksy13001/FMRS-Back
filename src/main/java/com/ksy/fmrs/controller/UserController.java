@@ -2,7 +2,7 @@ package com.ksy.fmrs.controller;
 
 import com.ksy.fmrs.dto.user.SignupRequestDto;
 import com.ksy.fmrs.dto.user.SignupResponseDto;
-import com.ksy.fmrs.service.user.UserService;
+import com.ksy.fmrs.service.UserService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.PostMapping;

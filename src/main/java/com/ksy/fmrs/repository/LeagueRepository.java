@@ -1,4 +1,4 @@
-package com.ksy.fmrs.repository.league;
+package com.ksy.fmrs.repository;
 
 import com.ksy.fmrs.domain.League;
 import org.springframework.data.jpa.repository.JpaRepository;

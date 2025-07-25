@@ -1,12 +1,12 @@
-package com.ksy.fmrs.service.user;
+package com.ksy.fmrs.service;
 
 import com.ksy.fmrs.domain.BlackList;
 import com.ksy.fmrs.domain.RefreshToken;
 import com.ksy.fmrs.domain.enums.TokenType;
 import com.ksy.fmrs.dto.user.TokenPair;
 import com.ksy.fmrs.dto.user.TokenPairWithId;
-import com.ksy.fmrs.repository.user.BlackListRepository;
-import com.ksy.fmrs.repository.user.RefreshTokenRepository;
+import com.ksy.fmrs.repository.BlackListRepository;
+import com.ksy.fmrs.repository.RefreshTokenRepository;
 import com.ksy.fmrs.security.CustomUserDetails;
 import com.ksy.fmrs.security.JwtTokenProvider;
 import com.ksy.fmrs.security.TokenValidator;

@@ -1,4 +1,4 @@
-package com.ksy.fmrs.service.apiClient;
+package com.ksy.fmrs.service;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;

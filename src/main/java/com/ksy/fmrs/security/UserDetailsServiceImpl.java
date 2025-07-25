@@ -1,7 +1,7 @@
 package com.ksy.fmrs.security;
 
 import com.ksy.fmrs.domain.User;
-import com.ksy.fmrs.repository.user.UserRepository;
+import com.ksy.fmrs.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;

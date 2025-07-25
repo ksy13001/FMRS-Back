@@ -2,7 +2,7 @@
 //
 //import com.ksy.fmrs.domain.enums.MappingStatus;
 //import com.ksy.fmrs.domain.player.Player;
-//import com.ksy.fmrs.repository.global.BulkRepository;
+//import com.ksy.fmrs.repository.BulkRepository;
 //import jakarta.persistence.EntityManager;
 //import jakarta.persistence.TypedQuery;
 //import org.assertj.core.api.Assertions;

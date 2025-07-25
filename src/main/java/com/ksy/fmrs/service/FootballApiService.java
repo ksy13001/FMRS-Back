@@ -1,4 +1,4 @@
-package com.ksy.fmrs.service.global;
+package com.ksy.fmrs.service;
 
 import com.ksy.fmrs.domain.League;
 import com.ksy.fmrs.domain.player.Player;
@@ -11,11 +11,9 @@ import com.ksy.fmrs.dto.player.PlayerSimpleDto;
 import com.ksy.fmrs.dto.player.PlayerStatDto;
 import com.ksy.fmrs.dto.team.TeamStatisticsDto;
 import com.ksy.fmrs.dto.team.TeamStandingDto;
-import com.ksy.fmrs.repository.league.LeagueRepository;
+import com.ksy.fmrs.repository.LeagueRepository;
 import com.ksy.fmrs.repository.Player.PlayerRepository;
 import com.ksy.fmrs.repository.Player.PlayerStatRepository;
-import com.ksy.fmrs.service.apiClient.RestClientService;
-import com.ksy.fmrs.service.apiClient.WebClientService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;

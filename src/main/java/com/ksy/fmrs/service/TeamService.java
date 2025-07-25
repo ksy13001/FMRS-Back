@@ -1,10 +1,10 @@
-package com.ksy.fmrs.service.team;
+package com.ksy.fmrs.service;
 
 import com.ksy.fmrs.domain.League;
 import com.ksy.fmrs.domain.Team;
 import com.ksy.fmrs.dto.team.TeamDetailsDto;
 import com.ksy.fmrs.dto.team.TeamStandingDto;
-import com.ksy.fmrs.repository.league.LeagueRepository;
+import com.ksy.fmrs.repository.LeagueRepository;
 import com.ksy.fmrs.repository.Team.TeamRepository;
 import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;

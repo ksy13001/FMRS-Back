@@ -1,17 +1,11 @@
 package com.ksy.fmrs.security;
 
-import com.ksy.fmrs.domain.BlackList;
 import com.ksy.fmrs.domain.enums.TokenType;
 import com.ksy.fmrs.exception.UnauthorizedException;
-import com.ksy.fmrs.repository.user.BlackListRepository;
+import com.ksy.fmrs.repository.BlackListRepository;
 import io.jsonwebtoken.*;
 import lombok.RequiredArgsConstructor;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
-
-import javax.crypto.SecretKey;
-import javax.crypto.spec.SecretKeySpec;
-import java.nio.charset.StandardCharsets;
 
 @RequiredArgsConstructor
 @Component

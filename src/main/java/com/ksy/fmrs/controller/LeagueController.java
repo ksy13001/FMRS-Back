@@ -1,7 +1,7 @@
 package com.ksy.fmrs.controller;
 
-import com.ksy.fmrs.service.global.FootballApiService;
-import com.ksy.fmrs.service.league.LeagueService;
+import com.ksy.fmrs.service.FootballApiService;
+import com.ksy.fmrs.service.LeagueService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Controller;
 

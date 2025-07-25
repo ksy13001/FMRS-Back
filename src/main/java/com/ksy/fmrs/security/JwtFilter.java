@@ -43,7 +43,6 @@ public class JwtFilter extends OncePerRequestFilter {
 
         Optional<String> token = tokenResolver.extractTokenFromCookie(request, ACCESS_TOKEN.getType());
         if (token.isEmpty()) {
-            log.info("JwtFilter: token not found in Cookie");
             filterChain.doFilter(request, response);
             return;
         }

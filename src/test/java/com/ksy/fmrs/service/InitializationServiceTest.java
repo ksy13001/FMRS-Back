@@ -2,10 +2,8 @@ package com.ksy.fmrs.service;
 
 import com.ksy.fmrs.domain.enums.LeagueType;
 import com.ksy.fmrs.dto.league.LeagueDetailsRequestDto;
-import com.ksy.fmrs.repository.league.LeagueRepository;
+import com.ksy.fmrs.repository.LeagueRepository;
 import com.ksy.fmrs.repository.Player.PlayerRepository;
-import com.ksy.fmrs.service.global.FootballApiService;
-import com.ksy.fmrs.service.global.InitializationService;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;

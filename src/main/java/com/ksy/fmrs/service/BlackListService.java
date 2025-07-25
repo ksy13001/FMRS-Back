@@ -1,6 +1,6 @@
-package com.ksy.fmrs.service.user;
+package com.ksy.fmrs.service;
 
-import com.ksy.fmrs.repository.user.BlackListRepository;
+import com.ksy.fmrs.repository.BlackListRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 

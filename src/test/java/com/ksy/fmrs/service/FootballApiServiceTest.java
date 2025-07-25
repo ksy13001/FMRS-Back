@@ -3,7 +3,6 @@ package com.ksy.fmrs.service;
 import com.ksy.fmrs.repository.Player.PlayerRepository;
 
 import com.ksy.fmrs.repository.Player.PlayerStatRepository;
-import com.ksy.fmrs.service.global.FootballApiService;
 import org.assertj.core.api.Assertions;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
