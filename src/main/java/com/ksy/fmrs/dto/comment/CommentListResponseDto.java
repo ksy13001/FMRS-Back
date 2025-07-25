@@ -1,5 +1,6 @@
 package com.ksy.fmrs.dto.comment;
 
+import com.ksy.fmrs.dto.PaginationDto;
 import lombok.Getter;
 import lombok.Setter;
 
@@ -10,11 +11,11 @@ import java.util.List;
 public class CommentListResponseDto {
 
     private List<CommentResponseDto> comments;
-    private int totalComments;
+    private PaginationDto pagination;
 
-    public CommentListResponseDto(List<CommentResponseDto> comments) {
+    public CommentListResponseDto(List<CommentResponseDto> comments, PaginationDto pagination) {
         this.comments = comments;
-        this.totalComments = comments.size();
+        this.pagination = pagination;
     }
 
 }

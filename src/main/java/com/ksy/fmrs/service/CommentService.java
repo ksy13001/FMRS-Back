@@ -3,6 +3,7 @@ package com.ksy.fmrs.service;
 import com.ksy.fmrs.domain.Comment;
 import com.ksy.fmrs.domain.User;
 import com.ksy.fmrs.domain.player.Player;
+import com.ksy.fmrs.dto.PaginationDto;
 import com.ksy.fmrs.dto.comment.CommentListResponseDto;
 import com.ksy.fmrs.dto.comment.CommentResponseDto;
 import com.ksy.fmrs.repository.CommentRepository;
@@ -14,6 +15,8 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+
+import java.util.List;
 
 @RequiredArgsConstructor
 @Service
@@ -39,16 +42,22 @@ public class CommentService {
 
     @Transactional(readOnly = true)
     public CommentListResponseDto getPlayerComments(Long playerId, Pageable pageable) {
-
         Page<Comment> comments = commentRepository.findByPlayerId(playerId, pageable);
-        return new CommentListResponseDto(comments.stream()
+        return new CommentListResponseDto(
+                getComments(comments),
+                new PaginationDto(comments)
+        );
+    }
+
+
+    private List<CommentResponseDto> getComments(Page<Comment> comments) {
+        return comments.stream()
                 .map(comment -> {
                     return new CommentResponseDto(
                             comment.getPlayer().getId(),
                             comment.getUser().getId(),
                             comment.getUser().getUsername(),
                             comment);
-                }).toList());
+                }).toList();
     }
-
 }

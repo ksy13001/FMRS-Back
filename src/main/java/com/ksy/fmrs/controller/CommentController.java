@@ -8,6 +8,7 @@ import com.ksy.fmrs.security.CustomUserDetails;
 import com.ksy.fmrs.service.CommentService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.web.PageableDefault;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
@@ -21,7 +22,9 @@ public class CommentController {
     private final CommentService commentService;
 
     @GetMapping("/api/players/{playerId}/comments")
-    public ResponseEntity<ApiResponse<CommentListResponseDto>> comment(@PathVariable Long playerId, Pageable pageable) {
+    public ResponseEntity<ApiResponse<CommentListResponseDto>> comment(
+            @PathVariable Long playerId,
+            @PageableDefault Pageable pageable) {
         return  ApiResponse.ok(
                 commentService.getPlayerComments(playerId, pageable),
                 "comment get success");
