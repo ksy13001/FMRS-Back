@@ -5,6 +5,7 @@ import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.Setter;
 
+import java.time.Instant;
 import java.time.LocalDateTime;
 
 @AllArgsConstructor
@@ -17,8 +18,8 @@ public class CommentResponseDto{
     private String username;
     private String content;
     private boolean deleted;
-    private LocalDateTime createdAt;
-    private LocalDateTime updatedAt;
+    private Instant createdAt;
+    private Instant updatedAt;
 
     public CommentResponseDto(Long playerId, Long userId, String username, Comment comment) {
         this.playerId = playerId;
