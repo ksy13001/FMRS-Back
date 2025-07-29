@@ -64,7 +64,7 @@ public class Player {
     @JoinColumn(name = "player_stat_id", unique = true)
     private PlayerStat playerStat;
 
-    @OneToMany(fetch = FetchType.LAZY)
+    @OneToMany(fetch = FetchType.LAZY, mappedBy = "player", cascade = CascadeType.ALL)
     private List<Comment> comments = new ArrayList<>();
 
     @Column(name = "is_gk")
