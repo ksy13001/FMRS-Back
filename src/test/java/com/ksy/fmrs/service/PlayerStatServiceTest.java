@@ -24,6 +24,7 @@ import org.springframework.test.util.ReflectionTestUtils;
 import java.time.Instant;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.time.temporal.ChronoUnit;
 import java.util.Date;
 import java.util.List;
 import java.util.Optional;
@@ -122,8 +123,9 @@ class PlayerStatServiceTest {
                 .gamesPlayed(10)
                 .build();
         ReflectionTestUtils.setField(player, "id", playerId);
+        // 하루 된 스탯
         ReflectionTestUtils.setField(existingStat, "modifiedDate",
-                LocalDateTime.of(1999, 10, 11, 0, 0));
+                Instant.EPOCH.minus(24L, ChronoUnit.HOURS));
         PlayerStat refreshStat = PlayerStat.builder()
                 .gamesPlayed(12)
                 .build();
@@ -173,7 +175,7 @@ class PlayerStatServiceTest {
                 .build();
         ReflectionTestUtils.setField(player, "id", playerId);
         ReflectionTestUtils.setField(existingStat, "modifiedDate",
-                LocalDateTime.of(2000, 8, 14, 10, 0));
+                Instant.EPOCH.minus(23L, ChronoUnit.HOURS));
 
         player.updatePlayerStat(existingStat);
         team.updateLeague(league);

@@ -39,7 +39,7 @@ public class PlayerStatService {
                 .orElseThrow(()-> new EntityNotFoundException("Player not found with id: " + playerId));
         PlayerStat playerStat = player.getPlayerStat();
 
-        if (playerStat == null || playerStat.isExpired(timeProvider.getCurrentLocalDateTime())) {
+        if (playerStat == null || playerStat.isExpired(timeProvider.getCurrentInstant())) {
             return savePlayerStat(player).map(PlayerStatDto::new);
         }
         return Optional.of(new PlayerStatDto(playerStat));

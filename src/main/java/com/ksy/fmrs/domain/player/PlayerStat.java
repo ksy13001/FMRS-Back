@@ -8,6 +8,7 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 
 import java.time.Duration;
+import java.time.Instant;
 import java.time.LocalDateTime;
 
 @Getter
@@ -42,11 +43,8 @@ public class PlayerStat extends BaseTime {
         this.redCards = redCards;
     }
 
-    public boolean isExpired(LocalDateTime now){
-        if(Duration.between(this.getModifiedDate(), now).toHours() >= 24){
-            return true;
-        }
-        return false;
+    public boolean isExpired(Instant now){
+        return Duration.between(this.getModifiedDate(), now).toHours() >= 24;
     }
 
     public void updatePlayerStat(Integer gamesPlayed, Integer substitutes, Integer goal, Integer pk,
