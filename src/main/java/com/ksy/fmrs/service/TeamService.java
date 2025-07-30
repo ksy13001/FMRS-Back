@@ -13,6 +13,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 @Slf4j
@@ -38,9 +39,11 @@ public class TeamService {
     }
 
     @Transactional
-    public void saveAllByTeamStanding(List<TeamStandingDto> teamStandingDtos) {
-        // 한 팀이 여러 리그에 속하는 케이스 있기 때문에 일단 중복 리그중 하나는 제거
-        List<Team> teams = teamStandingDtos.stream().collect(Collectors.toMap(TeamStandingDto::getTeamApiId,
+    public void saveAllByTeamStanding(List<TeamStandingDto> teamStandingDtos, Set<Integer> existTeamApiIds) {
+        // 한 팀이 여러 리그에 속하는 케이스 있기 때문에 일단 중복 리그중 하나는 제거(브라질)
+        List<Team> teams = teamStandingDtos.stream()
+                .filter(teamStandingDto -> !existTeamApiIds.contains(teamStandingDto.getTeamApiId()))
+                .collect(Collectors.toMap(TeamStandingDto::getTeamApiId,
                 dto -> {
                     Team team = Team.builder()
                             .name(dto.getTeamName())
