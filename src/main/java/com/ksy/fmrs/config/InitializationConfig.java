@@ -2,6 +2,7 @@ package com.ksy.fmrs.config;
 
 import com.ksy.fmrs.initalizer.DataInitializer;
 import com.ksy.fmrs.repository.LeagueRepository;
+import com.ksy.fmrs.repository.Team.TeamRepository;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.ApplicationRunner;
@@ -28,7 +29,7 @@ public class InitializationConfig {
         Set<Integer> existLeagueApiIds = leagueRepository.findAllLeagueApiIds();
         return args -> {
             log.info("Initial league insert started. existLeagueApiIds Size={}", existLeagueApiIds.size());
-            existLeagueApiIds.stream().forEach(id->log.info("id:{}",id));
+            existLeagueApiIds.stream().forEach(id -> log.info("id:{}", id));
             dataInitializer.saveInitialLeague(existLeagueApiIds)
                     .subscribe();
         };
@@ -36,11 +37,29 @@ public class InitializationConfig {
 
     @Bean
     @ConditionalOnProperty(name = "INITIAL_DATA_INSERT", havingValue = "team")
-    public ApplicationRunner initializeTeam(DataInitializer dataInitializer) {
+    public ApplicationRunner initializeTeam(DataInitializer dataInitializer,
+                                            LeagueRepository leagueRepository,
+                                            TeamRepository teamRepository) {
 
         return args -> {
             log.info("Initial team insert started");
-            dataInitializer.saveInitialTeams().subscribe();
+            dataInitializer.saveInitialTeams(leagueRepository.findAll(), teamRepository.findTeamApiIds())
+                    .subscribe();
+        };
+    }
+
+    @Bean
+    @ConditionalOnProperty(name = "INITIAL_DATA_INSERT", havingValue = "append_team")
+    public ApplicationRunner appendNewTeam(DataInitializer dataInitializer,
+                                           LeagueRepository leagueRepository,
+                                           TeamRepository teamRepository) {
+
+        return args -> {
+            log.info("append New team started");
+            dataInitializer.saveInitialTeams(
+                            leagueRepository.findUnassignedLeagues(),
+                            teamRepository.findTeamApiIds())
+                    .subscribe();
         };
     }
 

@@ -2,6 +2,7 @@ package com.ksy.fmrs.initalizer;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.ksy.fmrs.domain.League;
 import com.ksy.fmrs.domain.enums.LeagueType;
 import com.ksy.fmrs.domain.enums.MappingStatus;
 import com.ksy.fmrs.domain.player.*;
@@ -99,10 +100,8 @@ public class DataInitializer {
 
 
     // league standing에서 team 생성
-    public Mono<Void> saveInitialTeams() {
-        return Mono.fromCallable(leagueRepository::findAll)
-                .subscribeOn(Schedulers.boundedElastic())
-                .flatMapMany(Flux::fromIterable)
+    public Mono<Void> saveInitialTeams(List<League> leagues, Set<Integer> existTeamIds) {
+        return Flux.fromIterable(leagues)
                 .delayElements(Duration.ofMillis(DELAY_MS))
                 .flatMap(league ->
                                 footballApiService.getLeagueStandings(league.getLeagueApiId(), league.getCurrentSeason())
@@ -122,7 +121,7 @@ public class DataInitializer {
                 .flatMap(Flux::fromIterable)
                 .collectList()
                 .flatMap(teamStandingDtos ->
-                        Mono.fromRunnable(() -> teamService.saveAllByTeamStanding(teamStandingDtos))
+                        Mono.fromRunnable(() -> teamService.saveAllByTeamStanding(teamStandingDtos, existTeamIds))
                                 .subscribeOn(Schedulers.boundedElastic())
                 )
                 .then();

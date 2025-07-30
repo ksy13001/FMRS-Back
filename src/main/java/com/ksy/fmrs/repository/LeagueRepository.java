@@ -13,6 +13,11 @@ import java.util.Set;
 public interface LeagueRepository extends JpaRepository<League, Long> {
 
     Optional<League> findLeagueByLeagueApiId(Integer leagueApiId);
+
     @Query("SELECT l.leagueApiId FROM League l")
     Set<Integer> findAllLeagueApiIds();
+
+    @Query("SELECT l FROM League l " +
+            "WHERE l.teams IS EMPTY")
+    List<League> findUnassignedLeagues();
 }
