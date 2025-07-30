@@ -1,4 +1,4 @@
-package com.ksy.fmrs.service;
+package com.ksy.fmrs.initalizer;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -11,10 +11,15 @@ import com.ksy.fmrs.dto.player.FmPlayerDto;
 import com.ksy.fmrs.repository.BulkRepository;
 import com.ksy.fmrs.repository.LeagueRepository;
 import com.ksy.fmrs.repository.Player.PlayerRawRepository;
+import com.ksy.fmrs.service.FootballApiService;
+import com.ksy.fmrs.service.LeagueService;
+import com.ksy.fmrs.service.PlayerService;
+import com.ksy.fmrs.service.TeamService;
 import com.ksy.fmrs.util.NationNormalizer;
 import com.ksy.fmrs.util.StringUtils;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.stereotype.Component;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.servlet.LocaleResolver;
@@ -36,7 +41,7 @@ import static java.util.stream.Collectors.groupingBy;
 @Slf4j
 @RequiredArgsConstructor
 @Service
-public class InitializationService {
+public class DataInitializer {
     private final ObjectMapper objectMapper;
     private final LeagueRepository leagueRepository;
     private final BulkRepository bulkRepository;
@@ -60,12 +65,13 @@ public class InitializationService {
      * 1회 요청 시 평균 0.5s 소요
      */
 
-
-    public Mono<Void> saveInitialLeague() {
+    public Mono<Void> saveInitialLeague(Set<Integer> existLeagueApiIds) {
         List<Integer> leagueApiIds = createAllLeagueApiIds();
+
         return Flux.fromIterable(leagueApiIds)
                 .delayElements(Duration.ofMillis(DELAY_MS))
-                .flatMap(leagueApiId ->
+                .filter(id -> !existLeagueApiIds.contains(id))
+                .concatMap(leagueApiId ->
                                 footballApiService.getLeagueInfo(leagueApiId)
                                         .timeout(Duration.ofSeconds(TIME_OUT))
                                         .publishOn(Schedulers.boundedElastic())
