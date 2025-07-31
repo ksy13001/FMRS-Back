@@ -1,6 +1,7 @@
 package com.ksy.fmrs.config;
 
-import com.ksy.fmrs.initalizer.DataInitializer;
+import com.ksy.fmrs.repository.Player.PlayerRepository;
+import com.ksy.fmrs.service.ReactiveInitializeService;
 import com.ksy.fmrs.repository.LeagueRepository;
 import com.ksy.fmrs.repository.Team.TeamRepository;
 import lombok.extern.slf4j.Slf4j;
@@ -24,39 +25,39 @@ public class InitializationConfig {
      */
     @Bean
     @ConditionalOnProperty(name = "INITIAL_DATA_INSERT", havingValue = "league")
-    public ApplicationRunner initializeLeague(DataInitializer dataInitializer,
+    public ApplicationRunner initializeLeague(ReactiveInitializeService initializerService,
                                               LeagueRepository leagueRepository) {
         Set<Integer> existLeagueApiIds = leagueRepository.findAllLeagueApiIds();
         return args -> {
             log.info("Initial league insert started. existLeagueApiIds Size={}", existLeagueApiIds.size());
             existLeagueApiIds.stream().forEach(id -> log.info("id:{}", id));
-            dataInitializer.saveInitialLeague(existLeagueApiIds)
+            initializerService.saveInitialLeague(existLeagueApiIds)
                     .subscribe();
         };
     }
 
     @Bean
     @ConditionalOnProperty(name = "INITIAL_DATA_INSERT", havingValue = "team")
-    public ApplicationRunner initializeTeam(DataInitializer dataInitializer,
+    public ApplicationRunner initializeTeam(ReactiveInitializeService initializerService,
                                             LeagueRepository leagueRepository,
                                             TeamRepository teamRepository) {
 
         return args -> {
             log.info("Initial team insert started");
-            dataInitializer.saveInitialTeams(leagueRepository.findAll(), teamRepository.findTeamApiIds())
+            initializerService.saveInitialTeams(leagueRepository.findAll(), teamRepository.findTeamApiIds())
                     .subscribe();
         };
     }
 
     @Bean
     @ConditionalOnProperty(name = "INITIAL_DATA_INSERT", havingValue = "append_team")
-    public ApplicationRunner appendNewTeam(DataInitializer dataInitializer,
+    public ApplicationRunner appendNewTeam(ReactiveInitializeService initializerService,
                                            LeagueRepository leagueRepository,
                                            TeamRepository teamRepository) {
 
         return args -> {
             log.info("append New team started");
-            dataInitializer.saveInitialTeams(
+            initializerService.saveInitialTeams(
                             leagueRepository.findUnassignedLeagues(),
                             teamRepository.findTeamApiIds())
                     .subscribe();
@@ -65,41 +66,67 @@ public class InitializationConfig {
 
     @Bean
     @ConditionalOnProperty(name = "INITIAL_DATA_INSERT", havingValue = "player_raw")
-    public ApplicationRunner initializePlayerRaw(DataInitializer dataInitializer) {
+    public ApplicationRunner initializePlayerRaw(ReactiveInitializeService initializerService,
+                                                 LeagueRepository leagueRepository) {
 
         return args -> {
             log.info("Initial playerRaw insert started");
-            dataInitializer.savePlayerRaws().subscribe();
+            initializerService.savePlayerRaws(leagueRepository.findAll()).subscribe();
         };
     }
 
     @Bean
     @ConditionalOnProperty(name = "INITIAL_DATA_INSERT", havingValue = "player_from_player_raw")
-    public ApplicationRunner initializePlayerFromPlayerRaw(DataInitializer dataInitializer) {
+    public ApplicationRunner initializePlayerFromPlayerRaw(ReactiveInitializeService initializerService) {
 
         return args -> {
             log.info("Initializing player row started");
-            dataInitializer.initializePlayerFromPlayerRaw();
+            initializerService.initializePlayerFromPlayerRaw();
         };
     }
 
     @Bean
     @ConditionalOnProperty(name = "INITIAL_DATA_INSERT", havingValue = "player")
-    public ApplicationRunner initializePlayer(DataInitializer dataInitializer) {
+    public ApplicationRunner initializePlayer(ReactiveInitializeService initializerService,
+                                              LeagueRepository leagueRepository) {
 
         return args -> {
             log.info("Initializing player started");
-            dataInitializer.saveInitialPlayers().subscribe();
+            initializerService.saveInitialPlayers(leagueRepository.findAll(), Set.of()).subscribe();
         };
     }
 
     @Bean
+    @ConditionalOnProperty(name = "INITIAL_DATA_INSERT", havingValue = "append_player")
+    public ApplicationRunner appendNewPlayer(ReactiveInitializeService initializerService,
+                                              LeagueRepository leagueRepository, PlayerRepository playerRepository) {
+
+        return args -> {
+            log.info("appending player started");
+            initializerService.saveInitialPlayers(leagueRepository.findAll(), playerRepository.findAllPlayerApiId()).subscribe();
+        };
+    }
+
+//    @Bean
+//    @ConditionalOnProperty(name = "INITIAL_DATA_INSERT", havingValue = "append_player")
+//    public ApplicationRunner appendNewPlayer(DataInitializer dataInitializer,
+//                                             LeagueRepository leagueRepository) {
+//
+//        return args -> {
+//            log.info("Initializing player started");
+//            dataInitializer
+//                    .saveInitialPlayers(leagueRepository.findUnassignedLeagues())
+//                    .subscribe();
+//        };
+//    }
+
+    @Bean
     @ConditionalOnProperty(name = "INITIAL_DATA_INSERT", havingValue = "fmplayer")
-    public ApplicationRunner initializeFMPlayer(DataInitializer dataInitializer) {
+    public ApplicationRunner initializeFMPlayer(ReactiveInitializeService initializerService) {
 
         return args -> {
             log.info("Initializing fmplayer started");
-            dataInitializer.saveFmPlayers(dirPath);
+            initializerService.saveFmPlayers(dirPath);
         };
     }
 

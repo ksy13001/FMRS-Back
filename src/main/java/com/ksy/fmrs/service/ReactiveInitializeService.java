@@ -1,4 +1,4 @@
-package com.ksy.fmrs.initalizer;
+package com.ksy.fmrs.service;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -12,15 +12,10 @@ import com.ksy.fmrs.dto.player.FmPlayerDto;
 import com.ksy.fmrs.repository.BulkRepository;
 import com.ksy.fmrs.repository.LeagueRepository;
 import com.ksy.fmrs.repository.Player.PlayerRawRepository;
-import com.ksy.fmrs.service.FootballApiService;
-import com.ksy.fmrs.service.LeagueService;
-import com.ksy.fmrs.service.PlayerService;
-import com.ksy.fmrs.service.TeamService;
 import com.ksy.fmrs.util.NationNormalizer;
 import com.ksy.fmrs.util.StringUtils;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.stereotype.Component;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.servlet.LocaleResolver;
@@ -42,7 +37,7 @@ import static java.util.stream.Collectors.groupingBy;
 @Slf4j
 @RequiredArgsConstructor
 @Service
-public class DataInitializer {
+public class ReactiveInitializeService {
     private final ObjectMapper objectMapper;
     private final LeagueRepository leagueRepository;
     private final BulkRepository bulkRepository;
@@ -127,11 +122,9 @@ public class DataInitializer {
                 .then();
     }
 
-    public Mono<Void> saveInitialPlayers() {
+    public Mono<Void> saveInitialPlayers(List<League> leagues, Set<Integer> existPlayerIds) {
         AtomicInteger cnt = new AtomicInteger(0);
-        return Mono.fromCallable(leagueRepository::findAll)
-                .subscribeOn(Schedulers.boundedElastic())
-                .flatMapMany(Flux::fromIterable)
+        return Flux.fromIterable(leagues)
                 .delayElements(Duration.ofMillis(DELAY_MS)) // 요청 간 150ms 간격 (분당 400회 요청)
                 .doOnNext(league -> log.info("리그 처리 시작 - leagueApiId={}, leagueName={}", league.getLeagueApiId(), league.getName()))
                 .flatMap(league -> footballApiService.getPlayerStatisticsByLeagueId(
@@ -172,6 +165,7 @@ public class DataInitializer {
                             return Flux.fromIterable(players);
                         }), 3) //
                 // 선수 1000명 모일시 bulk insert
+                .filter(player-> !existPlayerIds.contains(player.getPlayerApiId()))
                 .buffer(1000)
                 .concatMap(batch -> Mono.fromRunnable(() -> bulkRepository.bulkInsertPlayers(batch)))
                 .onErrorContinue((e, o) -> {
@@ -197,15 +191,12 @@ public class DataInitializer {
         }
     }
 
-    public Mono<Void> savePlayerRaws() {
+    public Mono<Void> savePlayerRaws(List<League> leagues) {
         AtomicInteger totalCnt = new AtomicInteger(0);
 
         log.info("▶ savePlayerRaws START");
 
-        return Mono.fromCallable(leagueRepository::findAll)
-                .subscribeOn(Schedulers.boundedElastic())
-                .doOnNext(list -> log.info("전체 리그 개수: {}", list.size()))
-                .flatMapMany(Flux::fromIterable)
+        return Flux.fromIterable(leagues)
                 .delayElements(Duration.ofMillis(DELAY_MS))
                 .flatMap(league -> {
                     log.info("[League START] id={}, name={}", league.getLeagueApiId(), league.getName());
@@ -248,18 +239,18 @@ public class DataInitializer {
                 // 200개씩 묶어서
                 .buffer(200)
                 .flatMap(batch -> {
-                    log.info("▶ bulk insert 시작: size={}", batch.size());
+                    log.info("bulk insert 시작: size={}", batch.size());
                     return Mono.fromRunnable(() -> bulkRepository.bulkInsertPlayers(batch))
                             .subscribeOn(Schedulers.boundedElastic())
                             .doOnSuccess(v -> {
                                 int done = totalCnt.addAndGet(batch.size());
-                                log.info("✔ bulk insert 성공: batchSize={}, 누적 저장수={}", batch.size(), done);
+                                log.info("bulk insert 성공: batchSize={}, 누적 저장수={}", batch.size(), done);
                             })
-                            .doOnError(e -> log.error("✖ bulk insert 실패: size={}", batch.size(), e));
+                            .doOnError(e -> log.error("bulk insert 실패: size={}", batch.size(), e));
                 }, 3)
                 .then()
-                .doOnSuccess(v -> log.info("✔ savePlayerRaws COMPLETE. 최종 누적 저장수={}", totalCnt.get()))
-                .doOnError(e -> log.error("✖ savePlayerRaws FAILED", e));
+                .doOnSuccess(v -> log.info("savePlayerRaws COMPLETE. 최종 누적 저장수={}", totalCnt.get()))
+                .doOnError(e -> log.error("savePlayerRaws FAILED", e));
     }
 
 
