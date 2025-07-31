@@ -8,6 +8,7 @@ import org.springframework.stereotype.Repository;
 
 import java.util.List;
 import java.util.Optional;
+import java.util.Set;
 
 @Repository
 public interface PlayerRepository extends JpaRepository<Player, Long>, PlayerRepositoryCustom {
@@ -41,4 +42,7 @@ public interface PlayerRepository extends JpaRepository<Player, Long>, PlayerRep
 //            "GROUP BY p.firstName, p.lastName, p.birth, p.nationName " +
 //            "HAVING COUNT(p) > 1 ")
 //    List<Player> findDuplicatedPlayers();
+
+    @Query("SELECT p.playerApiId FROM Player p")
+    Set<Integer> findAllPlayerApiId();
 }

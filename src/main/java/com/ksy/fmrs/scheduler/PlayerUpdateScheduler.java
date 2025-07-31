@@ -5,6 +5,7 @@ import com.ksy.fmrs.dto.apiFootball.SquadApiResponseDto;
 import com.ksy.fmrs.repository.BulkRepository;
 import com.ksy.fmrs.repository.Team.TeamRepository;
 import com.ksy.fmrs.service.FootballApiService;
+import com.ksy.fmrs.service.ReactiveUpdateService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.scheduling.annotation.Scheduled;
@@ -21,36 +22,13 @@ import java.util.stream.Collectors;
 @Service
 public class PlayerUpdateScheduler {
 
+    private final ReactiveUpdateService reactiveUpdateService;
     private final TeamRepository teamRepository;
-    private final BulkRepository bulkRepository;
-    private final FootballApiService footballApiService;
-
-    private static final int DELAY_MS = 150;
-    private static final int TIME_OUT = 10;
 
     @Scheduled(cron = "${init.update_squad_time}", zone = "Asia/Seoul")
     public void updateAllSquad() {
-        Mono.fromCallable(teamRepository::findAll)
-                .subscribeOn(Schedulers.boundedElastic())
-                .flatMapMany(Flux::fromIterable)
-                .flatMap(team -> {
-                    log.info("Team ID: {}", team.getId());
-                    return footballApiService.getSquadPlayers(team.getTeamApiId())
-                            .delayElement(Duration.ofMillis(DELAY_MS))
-                            .timeout(Duration.ofSeconds(TIME_OUT))
-                            .filter(squadApiResponseDto -> !squadApiResponseDto.response().isEmpty())
-                            .map(squadApiResponseDto -> squadApiResponseDto.response().getFirst().players()
-                            )
-                            .map(playerDtos -> playerDtos.stream().map(SquadApiResponseDto.Player::id)
-                                    .collect(Collectors.toList()))
-                            .flatMap(players -> {
-                                return Mono.fromRunnable(()->bulkRepository.updatePlayersTeam(players, team.getId()))
-                                        .subscribeOn(Schedulers.boundedElastic());
-                            })
-                            .doOnNext(t->log.info("팀 스쿼드 업데이트 : {}"+team.getId()));
-                }, 3)
-                .onErrorContinue((e, o) -> log.error("팀 {} 처리 실패", o, e))
-                .then()
-                .subscribe();
+        reactiveUpdateService.upsertSquadMember(
+                teamRepository.findAll()
+        ).subscribe();
     }
 }

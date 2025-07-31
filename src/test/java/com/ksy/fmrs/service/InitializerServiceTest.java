@@ -2,7 +2,6 @@ package com.ksy.fmrs.service;
 
 import com.ksy.fmrs.domain.enums.LeagueType;
 import com.ksy.fmrs.dto.league.LeagueDetailsRequestDto;
-import com.ksy.fmrs.initalizer.DataInitializer;
 import com.ksy.fmrs.repository.LeagueRepository;
 import com.ksy.fmrs.repository.Player.PlayerRepository;
 import org.junit.jupiter.api.DisplayName;
@@ -14,10 +13,10 @@ import org.mockito.junit.jupiter.MockitoExtension;
 
 
 @ExtendWith(MockitoExtension.class)
-class DataInitializerTest {
+class InitializerServiceTest {
 
     @InjectMocks
-    private DataInitializer dataInitializer;
+    private ReactiveInitializeService initializerService;
     @Mock
     private LeagueRepository leagueRepository;
     @Mock
