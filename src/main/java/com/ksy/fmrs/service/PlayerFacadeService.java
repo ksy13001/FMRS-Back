@@ -1,5 +1,6 @@
 package com.ksy.fmrs.service;
 
+import com.ksy.fmrs.dto.comment.CommentCountResponseDto;
 import com.ksy.fmrs.dto.player.PlayerOverviewDto;
 import com.ksy.fmrs.dto.player.FmPlayerDetailsDto;
 import com.ksy.fmrs.dto.player.PlayerDetailsDto;
@@ -12,6 +13,7 @@ import org.springframework.stereotype.Service;
 public class PlayerFacadeService {
     private final PlayerService playerService;
     private final PlayerStatService playerStatService;
+    private final CommentService commentService;
 
     public PlayerOverviewDto getPlayerOverview(Long playerId) {
         PlayerDetailsDto playerDetailsDto = playerService.getPlayerDetails(playerId);
@@ -19,7 +21,8 @@ public class PlayerFacadeService {
                 .orElse(null);
         FmPlayerDetailsDto fmPlayerDetailsDto = playerService.getFmPlayerDetails(playerId)
                 .orElse(null);
+        CommentCountResponseDto  commentCountResponseDto = commentService.getCommentCountByPlayerId(playerId);
 
-        return new PlayerOverviewDto(playerDetailsDto, fmPlayerDetailsDto, playerStatDto);
+        return new PlayerOverviewDto(playerDetailsDto, fmPlayerDetailsDto, playerStatDto, commentCountResponseDto);
     }
 }

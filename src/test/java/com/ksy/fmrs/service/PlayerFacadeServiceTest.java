@@ -2,6 +2,7 @@ package com.ksy.fmrs.service;
 
 import com.ksy.fmrs.domain.enums.MappingStatus;
 import com.ksy.fmrs.domain.player.*;
+import com.ksy.fmrs.dto.comment.CommentCountResponseDto;
 import com.ksy.fmrs.dto.player.PlayerOverviewDto;
 import com.ksy.fmrs.dto.player.FmPlayerDetailsDto;
 import com.ksy.fmrs.dto.player.PlayerDetailsDto;
@@ -30,10 +31,15 @@ class PlayerFacadeServiceTest {
     private PlayerStatService playerStatService;
     @Mock
     private PlayerService playerService;
+    @Mock
+    private CommentService commentService;
 
     private PlayerDetailsDto playerDetailsDto;
     private PlayerStatDto playerStatDto;
     private FmPlayerDetailsDto fmPlayerDetailsDto;
+    private CommentCountResponseDto commentCountResponseDto;
+
+    private static final int COMMENT_CNT = 10;
 
     @BeforeEach
     void setUp() {
@@ -51,7 +57,56 @@ class PlayerFacadeServiceTest {
                 .mappingStatus(MappingStatus.MATCHED)
                 .build();
         ReflectionTestUtils.setField(player, "id", 1L);
-        FmPlayer fmPlayer = FmPlayer.builder()
+        FmPlayer fmPlayer = createFmPlayer(date);
+        PlayerStat playerStat = PlayerStat.builder()
+                .build();
+        player.updateFmPlayer(fmPlayer);
+
+
+        this.playerDetailsDto = new PlayerDetailsDto(player, "team1", "teamLogoUrl", 200);
+        this.fmPlayerDetailsDto = new FmPlayerDetailsDto(fmPlayer);
+        this.playerStatDto = new PlayerStatDto(playerStat);
+        this.commentCountResponseDto = new CommentCountResponseDto(COMMENT_CNT);
+    }
+
+    @Test
+    @DisplayName("playerDetailsDto, playerStatDto, fmPlayerDetailsDto 를 각 서비스에서 받아 dto 통합")
+    void getPlayerOverView_valid(){
+        // given
+        Long playerId = 1L;
+        // when
+        when(playerService.getPlayerDetails(playerId)).thenReturn(playerDetailsDto);
+        when(playerService.getFmPlayerDetails(playerId)).thenReturn(Optional.of(fmPlayerDetailsDto));
+        when(playerStatService.saveAndGetPlayerStat(playerId)).thenReturn(Optional.of(playerStatDto));
+        when(commentService.getCommentCountByPlayerId(playerId)).thenReturn(commentCountResponseDto);
+        PlayerOverviewDto result = playerFacadeService.getPlayerOverview(playerId);
+        // then
+        Assertions.assertThat(result.fmPlayerDetailsDto()).isEqualTo(fmPlayerDetailsDto);
+        Assertions.assertThat(result.playerDetailsDto()).isEqualTo(playerDetailsDto);
+        Assertions.assertThat(result.playerStatDto()).isEqualTo(playerStatDto);
+        Assertions.assertThat(result.commentCountResponseDto()).isEqualTo(commentCountResponseDto);
+    }
+
+    @Test
+    @DisplayName("fm 매핑 정보 없을때 PlayerOverviewDto에 fmPlayerDetailsDto = null")
+    void getPlayerOverView_fmPlayerDetailsDto_null(){
+        // given
+        Long playerId = 1L;
+        // when
+        when(playerService.getPlayerDetails(playerId)).thenReturn(playerDetailsDto);
+        when(playerService.getFmPlayerDetails(playerId)).thenReturn(Optional.empty());
+        when(playerStatService.saveAndGetPlayerStat(playerId)).thenReturn(Optional.of(playerStatDto));
+        when(commentService.getCommentCountByPlayerId(playerId)).thenReturn(commentCountResponseDto);
+        PlayerOverviewDto result = playerFacadeService.getPlayerOverview(playerId);
+        // then
+        Assertions.assertThat(result.fmPlayerDetailsDto()).isNull();
+        Assertions.assertThat(result.playerDetailsDto()).isEqualTo(playerDetailsDto);
+        Assertions.assertThat(result.playerStatDto()).isEqualTo(playerStatDto);
+        Assertions.assertThat(result.commentCountResponseDto()).isEqualTo(commentCountResponseDto);
+    }
+
+    private FmPlayer createFmPlayer(LocalDate date) {
+        return FmPlayer.builder()
                 .firstName("firstName")
                 .lastName("lastName")
                 .birth(date)
@@ -147,45 +202,6 @@ class PlayerFacadeServiceTest {
                 .currentAbility(190)
                 .potentialAbility(195)
                 .build();
-        PlayerStat playerStat = PlayerStat.builder()
-                .build();
-        player.updateFmPlayer(fmPlayer);
 
-
-        this.playerDetailsDto = new PlayerDetailsDto(player, "team1", "teamLogoUrl", 200);
-        this.fmPlayerDetailsDto = new FmPlayerDetailsDto(fmPlayer);
-        this.playerStatDto = new PlayerStatDto(playerStat);
-    }
-
-    @Test
-    @DisplayName("playerDetailsDto, playerStatDto, fmPlayerDetailsDto 를 각 서비스에서 받아 dto 통합")
-    void getPlayerOverView_valid(){
-        // given
-        Long playerId = 1L;
-        // when
-        when(playerService.getPlayerDetails(playerId)).thenReturn(playerDetailsDto);
-        when(playerService.getFmPlayerDetails(playerId)).thenReturn(Optional.of(fmPlayerDetailsDto));
-        when(playerStatService.saveAndGetPlayerStat(playerId)).thenReturn(Optional.of(playerStatDto));
-        PlayerOverviewDto result = playerFacadeService.getPlayerOverview(playerId);
-        // then
-        Assertions.assertThat(result.fmPlayerDetailsDto()).isEqualTo(fmPlayerDetailsDto);
-        Assertions.assertThat(result.playerDetailsDto()).isEqualTo(playerDetailsDto);
-        Assertions.assertThat(result.playerStatDto()).isEqualTo(playerStatDto);
-    }
-
-    @Test
-    @DisplayName("fm 매핑 정보 없을때 PlayerOverviewDto에 fmPlayerDetailsDto = null")
-    void getPlayerOverView_fmPlayerDetailsDto_null(){
-        // given
-        Long playerId = 1L;
-        // when
-        when(playerService.getPlayerDetails(playerId)).thenReturn(playerDetailsDto);
-        when(playerService.getFmPlayerDetails(playerId)).thenReturn(Optional.empty());
-        when(playerStatService.saveAndGetPlayerStat(playerId)).thenReturn(Optional.of(playerStatDto));
-        PlayerOverviewDto result = playerFacadeService.getPlayerOverview(playerId);
-        // then
-        Assertions.assertThat(result.fmPlayerDetailsDto()).isNull();
-        Assertions.assertThat(result.playerDetailsDto()).isEqualTo(playerDetailsDto);
-        Assertions.assertThat(result.playerStatDto()).isEqualTo(playerStatDto);
     }
 }
