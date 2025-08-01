@@ -4,6 +4,7 @@ import com.ksy.fmrs.domain.Comment;
 import com.ksy.fmrs.domain.User;
 import com.ksy.fmrs.domain.player.Player;
 import com.ksy.fmrs.dto.PaginationDto;
+import com.ksy.fmrs.dto.comment.CommentCountResponseDto;
 import com.ksy.fmrs.dto.comment.CommentListResponseDto;
 import com.ksy.fmrs.dto.comment.CommentResponseDto;
 import com.ksy.fmrs.repository.CommentRepository;
@@ -58,6 +59,11 @@ public class CommentService {
         }
 
         comment.deleteComment();
+    }
+
+    @Transactional(readOnly = true)
+    public CommentCountResponseDto getCommentCountByPlayerId(Long playerId) {
+        return new CommentCountResponseDto(commentRepository.countByPlayerId(playerId));
     }
 
 

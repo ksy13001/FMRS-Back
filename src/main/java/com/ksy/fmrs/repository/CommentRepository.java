@@ -11,4 +11,5 @@ import java.util.List;
 @Repository
 public interface CommentRepository extends JpaRepository<Comment, Long> {
     Page<Comment> findByPlayerId(Long playerId, Pageable pageable);
+    int countByPlayerId(Long playerId);
 }
