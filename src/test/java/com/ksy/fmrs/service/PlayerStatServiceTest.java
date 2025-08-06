@@ -191,6 +191,31 @@ class PlayerStatServiceTest {
         Assertions.assertThat(actual.get().getGamesPlayed()).isEqualTo(10);
     }
 
+    @Test
+    @DisplayName("player에 팀이 존재하고 stat 존재하지 않아 playerStat값 요청했는데 null 값이 반환된 경우, Empty 반환")
+    void save_player_stat_with_empty_response(){
+        // given
+        Long playerId = 1L;
+        Player player = Player.builder().name("p1").build();
+        Team team = Team.builder().build();
+        player.updateTeam(team);
+        League league = League.builder().build();
+        team.updateLeague(league);
+        PlayerStat playerStat = PlayerStat.builder().build();
+
+        // when
+        when(playerRepository.findById(playerId))
+                .thenReturn(Optional.of(player));
+        when(footballApiService.getPlayerStatByPlayerApiIdAndTeamApiIdAndLeagueApiId(null, null, null, null))
+                .thenReturn(null);
+        when(playerStatMapper.toEntity(any())).thenReturn(null);
+
+        Optional<PlayerStatDto> actual = playerStatService.saveAndGetPlayerStat(playerId);
+        // then
+        verify(playerRepository, never()).save(any());
+        Assertions.assertThat(actual.isPresent()).isFalse();
+    }
+
     private PlayerStatisticApiDto createPlayerStatisticApiDto() {
         return new PlayerStatisticApiDto(
                 /* get */    "players",

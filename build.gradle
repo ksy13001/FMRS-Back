@@ -2,6 +2,7 @@ plugins {
 	id 'java'
 	id 'org.springframework.boot' version '3.4.1'
 	id 'io.spring.dependency-management' version '1.1.7'
+	id 'jacoco'
 }
 
 group = 'com.ksy'
@@ -63,4 +64,43 @@ dependencies {
 
 tasks.named('test') {
 	useJUnitPlatform()
+//	finalizedBy jacocoTestReport
+
 }
+//
+//jacocoTestReport {
+//	reports {
+//		// html로 report 생성하기
+//		// 빌드경로/jacoco/report.html 폴더 내부로 경로 설정
+//		html.destination file("$buildDir/jacoco/report.html")
+//	}
+//
+//	// jacocoTestReport가 끝나면 jacocoTestCoverageVerification 동작
+//	finalizedBy 'jacocoTestCoverageVerification'
+//}
+//
+//// jacoco 커버리지 검증 설정
+//jacocoTestCoverageVerification {
+//	violationRules {
+//		rule {
+//			element = 'CLASS'
+//			// Config·DTO·Exception 패키지는 제외
+//			excludes = [
+//					'com.ksy.fmrs.config.*',
+//					'com.ksy.fmrs.dto.*',
+//					'com.ksy.fmrs.exception.*'
+//			]
+//
+//			limit {
+//				counter = 'LINE'
+//				value   = 'COVEREDRATIO'
+//				minimum = 0.80
+//			}
+//			limit {
+//				counter = 'BRANCH'
+//				value   = 'COVEREDRATIO'
+//				minimum = 0.70
+//			}
+//		}
+//	}
+//}
