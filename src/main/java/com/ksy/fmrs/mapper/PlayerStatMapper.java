@@ -8,6 +8,11 @@ import org.springframework.stereotype.Component;
 public class PlayerStatMapper {
 
     public PlayerStat toEntity(PlayerStatisticApiDto playerStatisticApiDto) {
+        if(playerStatisticApiDto == null ||
+                playerStatisticApiDto.response() == null ||
+                playerStatisticApiDto.response().isEmpty()) {
+            return null;
+        }
         PlayerStatisticApiDto.Statistic statistic = playerStatisticApiDto.response().getFirst().statistics().getFirst();
         return PlayerStat.builder()
                 .gamesPlayed(statistic.games().appearences())

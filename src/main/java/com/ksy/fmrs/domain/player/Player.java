@@ -157,4 +157,8 @@ public class Player {
     public boolean isMatched(){
         return this.fmPlayer != null && this.mappingStatus == MappingStatus.MATCHED;
     }
+
+    public boolean isFA(){
+        return this.team == null;
+    }
 }

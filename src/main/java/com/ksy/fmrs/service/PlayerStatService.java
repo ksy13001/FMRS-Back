@@ -4,6 +4,7 @@ import com.ksy.fmrs.domain.League;
 import com.ksy.fmrs.domain.Team;
 import com.ksy.fmrs.domain.player.Player;
 import com.ksy.fmrs.domain.player.PlayerStat;
+import com.ksy.fmrs.dto.apiFootball.PlayerStatisticApiDto;
 import com.ksy.fmrs.dto.player.PlayerStatDto;
 import com.ksy.fmrs.mapper.PlayerStatMapper;
 import com.ksy.fmrs.repository.Player.PlayerRepository;
@@ -33,6 +34,7 @@ public class PlayerStatService {
      * PlayerStat이 존재 하지 않을 경우 외부 api로 값 가져 오기
      * 팀 매핑된 경우에만 스탯 가져올수있음
      */
+    // 트랜잭션내의 외부 api 호출 분리하기
     @Transactional
     public Optional<PlayerStatDto> saveAndGetPlayerStat(Long playerId) {
         Player player = playerRepository.findById(playerId)
@@ -40,23 +42,26 @@ public class PlayerStatService {
         PlayerStat playerStat = player.getPlayerStat();
 
         if (playerStat == null || playerStat.isExpired(timeProvider.getCurrentInstant())) {
-            return savePlayerStat(player).map(PlayerStatDto::new);
+            return savePlayerStat(player)
+                    .map(PlayerStatDto::new);
         }
         return Optional.of(new PlayerStatDto(playerStat));
     }
 
     private Optional<PlayerStat> savePlayerStat(Player player) {
-        Team team = player.getTeam();
-        if (team == null) {
-            return Optional.empty();
-        }
-        League league = team.getLeague();
+        Team team = Optional.ofNullable(player.getTeam())
+                .orElseThrow(()-> new EntityNotFoundException("Team not found"));
+        League league = Optional.ofNullable(team.getLeague())
+                .orElseThrow(()-> new EntityNotFoundException("League not found"));
         PlayerStat ps = playerStatMapper.toEntity(
                 footballApiService.getPlayerStatByPlayerApiIdAndTeamApiIdAndLeagueApiId(
                         player.getPlayerApiId(),
                         team.getTeamApiId(),
                         league.getLeagueApiId(),
                         league.getCurrentSeason()));
+        if(ps == null) {
+            return Optional.empty();
+        }
         player.updatePlayerStat(ps);
         playerStatRepository.save(ps);
         return Optional.of(ps);
