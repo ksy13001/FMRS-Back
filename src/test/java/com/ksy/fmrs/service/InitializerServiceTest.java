@@ -1,7 +1,7 @@
 package com.ksy.fmrs.service;
 
 import com.ksy.fmrs.domain.enums.LeagueType;
-import com.ksy.fmrs.dto.league.LeagueDetailsRequestDto;
+import com.ksy.fmrs.dto.league.LeagueAPIDetailsResponseDto;
 import com.ksy.fmrs.repository.LeagueRepository;
 import com.ksy.fmrs.repository.Player.PlayerRepository;
 import org.junit.jupiter.api.DisplayName;
@@ -29,7 +29,7 @@ class InitializerServiceTest {
     @DisplayName("리그, 팀 초기 생성 테스트")
     void 메서드명(){
         // given
-        LeagueDetailsRequestDto leagueDetailsRequestDto = LeagueDetailsRequestDto.builder()
+        LeagueAPIDetailsResponseDto leagueAPIDetailsResponseDto = LeagueAPIDetailsResponseDto.builder()
                 .leagueApiId(1)
                 .leagueName("League1")
                 .leagueType(LeagueType.LEAGUE.getValue())

@@ -6,7 +6,7 @@ import com.ksy.fmrs.domain.player.PlayerStat;
 import com.ksy.fmrs.domain.enums.UrlEnum;
 import com.ksy.fmrs.dto.apiFootball.*;
 import com.ksy.fmrs.dto.apiFootball.LeagueApiResponseDto;
-import com.ksy.fmrs.dto.league.LeagueDetailsRequestDto;
+import com.ksy.fmrs.dto.league.LeagueAPIDetailsResponseDto;
 import com.ksy.fmrs.dto.player.PlayerSimpleDto;
 import com.ksy.fmrs.dto.player.PlayerStatDto;
 import com.ksy.fmrs.dto.team.TeamStatisticsDto;
@@ -101,7 +101,7 @@ public class FootballApiService {
         return convertStatisticsToTeamDetailsDto(response, currentSeason);
     }
 
-    public Mono<Optional<LeagueDetailsRequestDto>> getLeagueInfo(Integer leagueApiId) {
+    public Mono<Optional<LeagueAPIDetailsResponseDto>> getLeagueInfo(Integer leagueApiId) {
         return Objects.requireNonNull(webClientService.
                 getApiResponse(UrlEnum.buildLeagueUrl(leagueApiId), LeagueApiResponseDto.class))
                 .map(this::convertToLeagueInfoDto);
@@ -244,7 +244,7 @@ public class FootballApiService {
                 .build();
     }
 
-    private Optional<LeagueDetailsRequestDto> convertToLeagueInfoDto(LeagueApiResponseDto leagueApiResponseDto) {
+    private Optional<LeagueAPIDetailsResponseDto> convertToLeagueInfoDto(LeagueApiResponseDto leagueApiResponseDto) {
         // 응답 리스트가 null이거나 비어 있으면 Optional.empty() 반환
         if (leagueApiResponseDto.response() == null || leagueApiResponseDto.response().isEmpty()) {
             return Optional.empty();
@@ -259,7 +259,7 @@ public class FootballApiService {
         LeagueApiResponseDto.Country country = firstResponse.country();
         List<LeagueApiResponseDto.Season> seasons = firstResponse.seasons();
         LeagueApiResponseDto.Season season = seasons.getLast();
-        LeagueDetailsRequestDto dto = LeagueDetailsRequestDto.builder()
+        LeagueAPIDetailsResponseDto dto = LeagueAPIDetailsResponseDto.builder()
                 .leagueApiId(league.id())
                 .currentSeason(season.year())
                 .leagueName(league.name())
@@ -268,6 +268,8 @@ public class FootballApiService {
                 .nationName(country.name())
                 .nationImageUrl(country.flag())
                 .Standing(season.coverage().standings())
+                .startDate(season.start())
+                .endDate(season.end())
                 .build();
         return Optional.of(dto);
     }

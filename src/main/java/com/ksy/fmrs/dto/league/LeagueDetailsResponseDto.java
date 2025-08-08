@@ -9,8 +9,9 @@ import lombok.Setter;
 @Setter
 @Builder
 public class LeagueDetailsResponseDto {
-    private Integer leagueApiId;
+
     private String name;
+    private Integer leagueApiId;
     private String logoImageUrl;
     private String nationName;
     private String nationImageUrl;

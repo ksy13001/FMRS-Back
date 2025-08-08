@@ -7,6 +7,7 @@ import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 
+import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -44,6 +45,12 @@ public class League {
 
     private Boolean standing;
 
+    @Column(name = "start_date")
+    private LocalDate startDate;
+
+    @Column(name = "end_date")
+    private LocalDate endDate;
+
     @Builder
     public League(Integer leagueApiId, String name, String nationName, String nationLogoUrl, Integer currentSeason, String logoUrl, LeagueType leagueType, Boolean standing) {
         this.leagueApiId = leagueApiId;
@@ -63,5 +70,17 @@ public class League {
         this.nationLogoUrl = nationImageUrl;
         this.currentSeason = currentSeason;
         this.logoUrl = logoUrl;
+    }
+
+    public void updateStartDate(LocalDate startDate) {
+        this.startDate = startDate;
+    }
+
+    public void updateEndDate(LocalDate endDate) {
+        this.endDate = endDate;
+    }
+
+    public void updateCurrentSeason(Integer currentSeason) {
+        this.currentSeason = currentSeason;
     }
 }
