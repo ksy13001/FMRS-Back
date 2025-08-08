@@ -4,10 +4,12 @@ import lombok.Builder;
 import lombok.Getter;
 import lombok.Setter;
 
+import java.time.LocalDate;
+
 @Getter
 @Setter
 @Builder
-public class LeagueDetailsRequestDto {
+public class LeagueAPIDetailsResponseDto {
 
     private Integer leagueApiId;
     private String leagueName;
@@ -17,4 +19,6 @@ public class LeagueDetailsRequestDto {
     private String leagueType;
     private Integer currentSeason;
     private Boolean Standing;
+    private LocalDate startDate;
+    private LocalDate endDate;
 }

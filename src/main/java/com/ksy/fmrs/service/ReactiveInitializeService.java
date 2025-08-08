@@ -7,7 +7,7 @@ import com.ksy.fmrs.domain.enums.LeagueType;
 import com.ksy.fmrs.domain.enums.MappingStatus;
 import com.ksy.fmrs.domain.player.*;
 import com.ksy.fmrs.dto.apiFootball.LeagueApiPlayersDto;
-import com.ksy.fmrs.dto.league.LeagueDetailsRequestDto;
+import com.ksy.fmrs.dto.league.LeagueAPIDetailsResponseDto;
 import com.ksy.fmrs.dto.player.FmPlayerDto;
 import com.ksy.fmrs.repository.BulkRepository;
 import com.ksy.fmrs.repository.LeagueRepository;
@@ -301,11 +301,11 @@ public class ReactiveInitializeService {
         return urls;
     }
 
-    private Boolean isLeagueType(LeagueDetailsRequestDto leagueDetailsRequestDto) {
-        return leagueDetailsRequestDto != null &&
-                leagueDetailsRequestDto.getLeagueType().equals(LeagueType.LEAGUE.getValue()) &&
-                leagueDetailsRequestDto.getCurrentSeason() >= SEASON_2024 &&
-                leagueDetailsRequestDto.getStanding();
+    private Boolean isLeagueType(LeagueAPIDetailsResponseDto leagueAPIDetailsResponseDto) {
+        return leagueAPIDetailsResponseDto != null &&
+                leagueAPIDetailsResponseDto.getLeagueType().equals(LeagueType.LEAGUE.getValue()) &&
+                leagueAPIDetailsResponseDto.getCurrentSeason() >= SEASON_2024 &&
+                leagueAPIDetailsResponseDto.getStanding();
     }
 
     private List<FmPlayerDto> getPlayersFromFmPlayers(String dirPath) {
