@@ -1,6 +1,7 @@
 package com.ksy.fmrs.config;
 
 import com.ksy.fmrs.repository.Player.PlayerRepository;
+import com.ksy.fmrs.service.InitializationService;
 import com.ksy.fmrs.service.ReactiveInitializeService;
 import com.ksy.fmrs.repository.LeagueRepository;
 import com.ksy.fmrs.repository.Team.TeamRepository;
@@ -38,12 +39,11 @@ public class InitializationConfig {
 
     @Bean
     @ConditionalOnProperty(name = "INITIAL_DATA_INSERT", havingValue = "team")
-    public ApplicationRunner initializeTeam(ReactiveInitializeService initializerService,
+    public ApplicationRunner initializeTeam(InitializationService initializerService,
                                             LeagueRepository leagueRepository) {
         return args -> {
             log.info("Initial team insert started");
-            initializerService.saveInitialTeams(leagueRepository.findAll())
-                    .subscribe();
+            initializerService.saveInitialTeams(leagueRepository.findAll());
         };
     }
 
