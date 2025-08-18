@@ -1,7 +1,7 @@
 package com.ksy.fmrs.domain.enums;
 
 public enum UrlEnum {
-    TEAM_URL("https://v3.football.api-sports.io/teams?"),
+    TEAMS_URL("https://v3.football.api-sports.io/teams?"),
     PLAYER_STATISTICS_URL("https://v3.football.api-sports.io/players?"),
     LEAGUE_URL("https://v3.football.api-sports.io/leagues?"),
     STANDING_URL("https://v3.football.api-sports.io/standings?"),
@@ -17,6 +17,7 @@ public enum UrlEnum {
     PARAM_LEAGUE("league="),
     PARAM_PAGE("page="),
     PARAM_SCORE("score="),
+    PARAM_TEAMS("teams="),
     AND("&");
 
     private final String value;
@@ -43,7 +44,7 @@ public enum UrlEnum {
 
     // 팀 API URL을 생성 (teamName)
     public static String buildTeamUrl(String teamName) {
-        return TEAM_URL.getValue() + PARAM_NAME.getValue()
+        return TEAMS_URL.getValue() + PARAM_NAME.getValue()
                 + teamName;
     }
 
@@ -105,6 +106,13 @@ public enum UrlEnum {
                 PARAM_LEAGUE.getValue() + leagueApiId +
                 AND.getValue() +
                 PARAM_PAGE.getValue() + page +
+                AND.getValue() +
+                PARAM_SEASON.getValue() + currentSeason;
+    }
+
+    public static String buildTeamsUrlByLeagueApiId(Integer leagueApiId, int currentSeason){
+        return TEAMS_URL.getValue() +
+                PARAM_LEAGUE.getValue() + leagueApiId +
                 AND.getValue() +
                 PARAM_SEASON.getValue() + currentSeason;
     }

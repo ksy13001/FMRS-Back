@@ -39,12 +39,10 @@ public class InitializationConfig {
     @Bean
     @ConditionalOnProperty(name = "INITIAL_DATA_INSERT", havingValue = "team")
     public ApplicationRunner initializeTeam(ReactiveInitializeService initializerService,
-                                            LeagueRepository leagueRepository,
-                                            TeamRepository teamRepository) {
-
+                                            LeagueRepository leagueRepository) {
         return args -> {
             log.info("Initial team insert started");
-            initializerService.saveInitialTeams(leagueRepository.findAll(), teamRepository.findTeamApiIds())
+            initializerService.saveInitialTeams(leagueRepository.findAll())
                     .subscribe();
         };
     }
@@ -58,9 +56,7 @@ public class InitializationConfig {
         return args -> {
             log.info("append New team started");
             initializerService.saveInitialTeams(
-                            leagueRepository.findUnassignedLeagues(),
-                            teamRepository.findTeamApiIds())
-                    .subscribe();
+                            leagueRepository.findUnassignedLeagues()).subscribe();
         };
     }
 

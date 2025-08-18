@@ -31,7 +31,6 @@ public class FootballApiService {
     private final LeagueRepository leagueRepository;
     private final PlayerStatRepository playerStatRepository;
     private final PlayerRepository playerRepository;
-    private final RestClientService restClientService;
     private final WebClientService  webClientService;
 //
 //    public PlayerStatDto savePlayerRealStat(Long playerId, Integer playerApiId) {
@@ -109,6 +108,12 @@ public class FootballApiService {
 
     public Mono<SquadApiResponseDto> getSquadPlayers(Integer teamApiId) {
         return webClientService.getApiResponse(UrlEnum.buildSquadUrl(teamApiId), SquadApiResponseDto.class);
+    }
+
+    public Mono<TeamListApiResponseDto> getTeamsInLeague(Integer leagueApiId, int currentSeason) {
+        return webClientService.getApiResponse(
+                UrlEnum.buildTeamsUrlByLeagueApiId(leagueApiId, currentSeason),
+                TeamListApiResponseDto.class);
     }
 
     private List<TeamStandingDto> getValidatedLeagueDetails(StandingsAPIResponseDto response) {

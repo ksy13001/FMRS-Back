@@ -33,13 +33,13 @@ import java.util.concurrent.atomic.AtomicInteger;
 import java.util.stream.Collectors;
 
 import static java.util.stream.Collectors.groupingBy;
+import static java.util.stream.Collectors.toMap;
 
 @Slf4j
 @RequiredArgsConstructor
 @Service
 public class ReactiveInitializeService {
     private final ObjectMapper objectMapper;
-    private final LeagueRepository leagueRepository;
     private final BulkRepository bulkRepository;
     private final FootballApiService footballApiService;
     private final PlayerRawRepository playerRawRepository;
@@ -94,29 +94,36 @@ public class ReactiveInitializeService {
     }
 
 
-    // league standing에서 team 생성
-    public Mono<Void> saveInitialTeams(List<League> leagues, Set<Integer> existTeamIds) {
+    /**
+     * league 에서 team 가져오기
+     *
+     * */
+    public Mono<Void> saveInitialTeams(List<League> leagues) {
+        Map<Integer, Long> leagueApiToId = leagues
+                .stream()
+                .collect(Collectors.toMap(League::getLeagueApiId, League::getId));
+
         return Flux.fromIterable(leagues)
                 .delayElements(Duration.ofMillis(DELAY_MS))
                 .flatMap(league ->
-                                footballApiService.getLeagueStandings(league.getLeagueApiId(), league.getCurrentSeason())
+                                footballApiService.getTeamsInLeague(league.getLeagueApiId(), league.getCurrentSeason())
                                         .timeout(Duration.ofSeconds(TIME_OUT))
                         , 3)
-                .doOnNext(response -> {
-                    if (response.isEmpty()) {
-                        log.info("leagueApiId {}: 응답 없음", response.getFirst().getLeagueApiId());
+                .doOnNext(dto -> {
+                    if (dto.response().isEmpty() || dto.response().get(0).team() == null) {
+                        log.info("leagueApiId {}: 응답 없음", dto.parameters().league());
                     } else {
-                        log.info("leagueApiId {}: 응답 있음", response.getFirst().getLeagueApiId());
+                        log.info("leagueApiId {}: 응답 있음", dto.parameters().league());
                     }
+                    log.info(dto.toString());
                 })
                 .onErrorResume(e -> {
                     log.error("leagueApiId {} 에러 발생: {}", e.getMessage());
                     return Mono.empty();
                 })
-                .flatMap(Flux::fromIterable)
-                .collectList()
-                .flatMap(teamStandingDtos ->
-                        Mono.fromRunnable(() -> teamService.saveAllByTeamStanding(teamStandingDtos, existTeamIds))
+                .flatMap(dtos ->
+                        Mono.fromRunnable(() -> teamService.saveAllByTeamStanding(
+                                dtos, leagueApiToId.get(Integer.valueOf(dtos.parameters().league()))))
                                 .subscribeOn(Schedulers.boundedElastic())
                 )
                 .then();

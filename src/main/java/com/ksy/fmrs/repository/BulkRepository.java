@@ -1,6 +1,7 @@
 package com.ksy.fmrs.repository;
 
 
+import com.ksy.fmrs.domain.Team;
 import com.ksy.fmrs.domain.player.FmPlayer;
 import com.ksy.fmrs.domain.player.Player;
 import lombok.RequiredArgsConstructor;
@@ -8,6 +9,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.jdbc.core.BatchPreparedStatementSetter;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Repository;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.sql.PreparedStatement;
 import java.sql.SQLException;
@@ -48,6 +50,35 @@ public class BulkRepository {
             @Override
             public int getBatchSize() {
                 return players.size();
+            }
+        });
+    }
+
+    @Transactional
+    public void bulkUpsertTeams(List<Team> teams, Long leagueId) {
+        String sql = """
+                INSERT INTO team
+                (name, team_api_id, logo_url, league_id)
+                VALUES (?, ?, ?, ?)
+                ON DUPLICATE KEY UPDATE
+                name=VALUES(name),
+                team_api_id=VALUES(team_api_id),
+                logo_url=VALUES(logo_url),
+                league_id=VALUES(league_id)
+                """;
+        jdbcTemplate.batchUpdate(sql, new BatchPreparedStatementSetter() {
+            @Override
+            public void setValues(PreparedStatement ps, int i) throws SQLException {
+                Team team = teams.get(i);
+                ps.setString(1, team.getName());
+                ps.setInt(2, team.getTeamApiId());
+                ps.setString(3, team.getLogoUrl());
+                ps.setLong(4, leagueId);
+            }
+
+            @Override
+            public int getBatchSize() {
+                return teams.size();
             }
         });
     }
