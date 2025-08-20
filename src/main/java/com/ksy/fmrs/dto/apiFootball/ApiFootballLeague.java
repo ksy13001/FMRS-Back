@@ -8,7 +8,7 @@ import java.time.LocalDate;
 import java.util.List;
 
 @JsonIgnoreProperties(ignoreUnknown = true)
-public record LeagueApiResponseDto(
+public record ApiFootballLeague(
         String get,
 //        Parameters parameters,
 //        List<Object> errors,

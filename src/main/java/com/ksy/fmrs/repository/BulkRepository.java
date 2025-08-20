@@ -9,7 +9,6 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.jdbc.core.BatchPreparedStatementSetter;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Repository;
-import org.springframework.transaction.annotation.Transactional;
 
 import java.sql.PreparedStatement;
 import java.sql.SQLException;
@@ -54,7 +53,6 @@ public class BulkRepository {
         });
     }
 
-    @Transactional
     public void bulkUpsertTeams(List<Team> teams, Long leagueId) {
         String sql = """
                 INSERT INTO team

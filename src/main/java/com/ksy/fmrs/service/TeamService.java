@@ -1,7 +1,7 @@
 package com.ksy.fmrs.service;
 
 import com.ksy.fmrs.domain.Team;
-import com.ksy.fmrs.dto.apiFootball.TeamListApiResponseDto;
+import com.ksy.fmrs.dto.apiFootball.ApiFootballTeamsByLeague;
 import com.ksy.fmrs.dto.team.TeamDetailsDto;
 import com.ksy.fmrs.mapper.ApiDtoMapper;
 import com.ksy.fmrs.repository.BulkRepository;
@@ -40,25 +40,14 @@ public class TeamService {
     }
 
     @Transactional
-    public void saveAllByTeamStanding(TeamListApiResponseDto teamApiResponse, Long leagueId) {
+    public void SaveAll(List<Team> teams, Long leagueId) {
         // 한 팀이 여러 리그에 속하는 케이스 있기 때문에 일단 중복 리그중 하나는 제거(브라질)
-//        List<Team> teams = teamApiResponse.stream()
-//                .filter(teamStandingDto -> !existTeamApiIds.contains(teamStandingDto.parameters().league()))
-//                .map(dto -> {
-//                    Team team = apiDtoMapper.toEntity(dto);
-//                    Integer leagueApiId = Integer.valueOf(dto.parameters().league());
-//                    League league = leagueRepository.findLeagueByLeagueApiId(leagueApiId)
-//                    .orElseThrow(()-> new RuntimeException("League not found leagueApiId: " + leagueApiId));
-//                    team.updateLeague(league);
-//                    return team;
-//                    }, (existing, replacement) -> existing
-//                ).toList();
         bulkRepository.bulkUpsertTeams(
-                getTeamsFromApiFootball(teamApiResponse),
+                teams,
                 leagueId);
     }
 
-    private List<Team> getTeamsFromApiFootball(TeamListApiResponseDto teamApiResponse){
+    private List<Team> getTeamsFromApiFootball(ApiFootballTeamsByLeague teamApiResponse){
         return apiDtoMapper.toEntity(teamApiResponse);
     }
 

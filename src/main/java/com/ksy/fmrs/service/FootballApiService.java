@@ -5,7 +5,7 @@ import com.ksy.fmrs.domain.player.Player;
 import com.ksy.fmrs.domain.player.PlayerStat;
 import com.ksy.fmrs.domain.enums.UrlEnum;
 import com.ksy.fmrs.dto.apiFootball.*;
-import com.ksy.fmrs.dto.apiFootball.LeagueApiResponseDto;
+import com.ksy.fmrs.dto.apiFootball.ApiFootballLeague;
 import com.ksy.fmrs.dto.league.LeagueAPIDetailsResponseDto;
 import com.ksy.fmrs.dto.player.PlayerSimpleDto;
 import com.ksy.fmrs.dto.player.PlayerStatDto;
@@ -32,6 +32,7 @@ public class FootballApiService {
     private final PlayerStatRepository playerStatRepository;
     private final PlayerRepository playerRepository;
     private final WebClientService  webClientService;
+    private final RestClientService restClientService;
 //
 //    public PlayerStatDto savePlayerRealStat(Long playerId, Integer playerApiId) {
 //        Player player =  findPlayerById(playerId);
@@ -45,6 +46,12 @@ public class FootballApiService {
 //                    return playerStatDto;
 //                });
 //    }
+
+    public ApiFootballLeague fetchLeagueByApiId(Integer leagueApiId){
+        return restClientService.getApiResponse(
+                UrlEnum.buildLeagueUrl(leagueApiId),
+                ApiFootballLeague.class);
+    }
 
     public PlayerStatisticApiDto getPlayerStatByPlayerApiIdAndTeamApiIdAndLeagueApiId(Integer playerApiId, Integer teamApiId, Integer leagueApiId, Integer currentSeason) {
         return webClientService.getApiResponse(
@@ -102,7 +109,7 @@ public class FootballApiService {
 
     public Mono<Optional<LeagueAPIDetailsResponseDto>> getLeagueInfo(Integer leagueApiId) {
         return Objects.requireNonNull(webClientService.
-                getApiResponse(UrlEnum.buildLeagueUrl(leagueApiId), LeagueApiResponseDto.class))
+                getApiResponse(UrlEnum.buildLeagueUrl(leagueApiId), ApiFootballLeague.class))
                 .map(this::convertToLeagueInfoDto);
     }
 
@@ -110,10 +117,10 @@ public class FootballApiService {
         return webClientService.getApiResponse(UrlEnum.buildSquadUrl(teamApiId), SquadApiResponseDto.class);
     }
 
-    public Mono<TeamListApiResponseDto> getTeamsInLeague(Integer leagueApiId, int currentSeason) {
+    public Mono<ApiFootballTeamsByLeague> getTeamsInLeague(Integer leagueApiId, int currentSeason) {
         return webClientService.getApiResponse(
                 UrlEnum.buildTeamsUrlByLeagueApiId(leagueApiId, currentSeason),
-                TeamListApiResponseDto.class);
+                ApiFootballTeamsByLeague.class);
     }
 
     private List<TeamStandingDto> getValidatedLeagueDetails(StandingsAPIResponseDto response) {
@@ -249,21 +256,21 @@ public class FootballApiService {
                 .build();
     }
 
-    private Optional<LeagueAPIDetailsResponseDto> convertToLeagueInfoDto(LeagueApiResponseDto leagueApiResponseDto) {
+    private Optional<LeagueAPIDetailsResponseDto> convertToLeagueInfoDto(ApiFootballLeague apiFootballLeague) {
         // 응답 리스트가 null이거나 비어 있으면 Optional.empty() 반환
-        if (leagueApiResponseDto.response() == null || leagueApiResponseDto.response().isEmpty()) {
+        if (apiFootballLeague.response() == null || apiFootballLeague.response().isEmpty()) {
             return Optional.empty();
         }
 
-        LeagueApiResponseDto.ResponseItem firstResponse = leagueApiResponseDto.response().getFirst();
+        ApiFootballLeague.ResponseItem firstResponse = apiFootballLeague.response().getFirst();
         // 시즌 리스트가 null이거나 비어 있으면 Optional.empty() 반환
         if (firstResponse.seasons() == null || firstResponse.seasons().isEmpty()) {
             return Optional.empty();
         }
-        LeagueApiResponseDto.League league = firstResponse.league();
-        LeagueApiResponseDto.Country country = firstResponse.country();
-        List<LeagueApiResponseDto.Season> seasons = firstResponse.seasons();
-        LeagueApiResponseDto.Season season = seasons.getLast();
+        ApiFootballLeague.League league = firstResponse.league();
+        ApiFootballLeague.Country country = firstResponse.country();
+        List<ApiFootballLeague.Season> seasons = firstResponse.seasons();
+        ApiFootballLeague.Season season = seasons.getLast();
         LeagueAPIDetailsResponseDto dto = LeagueAPIDetailsResponseDto.builder()
                 .leagueApiId(league.id())
                 .currentSeason(season.year())

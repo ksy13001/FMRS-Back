@@ -2,7 +2,7 @@ package com.ksy.fmrs.dto.apiFootball;
 
 import java.util.List;
 
-public record TeamListApiResponseDto(
+public record ApiFootballTeamsByLeague(
         String get,
         Parameters parameters,
         List<String> errors,
