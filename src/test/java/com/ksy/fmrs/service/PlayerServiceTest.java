@@ -37,9 +37,6 @@ public class PlayerServiceTest {
     @Mock
     private PlayerRepository playerRepository;
 
-    @Mock
-    private RestTemplate restTemplate;
-
     @InjectMocks
     private PlayerService playerService;
 
