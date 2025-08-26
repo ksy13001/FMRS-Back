@@ -6,7 +6,7 @@ import com.ksy.fmrs.domain.League;
 import com.ksy.fmrs.domain.enums.LeagueType;
 import com.ksy.fmrs.domain.enums.MappingStatus;
 import com.ksy.fmrs.domain.player.*;
-import com.ksy.fmrs.dto.apiFootball.LeagueApiPlayersDto;
+import com.ksy.fmrs.dto.apiFootball.ApiFootballPlayersStatistics;
 import com.ksy.fmrs.dto.league.LeagueAPIDetailsResponseDto;
 import com.ksy.fmrs.dto.player.FmPlayerDto;
 import com.ksy.fmrs.repository.BulkRepository;
@@ -173,7 +173,7 @@ public class SportsDataSyncServiceWebFlux{
                 // 선수 1000명 모일시 bulk insert
                 .filter(player-> !existPlayerIds.contains(player.getPlayerApiId()))
                 .buffer(1000)
-                .concatMap(batch -> Mono.fromRunnable(() -> bulkRepository.bulkInsertPlayers(batch)))
+                .concatMap(batch -> Mono.fromRunnable(() -> bulkRepository.bulkUpsertPlayers(batch)))
                 .onErrorContinue((e, o) -> {
                     log.info("저장 중 애러 발생 : {}", e.getMessage());
                 }).then();
@@ -246,7 +246,7 @@ public class SportsDataSyncServiceWebFlux{
                 .buffer(200)
                 .flatMap(batch -> {
                     log.info("bulk insert 시작: size={}", batch.size());
-                    return Mono.fromRunnable(() -> bulkRepository.bulkInsertPlayers(batch))
+                    return Mono.fromRunnable(() -> bulkRepository.bulkUpsertPlayers(batch))
                             .subscribeOn(Schedulers.boundedElastic())
                             .doOnSuccess(v -> {
                                 int done = totalCnt.addAndGet(batch.size());
@@ -346,9 +346,9 @@ public class SportsDataSyncServiceWebFlux{
     }
 
     //https://v3.football.api-sports.io/players?league=39&season=2024 한 페이지 선수 정보 리스트
-    private List<Player> convertPlayerStatisticsDtoToPlayer(LeagueApiPlayersDto leagueApiPlayersDto) {
-        return leagueApiPlayersDto.response().stream().filter(Objects::nonNull).map(dto -> {
-            LeagueApiPlayersDto.PlayerDto player = dto.player();
+    private List<Player> convertPlayerStatisticsDtoToPlayer(ApiFootballPlayersStatistics apiFootballPlayersStatistics) {
+        return apiFootballPlayersStatistics.response().stream().filter(Objects::nonNull).map(dto -> {
+            ApiFootballPlayersStatistics.PlayerDto player = dto.player();
             return Player.builder()
                     .playerApiId(player.id())
                     .imageUrl(player.photo())

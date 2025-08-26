@@ -60,10 +60,10 @@ public class FootballApiService {
         ).block();
     }
 
-    public Mono<LeagueApiPlayersDto> getSquadStatistics(Integer teamApiId, Integer leagueApiId, int currentSeason, int page) {
+    public Mono<ApiFootballPlayersStatistics> getSquadStatistics(Integer teamApiId, Integer leagueApiId, int currentSeason, int page) {
         return webClientService.getApiResponse(
                 UrlEnum.buildPlayerStatisticsUrlByTeamApiId(teamApiId, leagueApiId, currentSeason, page),
-                LeagueApiPlayersDto.class);
+                ApiFootballPlayersStatistics.class);
     }
 
     public Mono<List<TeamStandingDto>> getLeagueStandings(Integer leagueApiId, int currentSeason) {
@@ -72,10 +72,10 @@ public class FootballApiService {
                 StandingsAPIResponseDto.class).mapNotNull(this::getValidatedLeagueDetails);
     }
 
-    public Mono<LeagueApiPlayersDto> getPlayerStatisticsByLeagueId(Integer leagueApiId, int currentSeason, int page) {
+    public Mono<ApiFootballPlayersStatistics> getPlayerStatisticsByLeagueId(Integer leagueApiId, int currentSeason, int page) {
         return webClientService.getApiResponse(
                 UrlEnum.buildPlayersUrlByLeagueApiId(leagueApiId, currentSeason, page),
-                LeagueApiPlayersDto.class);
+                ApiFootballPlayersStatistics.class);
     }
 
     public Mono<String> getPlayerStatisticsToStringByLeagueId(Integer leagueApiId, int currentSeason, int page) {

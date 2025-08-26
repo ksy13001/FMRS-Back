@@ -1,11 +1,9 @@
 package com.ksy.fmrs.service;
 
 import com.ksy.fmrs.domain.Team;
-import com.ksy.fmrs.dto.apiFootball.ApiFootballTeamsByLeague;
 import com.ksy.fmrs.dto.team.TeamDetailsDto;
-import com.ksy.fmrs.mapper.ApiDtoMapper;
+import com.ksy.fmrs.mapper.ApiFootballMapper;
 import com.ksy.fmrs.repository.BulkRepository;
-import com.ksy.fmrs.repository.LeagueRepository;
 import com.ksy.fmrs.repository.Team.TeamRepository;
 import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
@@ -20,8 +18,7 @@ import java.util.List;
 @Service
 public class TeamService {
     private final TeamRepository teamRepository;
-    private final LeagueRepository leagueRepository;
-    private final ApiDtoMapper apiDtoMapper;
+    private final ApiFootballMapper apiFootballMapper;
     private final BulkRepository bulkRepository;
 
     @Transactional(readOnly = true)
@@ -40,15 +37,11 @@ public class TeamService {
     }
 
     @Transactional
-    public void SaveAll(List<Team> teams, Long leagueId) {
+    public void saveAll(List<Team> teams, Long leagueId) {
         // 한 팀이 여러 리그에 속하는 케이스 있기 때문에 일단 중복 리그중 하나는 제거(브라질)
         bulkRepository.bulkUpsertTeams(
                 teams,
                 leagueId);
-    }
-
-    private List<Team> getTeamsFromApiFootball(ApiFootballTeamsByLeague teamApiResponse){
-        return apiDtoMapper.toEntity(teamApiResponse);
     }
 
 //    @Transactional

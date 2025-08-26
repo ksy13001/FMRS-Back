@@ -32,7 +32,7 @@ public interface LeagueRepository extends JpaRepository<League, Long> {
         """, nativeQuery = true)
     void upsertLeague(Integer apiId, String name, String logoUrl, Integer currentSeason, Boolean standing, LocalDate startDate, LocalDate endDate, String leagueType);
 
-//    void findLeagueByLeagueTypeIsLeague(League league);
+    List<League> findLeaguesByLeagueType(LeagueType leagueType);
 
     Optional<League> findLeagueByLeagueApiId(Integer leagueApiId);
 

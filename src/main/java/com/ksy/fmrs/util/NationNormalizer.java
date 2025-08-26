@@ -15,6 +15,9 @@ public class NationNormalizer{
     );
 
     public static String normalize(String raw) {
+        if (raw == null) {
+            return null;
+        }
         return NATIONS.getOrDefault(raw.toUpperCase(), raw);
     }
 }

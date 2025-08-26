@@ -5,7 +5,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.ksy.fmrs.domain.enums.MappingStatus;
 import com.ksy.fmrs.domain.player.*;
 import com.ksy.fmrs.domain.Team;
-import com.ksy.fmrs.dto.apiFootball.LeagueApiPlayersDto;
+import com.ksy.fmrs.dto.apiFootball.ApiFootballPlayersStatistics;
 import com.ksy.fmrs.dto.nation.NationDto;
 import com.ksy.fmrs.dto.player.FmPlayerDetailsDto;
 import com.ksy.fmrs.dto.player.PlayerDetailsDto;
@@ -63,11 +63,11 @@ public class PlayerService {
     }
 
     @Transactional
-    public void saveAllByPlayerStatistics(LeagueApiPlayersDto leagueApiPlayersDto) {
-        List<Player> players = leagueApiPlayersDto.response().stream().filter(Objects::nonNull)
+    public void saveAllByPlayerStatistics(ApiFootballPlayersStatistics apiFootballPlayersStatistics) {
+        List<Player> players = apiFootballPlayersStatistics.response().stream().filter(Objects::nonNull)
                 .map(dto -> {
-                    LeagueApiPlayersDto.PlayerDto player = dto.player();
-                    LeagueApiPlayersDto.StatisticDto.TeamDto teamDto = dto.statistics().getFirst().team();
+                    ApiFootballPlayersStatistics.PlayerDto player = dto.player();
+                    ApiFootballPlayersStatistics.StatisticDto.TeamDto teamDto = dto.statistics().getFirst().team();
                     Team team = teamRepository.findTeamByTeamApiId(teamDto.id())
                             .orElseThrow(() -> new IllegalArgumentException("Team not found: " + teamDto.id()));
                     Player newPlayer = Player.builder()
@@ -91,9 +91,9 @@ public class PlayerService {
     }
 
     @Transactional
-    public void bulkInsertPlayers(List<Player> players) {
+    public void saveAll(List<Player> players) {
         // 중복 제거된 Player 리스트를 저장
-        bulkRepository.bulkInsertPlayers(getDistinctPlayersByPlayerApiId(players));
+        bulkRepository.bulkUpsertPlayers(players);
     }
 
 //    @Transactional
@@ -106,9 +106,9 @@ public class PlayerService {
      */
     @Transactional
     public void savePlayersByPlayerRaw(PlayerRaw playerRaw) throws JsonProcessingException {
-        LeagueApiPlayersDto leagueApiPlayersDto = objectMapper.readValue(
-                playerRaw.getJsonRaw(), LeagueApiPlayersDto.class);
-        bulkRepository.bulkInsertPlayers(playerMapper.leaguePlayersToEntities(leagueApiPlayersDto));
+        ApiFootballPlayersStatistics apiFootballPlayersStatistics = objectMapper.readValue(
+                playerRaw.getJsonRaw(), ApiFootballPlayersStatistics.class);
+        bulkRepository.bulkUpsertPlayers(playerMapper.leaguePlayersToEntities(apiFootballPlayersStatistics));
     }
 
     private List<Player> getDistinctPlayersByPlayerApiId(List<Player> players) {

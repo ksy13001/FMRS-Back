@@ -110,6 +110,15 @@ public enum UrlEnum {
                 PARAM_SEASON.getValue() + currentSeason;
     }
 
+    public static String buildPlayerStatisticsUrlByTeamApiId(Integer teamApiId, int currentSeason, int page) {
+        return PLAYER_STATISTICS_URL.getValue() +
+                PARAM_TEAM.getValue() + teamApiId +
+                AND.getValue() +
+                PARAM_SEASON.getValue() + currentSeason+
+                AND.getValue()+
+                PARAM_PAGE.getValue() + page;
+    }
+
     public static String buildTeamsUrlByLeagueApiId(Integer leagueApiId, int currentSeason){
         return TEAMS_URL.getValue() +
                 PARAM_LEAGUE.getValue() + leagueApiId +

@@ -1,5 +1,6 @@
 package com.ksy.fmrs.config;
 
+import com.ksy.fmrs.domain.enums.LeagueType;
 import com.ksy.fmrs.repository.Player.PlayerRepository;
 import com.ksy.fmrs.service.SportsDataSyncFacade;
 import com.ksy.fmrs.service.SportsDataSyncService;
@@ -19,73 +20,60 @@ import java.util.Set;
 @Configuration
 public class SportsDataSyncConfig {
 
-    @Value("${init.fmplayer_dir_path}")
-    private String dirPath;
-
     /**
      * 서버 restart 시 환경 변수 파일에 INITIAL_DATA_INSERT=true 일 경우 서버 실행시 1번 실행됨
      */
     @Bean
     @ConditionalOnProperty(name = "INITIAL_DATA_INSERT", havingValue = "league")
-    public ApplicationRunner initializeLeague(SportsDataSyncService service) {
+    public ApplicationRunner initializeLeague(SportsDataSyncService syncService) {
         return args -> {
             log.info("Initial team insert started");
-            service.syncLeagues();
+            syncService.syncLeagues();
         };
     }
 
     @Bean
     @ConditionalOnProperty(name = "INITIAL_DATA_INSERT", havingValue = "team")
-    public ApplicationRunner initializeTeam(SportsDataSyncFacade initializerService,
+    public ApplicationRunner initializeTeam(SportsDataSyncFacade syncService,
                                             LeagueRepository leagueRepository) {
         return args -> {
             log.info("Initial team insert started");
-            initializerService.syncTeams(leagueRepository.findAll());
+            syncService.syncTeams(leagueRepository.findLeaguesByLeagueType(LeagueType.LEAGUE));
         };
     }
 
-    @Bean
-    @ConditionalOnProperty(name = "INITIAL_DATA_INSERT", havingValue = "player_raw")
-    public ApplicationRunner initializePlayerRaw(SportsDataSyncServiceWebFlux initializerService,
-                                                 LeagueRepository leagueRepository) {
-
-        return args -> {
-            log.info("Initial playerRaw insert started");
-            initializerService.savePlayerRaws(leagueRepository.findAll()).subscribe();
-        };
-    }
-
-    @Bean
-    @ConditionalOnProperty(name = "INITIAL_DATA_INSERT", havingValue = "player_from_player_raw")
-    public ApplicationRunner initializePlayerFromPlayerRaw(SportsDataSyncServiceWebFlux initializerService) {
-
-        return args -> {
-            log.info("Initializing player row started");
-            initializerService.initializePlayerFromPlayerRaw();
-        };
-    }
 
     @Bean
     @ConditionalOnProperty(name = "INITIAL_DATA_INSERT", havingValue = "player")
-    public ApplicationRunner initializePlayer(SportsDataSyncServiceWebFlux initializerService,
-                                              LeagueRepository leagueRepository) {
-
+    public ApplicationRunner initializePlayer(SportsDataSyncService syncService,
+                                              TeamRepository teamRepository) {
         return args -> {
             log.info("Initializing player started");
-            initializerService.saveInitialPlayers(leagueRepository.findAll(), Set.of()).subscribe();
+            syncService.syncPlayers(teamRepository.findAllTeamsWithLeague());
         };
     }
 
-    @Bean
-    @ConditionalOnProperty(name = "INITIAL_DATA_INSERT", havingValue = "append_player")
-    public ApplicationRunner appendNewPlayer(SportsDataSyncServiceWebFlux initializerService,
-                                             LeagueRepository leagueRepository, PlayerRepository playerRepository) {
+    //    @Bean
+//    @ConditionalOnProperty(name = "INITIAL_DATA_INSERT", havingValue = "player_from_player_raw")
+//    public ApplicationRunner initializePlayerFromPlayerRaw(SportsDataSyncServiceWebFlux initializerService) {
+//
+//        return args -> {
+//            log.info("Initializing player row started");
+//            initializerService.initializePlayerFromPlayerRaw();
+//        };
+//    }
 
-        return args -> {
-            log.info("appending player started");
-            initializerService.saveInitialPlayers(leagueRepository.findAll(), playerRepository.findAllPlayerApiId()).subscribe();
-        };
-    }
+
+//    @Bean
+//    @ConditionalOnProperty(name = "INITIAL_DATA_INSERT", havingValue = "append_player")
+//    public ApplicationRunner appendNewPlayer(SportsDataSyncServiceWebFlux initializerService,
+//                                             LeagueRepository leagueRepository, PlayerRepository playerRepository) {
+//
+//        return args -> {
+//            log.info("appending player started");
+//            initializerService.saveInitialPlayers(leagueRepository.findAll(), playerRepository.findAllPlayerApiId()).subscribe();
+//        };
+//    }
 
 //    @Bean
 //    @ConditionalOnProperty(name = "INITIAL_DATA_INSERT", havingValue = "append_player")
@@ -102,7 +90,8 @@ public class SportsDataSyncConfig {
 
     @Bean
     @ConditionalOnProperty(name = "INITIAL_DATA_INSERT", havingValue = "fmplayer")
-    public ApplicationRunner initializeFMPlayer(SportsDataSyncServiceWebFlux initializerService) {
+    public ApplicationRunner initializeFMPlayer(SportsDataSyncServiceWebFlux initializerService,
+                                                @Value("${init.fmplayer_dir_path}") String dirPath) {
 
         return args -> {
             log.info("Initializing fmplayer started");
