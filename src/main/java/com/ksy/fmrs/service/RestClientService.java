@@ -2,11 +2,12 @@ package com.ksy.fmrs.service;
 
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
+import org.springframework.stereotype.Component;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestClient;
 
 @RequiredArgsConstructor
-@Service
+@Component
 public class RestClientService {
 
     private final RestClient restClient;

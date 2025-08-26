@@ -62,13 +62,13 @@ public class StringUtils {
         return name.substring(0, 1);
     }
 
-    public static int extractNumber(String value) {
+    public static Integer extractNumber(String value) {
         if (value == null || value.isEmpty()) {
-            return 0;
+            return null;
         }
         String numeric = value.replaceAll("\\D+", "");
         if (numeric.isEmpty()) {
-            throw new IllegalArgumentException("No numeric value found in: " + value);
+            return null;
         }
         return Integer.parseInt(numeric);
     }

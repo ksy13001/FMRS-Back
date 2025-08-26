@@ -52,7 +52,16 @@ public class League {
     private LocalDate endDate;
 
     @Builder
-    public League(Integer leagueApiId, String name, String nationName, String nationLogoUrl, Integer currentSeason, String logoUrl, LeagueType leagueType, Boolean standing) {
+    public League(Integer leagueApiId,
+                  String name,
+                  String nationName,
+                  String nationLogoUrl,
+                  Integer currentSeason,
+                  String logoUrl,
+                  LeagueType leagueType,
+                  Boolean standing,
+                  LocalDate startDate,
+                  LocalDate endDate) {
         this.leagueApiId = leagueApiId;
         this.name = name;
         this.nationName = nationName;
@@ -61,7 +70,11 @@ public class League {
         this.logoUrl = logoUrl;
         this.leagueType = leagueType;
         this.standing = standing;
+        this.startDate = startDate;
+        this.endDate = endDate;
+
     }
+
 
     public void updateLeagueInfo(Integer leagueApiId, String name, String nation, String nationImageUrl, Integer currentSeason, String logoUrl) {
         this.leagueApiId = leagueApiId;

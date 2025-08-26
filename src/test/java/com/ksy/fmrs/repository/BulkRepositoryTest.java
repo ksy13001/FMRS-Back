@@ -2,7 +2,6 @@
 //
 //import com.ksy.fmrs.domain.enums.MappingStatus;
 //import com.ksy.fmrs.domain.player.Player;
-//import com.ksy.fmrs.repository.BulkRepository;
 //import jakarta.persistence.EntityManager;
 //import jakarta.persistence.TypedQuery;
 //import org.assertj.core.api.Assertions;
@@ -19,10 +18,11 @@
 //@ActiveProfiles("test")
 //@SpringBootTest
 //class BulkRepositoryTest {
+//
 //    @Autowired
 //    private BulkRepository bulkRepository;
 //    @Autowired
-//    private EntityManager entityManager;
+//    private EntityManager em;
 //
 //    @Test
 //    @DisplayName("Player List bulk insert 테스트")
@@ -37,7 +37,7 @@
 //        // when
 //        bulkRepository.bulkInsertPlayers(players);
 //        // then
-//        TypedQuery<Player> result = entityManager.createQuery("SELECT p FROM Player p ", Player.class);
+//        TypedQuery<Player> result = em.createQuery("SELECT p FROM Player p ", Player.class);
 //        Assertions.assertThat(result.getResultList()).hasSize(1000);
 //    }
 //
@@ -56,4 +56,4 @@
 //                .build();
 //    }
 //}
-
+//

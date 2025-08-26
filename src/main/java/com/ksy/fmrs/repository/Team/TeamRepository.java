@@ -20,5 +20,5 @@ public interface TeamRepository extends JpaRepository<Team, Long>, TeamRepositor
     List<Team> findAllByNameStartingWithOrderByNameAsc(String name);
 
     @Query("select t.teamApiId from Team t")
-    Set<Integer> findTeamApiIds();
+    List<Integer> findTeamApiIds();
 }

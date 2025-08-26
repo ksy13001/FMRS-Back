@@ -2,7 +2,7 @@ package com.ksy.fmrs.mapper;
 
 import com.ksy.fmrs.domain.enums.MappingStatus;
 import com.ksy.fmrs.domain.player.Player;
-import com.ksy.fmrs.dto.apiFootball.LeagueApiPlayersDto;
+import com.ksy.fmrs.dto.apiFootball.ApiFootballPlayersStatistics;
 import com.ksy.fmrs.util.StringUtils;
 import org.springframework.stereotype.Component;
 
@@ -17,8 +17,8 @@ public class PlayerMapper {
     private static final String NATION_KOREA_REPUBLIC = "KOREA REPUBLIC";
 
 
-    public List<Player> leaguePlayersToEntities(LeagueApiPlayersDto leagueApiPlayersDto) {
-        return leagueApiPlayersDto.response().stream()
+    public List<Player> leaguePlayersToEntities(ApiFootballPlayersStatistics apiFootballPlayersStatistics) {
+        return apiFootballPlayersStatistics.response().stream()
                 .filter(Objects::nonNull)
                 .map(playerWrapperDto -> {
                     return createPlayer(playerWrapperDto.player());
@@ -33,7 +33,7 @@ public class PlayerMapper {
      * ● 그 외 국적 선수는 <b>name</b> 필드 사용해 성 추출<br/>
      * ● 필수 키(first, last, birth, nation) 중 하나라도 누락 시 FAILED 상태로 생성
      */
-    private Player createPlayer(LeagueApiPlayersDto.PlayerDto dto) {
+    private Player createPlayer(ApiFootballPlayersStatistics.PlayerDto dto) {
         String rawNation = dto.nationality();
         String nation    = upperOrNull(rawNation);
 

@@ -16,7 +16,7 @@ import org.mockito.junit.jupiter.MockitoExtension;
 class InitializerServiceTest {
 
     @InjectMocks
-    private ReactiveInitializeService initializerService;
+    private SportsDataSyncServiceWebFlux initializerService;
     @Mock
     private LeagueRepository leagueRepository;
     @Mock

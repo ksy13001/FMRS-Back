@@ -1,0 +1,53 @@
+package com.ksy.fmrs.service;
+
+import com.ksy.fmrs.domain.League;
+import com.ksy.fmrs.dto.apiFootball.ApiFootballLeague;
+import com.ksy.fmrs.mapper.ApiFootballMapper;
+import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.stereotype.Component;
+
+import java.util.List;
+
+@Slf4j
+@RequiredArgsConstructor
+@Component
+public class LeagueSyncCallback implements SyncCallback<Integer, ApiFootballLeague, League> {
+
+    private final ApiFootballClient apiFootballClient;
+    private final ApiFootballMapper apiFootballMapper;
+    private final LeagueService leagueService;
+    private final ApiFootballValidator apiFootballValidator;
+
+    @Override
+    public void beforeEach(Integer nowApiId) {
+        log.info("league upsert start apiId:{}", nowApiId);
+    }
+
+    @Override
+    public List<ApiFootballLeague> requestSportsData(Integer key) {
+        return List.of(apiFootballClient.requestLeagueByApiId(key));
+    }
+
+    @Override
+    public void validate(List<ApiFootballLeague> dto) {;
+        for(ApiFootballLeague apiFootballLeague : dto){
+            apiFootballValidator.validateLeague(apiFootballLeague);
+        }
+    }
+
+    @Override
+    public List<League> toEntity(List<ApiFootballLeague> dto) {
+        return List.of(apiFootballMapper.toEntity(dto.getFirst()));
+    }
+
+    @Override
+    public void persist(List<League> entities, Integer key) {
+        leagueService.upsert(entities.getFirst());
+    }
+
+    @Override
+    public void afterEach(Integer nowApiId) {
+        log.info("league upsert complete apiId:{}", nowApiId);
+    }
+}

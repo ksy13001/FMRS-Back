@@ -26,6 +26,25 @@ public class LeagueService {
     private final LeagueRepository leagueRepository;
 
     @Transactional
+    public void save(League league) {
+        leagueRepository.save(league);
+    }
+
+    @Transactional
+    public void upsert(League league){
+        leagueRepository.upsertLeague(
+                league.getLeagueApiId(),
+                league.getName(),
+                league.getLogoUrl(),
+                league.getCurrentSeason(),
+                league.getStanding(),
+                league.getStartDate(),
+                league.getEndDate(),
+                league.getLeagueType().getValue()
+        );
+    }
+
+    @Transactional
     public void saveAllByLeagueDetails(List<LeagueAPIDetailsResponseDto> leagueAPIDetailsResponseDto) {
         List<League> allLeague = leagueAPIDetailsResponseDto.stream().map(dto -> {
             return League.builder()

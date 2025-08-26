@@ -1,10 +1,9 @@
 package com.ksy.fmrs.service;
 
-import com.ksy.fmrs.domain.League;
 import com.ksy.fmrs.domain.Team;
 import com.ksy.fmrs.dto.team.TeamDetailsDto;
-import com.ksy.fmrs.dto.team.TeamStandingDto;
-import com.ksy.fmrs.repository.LeagueRepository;
+import com.ksy.fmrs.mapper.ApiFootballMapper;
+import com.ksy.fmrs.repository.BulkRepository;
 import com.ksy.fmrs.repository.Team.TeamRepository;
 import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
@@ -13,15 +12,14 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
-import java.util.Set;
-import java.util.stream.Collectors;
 
 @Slf4j
 @RequiredArgsConstructor
 @Service
 public class TeamService {
     private final TeamRepository teamRepository;
-    private final LeagueRepository leagueRepository;
+    private final ApiFootballMapper apiFootballMapper;
+    private final BulkRepository bulkRepository;
 
     @Transactional(readOnly = true)
     public TeamDetailsDto findTeamById(Long id) {
@@ -39,24 +37,11 @@ public class TeamService {
     }
 
     @Transactional
-    public void saveAllByTeamStanding(List<TeamStandingDto> teamStandingDtos, Set<Integer> existTeamApiIds) {
+    public void saveAll(List<Team> teams, Long leagueId) {
         // 한 팀이 여러 리그에 속하는 케이스 있기 때문에 일단 중복 리그중 하나는 제거(브라질)
-        List<Team> teams = teamStandingDtos.stream()
-                .filter(teamStandingDto -> !existTeamApiIds.contains(teamStandingDto.getTeamApiId()))
-                .collect(Collectors.toMap(TeamStandingDto::getTeamApiId,
-                dto -> {
-                    Team team = Team.builder()
-                            .name(dto.getTeamName())
-                            .teamApiId(dto.getTeamApiId())
-                            .logoUrl(dto.getTeamLogo())
-                            .build();
-                    League league = leagueRepository.findLeagueByLeagueApiId(dto.getLeagueApiId())
-                    .orElseThrow(()-> new RuntimeException("League not found leagueApiId: " + dto.getLeagueApiId()));
-                    team.updateLeague(league);
-                    return team;
-                    }, (existing, replacement) -> existing
-                )).values().stream().toList();
-        teamRepository.saveAll(teams);
+        bulkRepository.bulkUpsertTeams(
+                teams,
+                leagueId);
     }
 
 //    @Transactional

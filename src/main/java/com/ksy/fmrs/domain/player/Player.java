@@ -35,9 +35,9 @@ public class Player {
 
     private LocalDate birth;
 
-    private int height;
+    private Integer height;
 
-    private int weight;
+    private Integer weight;
 
     @Column(name = "nation_name")
     private String nationName;
@@ -77,8 +77,8 @@ public class Player {
             String lastName,
             String name,
             LocalDate birth,
-            int height,
-            int weight,
+            Integer height,
+            Integer weight,
             String imageUrl,
             String nationName,
             String nationLogoUrl,

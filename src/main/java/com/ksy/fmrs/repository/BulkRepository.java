@@ -1,6 +1,7 @@
 package com.ksy.fmrs.repository;
 
 
+import com.ksy.fmrs.domain.Team;
 import com.ksy.fmrs.domain.player.FmPlayer;
 import com.ksy.fmrs.domain.player.Player;
 import lombok.RequiredArgsConstructor;
@@ -23,10 +24,21 @@ import java.util.List;
 public class BulkRepository {
     private final JdbcTemplate jdbcTemplate;
 
-    public void bulkInsertPlayers(List<Player> players) {
-        String sql = "INSERT IGNORE INTO player " +
-                "(player_api_id, first_name, last_name, nation_name, nation_logo_url, birth, height, weight, image_url, mapping_status) " +
-                "VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
+    public void bulkUpsertPlayers(List<Player> players) {
+        String sql = "INSERT INTO player " +
+                "(player_api_id, name, first_name, last_name, nation_name, nation_logo_url, birth, height, weight, image_url, mapping_status) " +
+                "VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?) AS new " +
+                "ON DUPLICATE KEY UPDATE " +
+                "name = new.name, " +
+                "first_name = new.first_name, " +
+                "last_name = new.last_name, " +
+                "nation_name = new.nation_name, " +
+                "nation_logo_url = new.nation_logo_url, " +
+                "birth = COALESCE(new.birth, player.birth) , " +
+                "height = COALESCE(new.height, player.height), " +
+                "weight = COALESCE(new.weight, player.weight), " +
+                "image_url = new.image_url, " +
+                "mapping_status = new.mapping_status";
 
         jdbcTemplate.batchUpdate(sql, new BatchPreparedStatementSetter() {
 
@@ -34,20 +46,49 @@ public class BulkRepository {
             public void setValues(PreparedStatement ps, int i) throws SQLException {
                 Player player = players.get(i);
                 ps.setInt(1, player.getPlayerApiId());
-                ps.setString(2, player.getFirstName());
-                ps.setString(3, player.getLastName());
-                ps.setString(4, player.getNationName());
-                ps.setString(5, player.getNationLogoUrl());
-                ps.setObject(6, player.getBirth(), Types.DATE);
-                ps.setInt(7, player.getHeight());
-                ps.setInt(8, player.getWeight());
-                ps.setString(9, player.getImageUrl());
-                ps.setString(10, player.getMappingStatus().getValue());
+                ps.setString(2, player.getName());
+                ps.setString(3, player.getFirstName());
+                ps.setString(4, player.getLastName());
+                ps.setString(5, player.getNationName());
+                ps.setString(6, player.getNationLogoUrl());
+                ps.setObject(7, player.getBirth(), Types.DATE);
+                ps.setObject(8, player.getHeight(), Types.INTEGER);
+                ps.setObject(9, player.getWeight(), Types.INTEGER);
+                ps.setString(10, player.getImageUrl());
+                ps.setString(11, player.getMappingStatus().getValue());
             }
 
             @Override
             public int getBatchSize() {
                 return players.size();
+            }
+        });
+    }
+
+    public void bulkUpsertTeams(List<Team> teams, Long leagueId) {
+        String sql = """
+                INSERT INTO team
+                (name, team_api_id, logo_url, league_id)
+                VALUES (?, ?, ?, ?)
+                ON DUPLICATE KEY UPDATE
+                name=VALUES(name),
+                team_api_id=VALUES(team_api_id),
+                logo_url=VALUES(logo_url),
+                league_id=VALUES(league_id)
+                """;
+        jdbcTemplate.batchUpdate(sql, new BatchPreparedStatementSetter() {
+            @Override
+            public void setValues(PreparedStatement ps, int i) throws SQLException {
+                Team team = teams.get(i);
+                ps.setString(1, team.getName());
+                ps.setInt(2, team.getTeamApiId());
+                ps.setString(3, team.getLogoUrl());
+                ps.setLong(4, leagueId);
+            }
+
+            @Override
+            public int getBatchSize() {
+                return teams.size();
             }
         });
     }

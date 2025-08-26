@@ -6,11 +6,10 @@ import com.ksy.fmrs.domain.League;
 import com.ksy.fmrs.domain.enums.LeagueType;
 import com.ksy.fmrs.domain.enums.MappingStatus;
 import com.ksy.fmrs.domain.player.*;
-import com.ksy.fmrs.dto.apiFootball.LeagueApiPlayersDto;
+import com.ksy.fmrs.dto.apiFootball.ApiFootballPlayersStatistics;
 import com.ksy.fmrs.dto.league.LeagueAPIDetailsResponseDto;
 import com.ksy.fmrs.dto.player.FmPlayerDto;
 import com.ksy.fmrs.repository.BulkRepository;
-import com.ksy.fmrs.repository.LeagueRepository;
 import com.ksy.fmrs.repository.Player.PlayerRawRepository;
 import com.ksy.fmrs.util.NationNormalizer;
 import com.ksy.fmrs.util.StringUtils;
@@ -33,21 +32,21 @@ import java.util.concurrent.atomic.AtomicInteger;
 import java.util.stream.Collectors;
 
 import static java.util.stream.Collectors.groupingBy;
+import static java.util.stream.Collectors.toMap;
 
 @Slf4j
 @RequiredArgsConstructor
 @Service
-public class ReactiveInitializeService {
+public class SportsDataSyncServiceWebFlux{
     private final ObjectMapper objectMapper;
-    private final LeagueRepository leagueRepository;
     private final BulkRepository bulkRepository;
     private final FootballApiService footballApiService;
     private final PlayerRawRepository playerRawRepository;
     private final LeagueService leagueService;
     private final TeamService teamService;
     private final PlayerService playerService;
-    private static final int LAST_LEAGUE_ID = 1172; //1172
-    private static final int FIRST_LEAGUE_ID = 1;   //1
+    private static final int LAST_LEAGUE_ID = 1172;
+    private static final int FIRST_LEAGUE_ID = 1;
     private static final int SEASON_2024 = 2024;
     private static final int DEFAULT_PAGE = 1;
     //각 요청 사이에 약 133ms 딜레이 (450회/분 ≒ 7.5회/초)
@@ -94,33 +93,40 @@ public class ReactiveInitializeService {
     }
 
 
-    // league standing에서 team 생성
-    public Mono<Void> saveInitialTeams(List<League> leagues, Set<Integer> existTeamIds) {
-        return Flux.fromIterable(leagues)
-                .delayElements(Duration.ofMillis(DELAY_MS))
-                .flatMap(league ->
-                                footballApiService.getLeagueStandings(league.getLeagueApiId(), league.getCurrentSeason())
-                                        .timeout(Duration.ofSeconds(TIME_OUT))
-                        , 3)
-                .doOnNext(response -> {
-                    if (response.isEmpty()) {
-                        log.info("leagueApiId {}: 응답 없음", response.getFirst().getLeagueApiId());
-                    } else {
-                        log.info("leagueApiId {}: 응답 있음", response.getFirst().getLeagueApiId());
-                    }
-                })
-                .onErrorResume(e -> {
-                    log.error("leagueApiId {} 에러 발생: {}", e.getMessage());
-                    return Mono.empty();
-                })
-                .flatMap(Flux::fromIterable)
-                .collectList()
-                .flatMap(teamStandingDtos ->
-                        Mono.fromRunnable(() -> teamService.saveAllByTeamStanding(teamStandingDtos, existTeamIds))
-                                .subscribeOn(Schedulers.boundedElastic())
-                )
-                .then();
-    }
+    /**
+     * league 에서 team 가져오기
+     *
+     * */
+//    public Mono<Void> saveInitialTeams(List<League> leagues) {
+//        Map<Integer, Long> leagueApiToId = leagues
+//                .stream()
+//                .collect(Collectors.toMap(League::getLeagueApiId, League::getId));
+//
+//        return Flux.fromIterable(leagues)
+//                .delayElements(Duration.ofMillis(DELAY_MS))
+//                .flatMap(league ->
+//                                footballApiService.getTeamsInLeague(league.getLeagueApiId(), league.getCurrentSeason())
+//                                        .timeout(Duration.ofSeconds(TIME_OUT))
+//                        , 3)
+//                .doOnNext(dto -> {
+//                    if (dto.response().isEmpty() || dto.response().get(0).team() == null) {
+//                        log.info("leagueApiId {}: 응답 없음", dto.parameters().league());
+//                    } else {
+//                        log.info("leagueApiId {}: 응답 있음", dto.parameters().league());
+//                    }
+//                    log.info(dto.toString());
+//                })
+//                .onErrorResume(e -> {
+//                    log.error("leagueApiId {} 에러 발생: {}", e.getMessage());
+//                    return Mono.empty();
+//                })
+//                .flatMap(dtos ->
+//                        Mono.fromRunnable(() -> teamService.bulkSaveAll(
+//                                dtos, leagueApiToId.get(Integer.valueOf(dtos.parameters().league()))))
+//                                .subscribeOn(Schedulers.boundedElastic())
+//                )
+//                .then();
+//    }
 
     public Mono<Void> saveInitialPlayers(List<League> leagues, Set<Integer> existPlayerIds) {
         AtomicInteger cnt = new AtomicInteger(0);
@@ -167,7 +173,7 @@ public class ReactiveInitializeService {
                 // 선수 1000명 모일시 bulk insert
                 .filter(player-> !existPlayerIds.contains(player.getPlayerApiId()))
                 .buffer(1000)
-                .concatMap(batch -> Mono.fromRunnable(() -> bulkRepository.bulkInsertPlayers(batch)))
+                .concatMap(batch -> Mono.fromRunnable(() -> bulkRepository.bulkUpsertPlayers(batch)))
                 .onErrorContinue((e, o) -> {
                     log.info("저장 중 애러 발생 : {}", e.getMessage());
                 }).then();
@@ -240,7 +246,7 @@ public class ReactiveInitializeService {
                 .buffer(200)
                 .flatMap(batch -> {
                     log.info("bulk insert 시작: size={}", batch.size());
-                    return Mono.fromRunnable(() -> bulkRepository.bulkInsertPlayers(batch))
+                    return Mono.fromRunnable(() -> bulkRepository.bulkUpsertPlayers(batch))
                             .subscribeOn(Schedulers.boundedElastic())
                             .doOnSuccess(v -> {
                                 int done = totalCnt.addAndGet(batch.size());
@@ -340,9 +346,9 @@ public class ReactiveInitializeService {
     }
 
     //https://v3.football.api-sports.io/players?league=39&season=2024 한 페이지 선수 정보 리스트
-    private List<Player> convertPlayerStatisticsDtoToPlayer(LeagueApiPlayersDto leagueApiPlayersDto) {
-        return leagueApiPlayersDto.response().stream().filter(Objects::nonNull).map(dto -> {
-            LeagueApiPlayersDto.PlayerDto player = dto.player();
+    private List<Player> convertPlayerStatisticsDtoToPlayer(ApiFootballPlayersStatistics apiFootballPlayersStatistics) {
+        return apiFootballPlayersStatistics.response().stream().filter(Objects::nonNull).map(dto -> {
+            ApiFootballPlayersStatistics.PlayerDto player = dto.player();
             return Player.builder()
                     .playerApiId(player.id())
                     .imageUrl(player.photo())
