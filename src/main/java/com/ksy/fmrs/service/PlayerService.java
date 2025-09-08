@@ -67,7 +67,7 @@ public class PlayerService {
         // 중복 제거된 Player 리스트를 저장
         bulkRepository.bulkUpsertPlayers(players);
     }
-r
+
 
 //    @Transactional
 //    public void saveAllByPlayerStatistics(ApiFootballPlayersStatistics apiFootballPlayersStatistics) {
