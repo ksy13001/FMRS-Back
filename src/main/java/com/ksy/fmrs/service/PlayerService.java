@@ -63,38 +63,40 @@ public class PlayerService {
     }
 
     @Transactional
-    public void saveAllByPlayerStatistics(ApiFootballPlayersStatistics apiFootballPlayersStatistics) {
-        List<Player> players = apiFootballPlayersStatistics.response().stream().filter(Objects::nonNull)
-                .map(dto -> {
-                    ApiFootballPlayersStatistics.PlayerDto player = dto.player();
-                    ApiFootballPlayersStatistics.StatisticDto.TeamDto teamDto = dto.statistics().getFirst().team();
-                    Team team = teamRepository.findTeamByTeamApiId(teamDto.id())
-                            .orElseThrow(() -> new IllegalArgumentException("Team not found: " + teamDto.id()));
-                    Player newPlayer = Player.builder()
-//                            .name(player.name())
-                            .playerApiId(player.id())
-//                            .teamApiId(Objects.requireNonNull(dto.statistics()).getFirst().team().id())
-//                            .leagueApiId(Objects.requireNonNull(dto.statistics()).getFirst().league().id())
-                            .firstName(StringUtils.getFirstName(player.firstname()).toUpperCase())
-                            .lastName(StringUtils.getLastName(player.lastname()).toUpperCase())
-                            .nationName(player.nationality().toUpperCase())
-                            .nationLogoUrl(Objects.requireNonNull(dto.statistics().getFirst().league().flag()))
-//                            .age(player.age())
-                            .birth(player.birth().date())
-                            .height(StringUtils.extractNumber(player.height()))
-                            .weight(StringUtils.extractNumber(player.weight()))
-                            .build();
-                    newPlayer.updateTeam(team);
-                    return newPlayer;
-                }).toList();
-        playerRepository.saveAll(players);
-    }
-
-    @Transactional
     public void saveAll(List<Player> players) {
         // 중복 제거된 Player 리스트를 저장
         bulkRepository.bulkUpsertPlayers(players);
     }
+r
+
+//    @Transactional
+//    public void saveAllByPlayerStatistics(ApiFootballPlayersStatistics apiFootballPlayersStatistics) {
+//        List<Player> players = apiFootballPlayersStatistics.response().stream().filter(Objects::nonNull)
+//                .map(dto -> {
+//                    ApiFootballPlayersStatistics.PlayerDto player = dto.player();
+//                    ApiFootballPlayersStatistics.StatisticDto.TeamDto teamDto = dto.statistics().getFirst().team();
+//                    Team team = teamRepository.findTeamByTeamApiId(teamDto.id())
+//                            .orElseThrow(() -> new IllegalArgumentException("Team not found: " + teamDto.id()));
+//                    Player newPlayer = Player.builder()
+////                            .name(player.name())
+//                            .playerApiId(player.id())
+////                            .teamApiId(Objects.requireNonNull(dto.statistics()).getFirst().team().id())
+////                            .leagueApiId(Objects.requireNonNull(dto.statistics()).getFirst().league().id())
+//                            .firstName(StringUtils.getFirstName(player.firstname()).toUpperCase())
+//                            .lastName(StringUtils.getLastName(player.lastname()).toUpperCase())
+//                            .nationName(player.nationality().toUpperCase())
+//                            .nationLogoUrl(Objects.requireNonNull(dto.statistics().getFirst().league().flag()))
+////                            .age(player.age())
+//                            .birth(player.birth().date())
+//                            .height(StringUtils.extractNumber(player.height()))
+//                            .weight(StringUtils.extractNumber(player.weight()))
+//                            .build();
+//                    newPlayer.updateTeam(team);
+//                    return newPlayer;
+//                }).toList();
+//        playerRepository.saveAll(players);
+//    }
+
 
 //    @Transactional
 //    public Long updateDuplicatedUnmappedPlayersToFailed(){

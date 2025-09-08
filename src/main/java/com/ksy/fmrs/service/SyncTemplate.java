@@ -1,13 +1,11 @@
 package com.ksy.fmrs.service;
 
-import com.ksy.fmrs.dto.ValidateResponse;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 
 import java.util.List;
 
-@RequiredArgsConstructor
 @Slf4j
 @Component
 public class SyncTemplate {
