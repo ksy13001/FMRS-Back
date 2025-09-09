@@ -3,7 +3,6 @@ package com.ksy.fmrs.service;
 import com.ksy.fmrs.domain.Team;
 import com.ksy.fmrs.dto.apiFootball.SquadApiResponseDto;
 import com.ksy.fmrs.repository.BulkRepository;
-import com.ksy.fmrs.repository.Team.TeamRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -20,7 +19,6 @@ import java.util.stream.Collectors;
 @Service
 public class ReactiveUpdateService {
 
-    private final TeamRepository teamRepository;
     private final BulkRepository bulkRepository;
     private final FootballApiService footballApiService;
 

@@ -18,7 +18,6 @@ import java.util.List;
 @Service
 public class TeamService {
     private final TeamRepository teamRepository;
-    private final ApiFootballMapper apiFootballMapper;
     private final BulkRepository bulkRepository;
 
     @Transactional(readOnly = true)

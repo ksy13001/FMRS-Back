@@ -1,7 +1,5 @@
 package com.ksy.fmrs.service;
 
-import com.ksy.fmrs.dto.ValidateResponse;
-
 import java.util.List;
 
 public interface SyncCallback<K , D, E>{
