@@ -68,9 +68,9 @@ public class PlayerRepositoryCustomImpl implements PlayerRepositoryCustom {
     public Page<Player> searchPlayerByDetailCondition(SearchPlayerCondition condition, Pageable pageable) {
         List<Player> players = jpaQueryFactory
                 .selectFrom(player)
-                .leftJoin(player.team, team).fetchJoin()   // 무소속인 선수들까지 가져오기 위해 leftJoin
-                .leftJoin(player.team.league, league).fetchJoin()
-                .leftJoin(player.fmPlayer, fmPlayer).fetchJoin()
+                .leftJoin(player.team, team) // 무소속인 선수들까지 가져오기 위해 leftJoin
+                .leftJoin(player.team.league, league)
+                .leftJoin(player.fmPlayer, fmPlayer)
                 .offset(pageable.getOffset())
                 .limit(pageable.getPageSize())
                 .where(playerDetailSearchCondition(condition))
