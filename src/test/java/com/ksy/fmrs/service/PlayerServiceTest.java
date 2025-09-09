@@ -1,8 +1,10 @@
 package com.ksy.fmrs.service;
 
 import static org.junit.jupiter.api.Assertions.*;
+import static org.mockito.BDDMockito.given;
 import static org.mockito.Mockito.*;
 
+import com.ksy.fmrs.domain.League;
 import com.ksy.fmrs.domain.enums.MappingStatus;
 import com.ksy.fmrs.domain.player.*;
 import com.ksy.fmrs.domain.Team;
@@ -15,6 +17,7 @@ import com.ksy.fmrs.dto.team.TeamPlayersResponseDto;
 import com.ksy.fmrs.repository.Player.PlayerRepository;
 import com.ksy.fmrs.util.StringUtils;
 import org.assertj.core.api.Assertions;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -39,6 +42,57 @@ public class PlayerServiceTest {
 
     @InjectMocks
     private PlayerService playerService;
+
+    private Player ronaldo;
+
+    @BeforeEach
+    void setUp() {
+        ronaldo = Player.builder()
+                .name("ronaldo")
+                .birth(LocalDate.of(1985, 2, 5))
+                .nationName("PORTUGAL")
+                .playerApiId(7)
+                .imageUrl("ronaldoIMG")
+                .height(187)
+                .weight(96)
+                .nationLogoUrl("PORTUGALIMG")
+                .mappingStatus(MappingStatus.MATCHED)
+                .firstName("Cristiano")
+                .lastName("Ronaldo")
+                .isGK(false)
+                .build();
+        Team team = Team.builder().name("Al nasr").build();
+        FmPlayer fmPlayer = createFmGKPlayer(
+                "Cristiano",
+                "Ronaldo",
+                LocalDate.of(1985, 2, 5),
+                "PORTUGAL", 180, 200);
+        League league = League.builder().name("saudi").build();
+        team.updateLeague(league);
+        ronaldo.updateTeam(team);
+        ronaldo.updateFmPlayer(fmPlayer);
+    }
+
+    @Test
+    @DisplayName("player 상세 조회 시, playerDetailsDto 반환")
+    void getPlayerDetails(){
+        // given
+        Long playerId = 1L;
+        ReflectionTestUtils.setField(ronaldo, "id", playerId);
+        given(playerRepository.findById(playerId)).willReturn(Optional.of(ronaldo));
+        // when
+        PlayerDetailsDto result = playerService.getPlayerDetails(playerId);
+        // then
+        Assertions.assertThat(result).isNotNull();
+        Assertions.assertThat(result.getName()).isEqualTo(ronaldo.getName());
+        Assertions.assertThat(result.getBirth()).isEqualTo(ronaldo.getBirth());
+        Assertions.assertThat(result.getNationName()).isEqualTo(ronaldo.getNationName());
+        Assertions.assertThat(result.getMappingStatus()).isEqualTo(ronaldo.getMappingStatus());
+        Assertions.assertThat(result.getCurrentAbility()).isEqualTo(ronaldo.getFmPlayer().getCurrentAbility());
+        Assertions.assertThat(result.getCurrentSeason()).isEqualTo(ronaldo.getTeam().getLeague().getCurrentSeason());
+        Assertions.assertThat(result.getTeamName()).isEqualTo(ronaldo.getTeam().getName());
+        Assertions.assertThat(result.getTeamLogoUrl()).isEqualTo(ronaldo.getTeam().getLogoUrl());
+    }
 
     @Test
     public void testGetPlayerDetailsNotFound() {
@@ -309,7 +363,7 @@ public class PlayerServiceTest {
                 .build();
     }
 
-    private FmPlayer createFmGKPlayer(String firstName, String lastName, LocalDate birth, String nation) {
+    private FmPlayer createFmGKPlayer(String firstName, String lastName, LocalDate birth, String nation, Integer currentAbility, Integer potentialAbility) {
         return FmPlayer.builder()
                 .firstName(firstName)
                 .lastName(lastName)
@@ -403,8 +457,8 @@ public class PlayerServiceTest {
                         .injuryProneness(8)
                         .versatility(15)
                         .build())
-                .currentAbility(190)
-                .potentialAbility(195)
+                .currentAbility(currentAbility)
+                .potentialAbility(potentialAbility )
                 .build();
     }
 }

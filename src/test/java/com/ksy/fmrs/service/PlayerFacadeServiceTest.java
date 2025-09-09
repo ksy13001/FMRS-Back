@@ -63,7 +63,7 @@ class PlayerFacadeServiceTest {
         player.updateFmPlayer(fmPlayer);
 
 
-        this.playerDetailsDto = new PlayerDetailsDto(player, "team1", "teamLogoUrl", 200);
+        this.playerDetailsDto = new PlayerDetailsDto(player, "team1", "teamLogoUrl", 2025,200);
         this.fmPlayerDetailsDto = new FmPlayerDetailsDto(fmPlayer);
         this.playerStatDto = new PlayerStatDto(playerStat);
         this.commentCountResponseDto = new CommentCountResponseDto(COMMENT_CNT);

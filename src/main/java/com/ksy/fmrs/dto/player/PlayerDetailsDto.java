@@ -10,7 +10,7 @@ import java.time.LocalDate;
 @Getter
 @Setter
 public class PlayerDetailsDto {
-    public PlayerDetailsDto(Player player, String teamName, String teamLogoUrl, Integer currentAbility) {
+    public PlayerDetailsDto(Player player, String teamName, String teamLogoUrl, Integer currentSeason, Integer currentAbility) {
         this.id = player.getId();
         this.playerApiId = player.getPlayerApiId();
         this.name = player.getName();
@@ -26,6 +26,7 @@ public class PlayerDetailsDto {
         this.mappingStatus = player.getMappingStatus();
         this.currentAbility = currentAbility;
         this.isGK = player.getIsGK();
+        this.currentSeason = currentSeason;
     }
 
     private Long id;
@@ -43,4 +44,5 @@ public class PlayerDetailsDto {
     private MappingStatus mappingStatus;
     private Integer currentAbility;
     private Boolean isGK;
+    private Integer currentSeason;
 }

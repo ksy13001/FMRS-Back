@@ -128,6 +128,7 @@ public class PlayerService {
                 player,
                 player.getTeamName(),
                 player.getTeamLogoUrl(),
+                player.getCurrentSeason(),
                 player.getFmPlayerCurrentAbility()
         );
     }
