@@ -43,7 +43,6 @@ public class SportsDataSyncServiceWebFlux{
     private final FootballApiService footballApiService;
     private final PlayerRawRepository playerRawRepository;
     private final LeagueService leagueService;
-    private final TeamService teamService;
     private final PlayerService playerService;
     private static final int LAST_LEAGUE_ID = 1172;
     private static final int FIRST_LEAGUE_ID = 1;
