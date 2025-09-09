@@ -140,6 +140,16 @@ public class Player {
         return this.team.getName();
     }
 
+    public Integer getCurrentSeason(){
+        if(this.team == null){
+            return null;
+        }
+        if (this.team.getLeague() == null){
+            return null;
+        }
+        return this.team.getLeague().getCurrentSeason();
+    }
+
     public String getTeamLogoUrl(){
         if(this.team == null){
             return null;
