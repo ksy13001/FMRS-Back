@@ -2,7 +2,7 @@ package com.ksy.fmrs.dto.apiFootball;
 
 import java.util.List;
 
-public record SquadApiResponseDto(
+public record ApiFootballSquad(
         String get,
         int results,
         Paging paging,

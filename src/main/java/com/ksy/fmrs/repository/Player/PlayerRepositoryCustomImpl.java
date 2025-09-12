@@ -7,7 +7,6 @@ import com.ksy.fmrs.dto.search.SearchPlayerCondition;
 import com.ksy.fmrs.util.time.TimeProvider;
 import com.querydsl.core.BooleanBuilder;
 import com.querydsl.core.Tuple;
-import com.querydsl.core.types.Expression;
 import com.querydsl.core.types.dsl.BooleanExpression;
 import com.querydsl.core.types.dsl.CaseBuilder;
 import com.querydsl.core.types.dsl.Expressions;
@@ -77,7 +76,11 @@ public class PlayerRepositoryCustomImpl implements PlayerRepositoryCustom {
                 .orderBy(fmPlayer.currentAbility.desc(), player.id.asc())
                 .fetch();
 
-        Long count = jpaQueryFactory
+        return new PageImpl<>(players, pageable, getSearchPlayerResultCount(condition));
+    }
+
+    private Long getSearchPlayerResultCount(SearchPlayerCondition condition){
+        return jpaQueryFactory
                 .select(player.count())
                 .from(player)
                 .leftJoin(player.team, team)
@@ -85,8 +88,6 @@ public class PlayerRepositoryCustomImpl implements PlayerRepositoryCustom {
                 .leftJoin(player.fmPlayer, fmPlayer)
                 .where(playerDetailSearchCondition(condition))
                 .fetchOne();
-
-        return new PageImpl<>(players, pageable, count);
     }
 
     //     검색 조건

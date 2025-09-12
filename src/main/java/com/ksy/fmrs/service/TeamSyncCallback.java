@@ -39,7 +39,7 @@ public class TeamSyncCallback implements SyncCallback<League, ApiFootballTeamsBy
     }
 
     @Override
-    public List<Team> toEntity(List<ApiFootballTeamsByLeague> dto) {
+    public List<Team> transFormToTarget(List<ApiFootballTeamsByLeague> dto) {
         return apiFootballMapper.toEntity(dto.getFirst());
     }
 

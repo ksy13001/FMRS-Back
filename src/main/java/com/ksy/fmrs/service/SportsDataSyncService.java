@@ -9,4 +9,5 @@ public interface SportsDataSyncService {
     void syncLeagues();
     void syncTeams(List<League> leagues);
     void syncPlayers(List<Team> teams);
+    void syncSquadMembers(List<Team> teams);
 }

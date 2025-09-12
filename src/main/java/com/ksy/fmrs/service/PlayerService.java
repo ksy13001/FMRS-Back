@@ -32,7 +32,7 @@ import java.util.stream.Collectors;
 @Slf4j
 @RequiredArgsConstructor
 @Service
-public class PlayerService {
+public class  PlayerService {
 
     private static final Integer TOP_N = 3;
 
@@ -68,40 +68,14 @@ public class PlayerService {
         bulkRepository.bulkUpsertPlayers(players);
     }
 
+    /**
+     *  squad 내 선수들 team update
+     * */
+    @Transactional
+    public void updateSquadPlayers(List<Integer> playerApiIds, Long teamId) {
+        bulkRepository.updatePlayersTeam(playerApiIds, teamId);
+    }
 
-//    @Transactional
-//    public void saveAllByPlayerStatistics(ApiFootballPlayersStatistics apiFootballPlayersStatistics) {
-//        List<Player> players = apiFootballPlayersStatistics.response().stream().filter(Objects::nonNull)
-//                .map(dto -> {
-//                    ApiFootballPlayersStatistics.PlayerDto player = dto.player();
-//                    ApiFootballPlayersStatistics.StatisticDto.TeamDto teamDto = dto.statistics().getFirst().team();
-//                    Team team = teamRepository.findTeamByTeamApiId(teamDto.id())
-//                            .orElseThrow(() -> new IllegalArgumentException("Team not found: " + teamDto.id()));
-//                    Player newPlayer = Player.builder()
-////                            .name(player.name())
-//                            .playerApiId(player.id())
-////                            .teamApiId(Objects.requireNonNull(dto.statistics()).getFirst().team().id())
-////                            .leagueApiId(Objects.requireNonNull(dto.statistics()).getFirst().league().id())
-//                            .firstName(StringUtils.getFirstName(player.firstname()).toUpperCase())
-//                            .lastName(StringUtils.getLastName(player.lastname()).toUpperCase())
-//                            .nationName(player.nationality().toUpperCase())
-//                            .nationLogoUrl(Objects.requireNonNull(dto.statistics().getFirst().league().flag()))
-////                            .age(player.age())
-//                            .birth(player.birth().date())
-//                            .height(StringUtils.extractNumber(player.height()))
-//                            .weight(StringUtils.extractNumber(player.weight()))
-//                            .build();
-//                    newPlayer.updateTeam(team);
-//                    return newPlayer;
-//                }).toList();
-//        playerRepository.saveAll(players);
-//    }
-
-
-//    @Transactional
-//    public Long updateDuplicatedUnmappedPlayersToFailed(){
-//        return playerRepository.updateDuplicatedUnmappedPlayersToFailed();
-//    }
 
     /**
      * playerRaw로 선수 저장: 한 페이지 별 저장

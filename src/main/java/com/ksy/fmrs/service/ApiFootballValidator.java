@@ -1,9 +1,9 @@
 package com.ksy.fmrs.service;
 
-import com.ksy.fmrs.dto.ValidateResponse;
 import com.ksy.fmrs.dto.apiFootball.ApiFootballLeague;
 import com.ksy.fmrs.dto.apiFootball.ApiFootballPlayersStatistics;
 import com.ksy.fmrs.dto.apiFootball.ApiFootballTeamsByLeague;
+import com.ksy.fmrs.dto.apiFootball.ApiFootballSquad;
 import com.ksy.fmrs.exception.NullApiDataException;
 import org.springframework.stereotype.Component;
 
@@ -62,6 +62,15 @@ public class ApiFootballValidator{
             if (playerWrapperDto.statistics() == null){
                 throw new NullApiDataException(STATISTICS_IS_NULL);
             }
+        }
+    }
+
+    public void validateSquad(ApiFootballSquad dto){
+        if (dto == null){
+            throw new NullApiDataException(DTO_IS_NULL);
+        }
+        if (dto.response() == null || dto.response().isEmpty()){
+            throw new NullApiDataException(RESPONSE_IS_NULL);
         }
     }
 }

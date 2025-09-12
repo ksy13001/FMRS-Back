@@ -1,10 +1,12 @@
 package com.ksy.fmrs.dto.search;
 
 import com.ksy.fmrs.domain.player.Player;
+import com.querydsl.core.annotations.QueryProjection;
 import lombok.Getter;
 import lombok.Setter;
 
 import java.util.List;
+
 
 @Setter
 @Getter
@@ -29,5 +31,17 @@ public class DetailSearchPlayerResponseDto {
         this.currentAbility = currentAbility;
         this.imageUrl = player.getImageUrl();
         this.topAttributes = topAttributes;
+    }
+
+    @QueryProjection
+    public DetailSearchPlayerResponseDto(String teamName, Long id, String name, String teamLogoUrl, String nationName, String imageUrl, Integer currentAbility, Integer age) {
+        this.teamName = teamName;
+        this.id = id;
+        this.name = name;
+        this.teamLogoUrl = teamLogoUrl;
+        this.nationName = nationName;
+        this.imageUrl = imageUrl;
+        this.currentAbility = currentAbility;
+        this.age = age;
     }
 }

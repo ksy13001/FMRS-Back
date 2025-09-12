@@ -113,8 +113,8 @@ public class FootballApiService {
                 .map(this::convertToLeagueInfoDto);
     }
 
-    public Mono<SquadApiResponseDto> getSquadPlayers(Integer teamApiId) {
-        return webClientService.getApiResponse(UrlEnum.buildSquadUrl(teamApiId), SquadApiResponseDto.class);
+    public Mono<ApiFootballSquad> getSquadPlayers(Integer teamApiId) {
+        return webClientService.getApiResponse(UrlEnum.buildSquadUrl(teamApiId), ApiFootballSquad.class);
     }
 
     public Mono<ApiFootballTeamsByLeague> getTeamsInLeague(Integer leagueApiId, int currentSeason) {
