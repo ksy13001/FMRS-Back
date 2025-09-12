@@ -16,7 +16,6 @@ import org.springframework.stereotype.Service;
 @Service
 public class SportsDataScheduler {
 
-    private final ReactiveUpdateService reactiveUpdateService;
     private final TeamRepository teamRepository;
     private final SportsDataSyncService sportsDataSyncService;
     private final LeagueService leagueService;
