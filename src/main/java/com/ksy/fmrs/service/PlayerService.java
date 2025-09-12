@@ -184,11 +184,16 @@ public class PlayerService {
     private DetailSearchPlayerResponseDto convertPlayerToDetailSearchPlayerResponseDto(Player player) {
         if(player.isMatched()){
             FmPlayer fmPlayer = player.getFmPlayer();
-            return new DetailSearchPlayerResponseDto(player,
+            return new DetailSearchPlayerResponseDto(
+                    player,
+                    player.getTeamName(),
+                    player.getTeamLogoUrl(),
                     fmPlayer.getCurrentAbility(),
                     fmPlayer.getTopNAttributes(TOP_N, fmPlayer.getAllAttributes()));
         }
         return new DetailSearchPlayerResponseDto(player,
+                player.getTeamName(),
+                player.getTeamLogoUrl(),
                 null,
                 Collections.emptyList()
                 );

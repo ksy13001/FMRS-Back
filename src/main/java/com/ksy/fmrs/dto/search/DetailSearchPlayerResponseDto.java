@@ -19,11 +19,11 @@ public class DetailSearchPlayerResponseDto {
     private String imageUrl;
     private List<String> topAttributes;
 
-    public DetailSearchPlayerResponseDto(Player player, Integer currentAbility, List<String> topAttributes) {
+    public DetailSearchPlayerResponseDto(Player player, String teamName, String teamLogoUrl, Integer currentAbility, List<String> topAttributes) {
         this.id = player.getId();
         this.name = player.getName();
-        this.teamName = player.getTeamName();
-        this.teamLogoUrl = player.getTeamLogoUrl();
+        this.teamName = teamName;
+        this.teamLogoUrl = teamLogoUrl;
         this.nationName = player.getNationName();
         this.age = player.getAge();
         this.currentAbility = currentAbility;
