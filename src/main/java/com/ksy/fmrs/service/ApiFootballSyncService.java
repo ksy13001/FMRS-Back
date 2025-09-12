@@ -55,7 +55,7 @@ public class ApiFootballSyncService implements SportsDataSyncService {
     }
 
     @Override
-    public void syncSquadMembers(List<Team> teams) {
+    public void syncSquadPlayers(List<Team> teams) {
         syncTemplate.sync(
                 teams,
                 squadSyncCallback
