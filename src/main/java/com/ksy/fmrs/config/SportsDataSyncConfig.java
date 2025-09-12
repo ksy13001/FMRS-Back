@@ -1,7 +1,7 @@
 package com.ksy.fmrs.config;
 
 import com.ksy.fmrs.domain.enums.LeagueType;
-import com.ksy.fmrs.service.SportsDataSyncServiceImpl;
+import com.ksy.fmrs.service.ApiFootballSyncService;
 import com.ksy.fmrs.service.SportsDataSyncService;
 import com.ksy.fmrs.service.SportsDataSyncServiceWebFlux;
 import com.ksy.fmrs.repository.LeagueRepository;
@@ -31,7 +31,7 @@ public class SportsDataSyncConfig {
 
     @Bean
     @ConditionalOnProperty(name = "INITIAL_DATA_INSERT", havingValue = "team")
-    public ApplicationRunner initializeClubTeam(SportsDataSyncServiceImpl syncService,
+    public ApplicationRunner initializeClubTeam(ApiFootballSyncService syncService,
                                                 LeagueRepository leagueRepository) {
         return args -> {
             log.info("Initial team insert started");

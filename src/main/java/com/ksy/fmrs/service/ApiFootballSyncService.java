@@ -18,7 +18,7 @@ import java.util.stream.IntStream;
 @Slf4j
 @RequiredArgsConstructor
 @Service
-public class SportsDataSyncServiceImpl implements SportsDataSyncService {
+public class ApiFootballSyncService implements SportsDataSyncService {
     private final SyncTemplate syncTemplate;
     @Qualifier("leagueSyncCallback")
     private final SyncCallback<Integer, ApiFootballLeague, League> leagueSyncCallback;
