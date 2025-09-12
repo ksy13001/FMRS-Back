@@ -27,6 +27,8 @@ public class Team {
     @Column(name = "logo_url")
     private String logoUrl;
 
+    private boolean national;
+
     private Integer played;
 
     private Integer won;
