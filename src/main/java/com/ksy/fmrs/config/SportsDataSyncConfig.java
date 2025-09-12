@@ -1,8 +1,7 @@
 package com.ksy.fmrs.config;
 
 import com.ksy.fmrs.domain.enums.LeagueType;
-import com.ksy.fmrs.repository.Player.PlayerRepository;
-import com.ksy.fmrs.service.SportsDataSyncFacade;
+import com.ksy.fmrs.service.SportsDataSyncServiceImpl;
 import com.ksy.fmrs.service.SportsDataSyncService;
 import com.ksy.fmrs.service.SportsDataSyncServiceWebFlux;
 import com.ksy.fmrs.repository.LeagueRepository;
@@ -13,8 +12,6 @@ import org.springframework.boot.ApplicationRunner;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-
-import java.util.Set;
 
 @Slf4j
 @Configuration
@@ -34,8 +31,8 @@ public class SportsDataSyncConfig {
 
     @Bean
     @ConditionalOnProperty(name = "INITIAL_DATA_INSERT", havingValue = "team")
-    public ApplicationRunner initializeTeam(SportsDataSyncFacade syncService,
-                                            LeagueRepository leagueRepository) {
+    public ApplicationRunner initializeClubTeam(SportsDataSyncServiceImpl syncService,
+                                                LeagueRepository leagueRepository) {
         return args -> {
             log.info("Initial team insert started");
             syncService.syncTeams(leagueRepository.findLeaguesByLeagueType(LeagueType.LEAGUE));
@@ -49,7 +46,7 @@ public class SportsDataSyncConfig {
                                               TeamRepository teamRepository) {
         return args -> {
             log.info("Initializing player started");
-            syncService.syncPlayers(teamRepository.findAllTeamsWithLeague());
+            syncService.syncPlayers(teamRepository.findAll());
         };
     }
 

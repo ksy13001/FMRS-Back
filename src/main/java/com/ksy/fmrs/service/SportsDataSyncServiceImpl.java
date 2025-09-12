@@ -6,7 +6,7 @@ import com.ksy.fmrs.domain.player.Player;
 import com.ksy.fmrs.dto.apiFootball.ApiFootballLeague;
 import com.ksy.fmrs.dto.apiFootball.ApiFootballTeamsByLeague;
 import com.ksy.fmrs.dto.apiFootball.ApiFootballPlayersStatistics;
-import com.ksy.fmrs.mapper.ApiFootballMapper;
+import com.ksy.fmrs.dto.apiFootball.ApiFootballSquad;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Qualifier;
@@ -18,7 +18,7 @@ import java.util.stream.IntStream;
 @Slf4j
 @RequiredArgsConstructor
 @Service
-public class SportsDataSyncFacade implements SportsDataSyncService {
+public class SportsDataSyncServiceImpl implements SportsDataSyncService {
     private final SyncTemplate syncTemplate;
     @Qualifier("leagueSyncCallback")
     private final SyncCallback<Integer, ApiFootballLeague, League> leagueSyncCallback;
@@ -26,6 +26,8 @@ public class SportsDataSyncFacade implements SportsDataSyncService {
     private final SyncCallback<League, ApiFootballTeamsByLeague, Team> teamSyncCallback;
     @Qualifier("playerSyncCallback")
     private final SyncCallback<Team, ApiFootballPlayersStatistics, Player> playerSyncCallback;
+    @Qualifier("squadSyncCallback")
+    private final SyncCallback<Team, ApiFootballSquad, Integer> squadSyncCallback;
     private static final int LAST_LEAGUE_ID = 1172;
     private static final int FIRST_LEAGUE_ID = 1;
 
@@ -49,6 +51,14 @@ public class SportsDataSyncFacade implements SportsDataSyncService {
         syncTemplate.sync(
                 teams,
                 playerSyncCallback
+        );
+    }
+
+    @Override
+    public void syncSquadMembers(List<Team> teams) {
+        syncTemplate.sync(
+                teams,
+                squadSyncCallback
         );
     }
 

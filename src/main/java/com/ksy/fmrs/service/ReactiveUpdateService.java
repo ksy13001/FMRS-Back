@@ -1,7 +1,7 @@
 package com.ksy.fmrs.service;
 
 import com.ksy.fmrs.domain.Team;
-import com.ksy.fmrs.dto.apiFootball.SquadApiResponseDto;
+import com.ksy.fmrs.dto.apiFootball.ApiFootballSquad;
 import com.ksy.fmrs.repository.BulkRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -35,7 +35,7 @@ public class ReactiveUpdateService {
                             .filter(squadApiResponseDto -> !squadApiResponseDto.response().isEmpty())
                             .map(squadApiResponseDto -> squadApiResponseDto.response().getFirst().players()
                             )
-                            .map(playerDtos -> playerDtos.stream().map(SquadApiResponseDto.Player::id)
+                            .map(playerDtos -> playerDtos.stream().map(ApiFootballSquad.Player::id)
                                     .collect(Collectors.toList()))
                             .flatMap(players -> {
                                 return Mono.fromRunnable(() -> bulkRepository.updatePlayersTeam(players, team.getId()))
