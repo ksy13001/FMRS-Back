@@ -14,6 +14,7 @@ import java.time.Duration;
 import java.util.List;
 import java.util.stream.Collectors;
 
+@Deprecated
 @Slf4j
 @RequiredArgsConstructor
 @Service
