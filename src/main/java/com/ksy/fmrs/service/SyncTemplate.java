@@ -16,7 +16,7 @@ public class SyncTemplate {
                 callback.beforeEach(key);
                 List<D> dto = callback.requestSportsData(key);
                 callback.validate(dto);
-                List<T> target = callback.transFormToTarget(dto);
+                List<T> target = callback.transformToTarget(dto);
                 callback.persist(target, key);
                 success++;
             } catch (Exception e){

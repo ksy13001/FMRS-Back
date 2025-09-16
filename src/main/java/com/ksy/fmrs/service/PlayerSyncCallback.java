@@ -55,7 +55,7 @@ public class PlayerSyncCallback implements SyncCallback<Team, ApiFootballPlayers
     }
 
     @Override
-    public List<Player> transFormToTarget(List<ApiFootballPlayersStatistics> dtos) {
+    public List<Player> transformToTarget(List<ApiFootballPlayersStatistics> dtos) {
         List<Player> players = new ArrayList<>();
         dtos.forEach(dto1 -> players.addAll(apiFootballMapper.toEntity(dto1)));
         return players;

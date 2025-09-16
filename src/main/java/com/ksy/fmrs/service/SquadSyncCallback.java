@@ -12,7 +12,7 @@ import java.util.List;
 @Slf4j
 @RequiredArgsConstructor
 @Component
-public class squadSyncCallback implements SyncCallback<Team, ApiFootballSquad, Integer> {
+public class SquadSyncCallback implements SyncCallback<Team, ApiFootballSquad, Integer> {
 
     private final ApiFootballValidator apiFootballValidator;
     private final ApiFootballRestClient apiFootballRestClient;
@@ -34,7 +34,7 @@ public class squadSyncCallback implements SyncCallback<Team, ApiFootballSquad, I
     }
 
     @Override
-    public List<Integer> transFormToTarget(List<ApiFootballSquad> dto) {
+    public List<Integer> transformToTarget(List<ApiFootballSquad> dto) {
         return dto.getFirst()
                 .response()
                 .getFirst()
