@@ -12,17 +12,12 @@ import java.util.List;
 @Slf4j
 @RequiredArgsConstructor
 @Component
-public class LeagueSyncCallback implements SyncCallback<Integer, ApiFootballLeague, League> {
+public class LeagueSyncStrategy implements SyncStrategy<Integer, ApiFootballLeague, League> {
 
     private final ApiFootballClient apiFootballClient;
     private final ApiFootballMapper apiFootballMapper;
     private final LeagueService leagueService;
     private final ApiFootballValidator apiFootballValidator;
-
-    @Override
-    public void beforeEach(Integer nowApiId) {
-        log.info("league upsert start apiId:{}", nowApiId);
-    }
 
     @Override
     public List<ApiFootballLeague> requestSportsData(Integer key) {
@@ -37,17 +32,12 @@ public class LeagueSyncCallback implements SyncCallback<Integer, ApiFootballLeag
     }
 
     @Override
-    public List<League> transFormToTarget(List<ApiFootballLeague> dto) {
+    public List<League> transformToTarget(List<ApiFootballLeague> dto) {
         return List.of(apiFootballMapper.toEntity(dto.getFirst()));
     }
 
     @Override
     public void persist(List<League> entities, Integer key) {
         leagueService.upsert(entities.getFirst());
-    }
-
-    @Override
-    public void afterEach(Integer nowApiId) {
-        log.info("league upsert complete apiId:{}", nowApiId);
     }
 }

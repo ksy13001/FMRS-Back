@@ -15,17 +15,12 @@ import java.util.List;
 @Slf4j
 @RequiredArgsConstructor
 @Component
-public class PlayerSyncCallback implements SyncCallback<Team, ApiFootballPlayersStatistics, Player>{
+public class PlayerSyncStrategy implements SyncStrategy<Team, ApiFootballPlayersStatistics, Player> {
 
     private final ApiFootballClient apiFootballClient;
     private final ApiFootballMapper apiFootballMapper;
     private final ApiFootballValidator apiFootballValidator;
     private final PlayerService playerService;
-
-    @Override
-    public void beforeEach(Team team) {
-        log.info("player upsert start - team apiId:{}", team.getTeamApiId());
-    }
 
     @Override
     public List<ApiFootballPlayersStatistics> requestSportsData(Team team) {
@@ -55,7 +50,7 @@ public class PlayerSyncCallback implements SyncCallback<Team, ApiFootballPlayers
     }
 
     @Override
-    public List<Player> transFormToTarget(List<ApiFootballPlayersStatistics> dtos) {
+    public List<Player> transformToTarget(List<ApiFootballPlayersStatistics> dtos) {
         List<Player> players = new ArrayList<>();
         dtos.forEach(dto1 -> players.addAll(apiFootballMapper.toEntity(dto1)));
         return players;
@@ -64,10 +59,5 @@ public class PlayerSyncCallback implements SyncCallback<Team, ApiFootballPlayers
     @Override
     public void persist(List<Player> players, Team team) {
         playerService.saveAll(players);
-    }
-
-    @Override
-    public void afterEach(Team team) {
-        log.info("player upsert complete - teamApiId:{}", team.getTeamApiId());
     }
 }
