@@ -13,7 +13,7 @@ import java.util.List;
 @Slf4j
 @RequiredArgsConstructor
 @Component
-public class TeamSyncCallback implements SyncCallback<League, ApiFootballTeamsByLeague, Team> {
+public class TeamSyncStrategy implements SyncStrategy<League, ApiFootballTeamsByLeague, Team> {
 
     private final ApiFootballClient apiFootballClient;
     private final ApiFootballMapper apiFootballMapper;

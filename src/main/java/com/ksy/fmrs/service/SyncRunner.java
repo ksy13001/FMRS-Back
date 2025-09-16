@@ -7,9 +7,9 @@ import java.util.List;
 
 @Slf4j
 @Component
-public class SyncTemplate {
+public class SyncRunner {
 
-    public <K, D, T> void sync(Iterable<K> keys, SyncCallback<K, D, T> callback) {
+    public <K, D, T> void sync(Iterable<K> keys, SyncStrategy<K, D, T> callback) {
         int success = 0; int failed = 0;
         for (K key : keys) {
             try {

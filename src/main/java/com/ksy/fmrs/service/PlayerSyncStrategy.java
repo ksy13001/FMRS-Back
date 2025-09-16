@@ -15,7 +15,7 @@ import java.util.List;
 @Slf4j
 @RequiredArgsConstructor
 @Component
-public class PlayerSyncCallback implements SyncCallback<Team, ApiFootballPlayersStatistics, Player>{
+public class PlayerSyncStrategy implements SyncStrategy<Team, ApiFootballPlayersStatistics, Player> {
 
     private final ApiFootballClient apiFootballClient;
     private final ApiFootballMapper apiFootballMapper;

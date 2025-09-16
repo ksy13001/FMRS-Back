@@ -19,46 +19,42 @@ import java.util.stream.IntStream;
 @RequiredArgsConstructor
 @Service
 public class ApiFootballSyncService implements SportsDataSyncService {
-    private final SyncTemplate syncTemplate;
-    @Qualifier("leagueSyncCallback")
-    private final SyncCallback<Integer, ApiFootballLeague, League> leagueSyncCallback;
-    @Qualifier("teamSyncCallback")
-    private final SyncCallback<League, ApiFootballTeamsByLeague, Team> teamSyncCallback;
-    @Qualifier("playerSyncCallback")
-    private final SyncCallback<Team, ApiFootballPlayersStatistics, Player> playerSyncCallback;
-    @Qualifier("squadSyncCallback")
-    private final SyncCallback<Team, ApiFootballSquad, Integer> squadSyncCallback;
+    private final SyncRunner syncRunner;
+    private final SyncStrategy<Integer, ApiFootballLeague, League> leagueSyncStrategy;
+    private final SyncStrategy<League, ApiFootballTeamsByLeague, Team> teamSyncStrategy;
+    private final SyncStrategy<Team, ApiFootballPlayersStatistics, Player> playerSyncStrategy;
+    private final SyncStrategy<Team, ApiFootballSquad, Integer> squadSyncStrategy;
     private static final int LAST_LEAGUE_ID = 1172;
     private static final int FIRST_LEAGUE_ID = 1;
 
     @Override
     public void syncLeagues() {
-        syncTemplate.sync(
+        syncRunner.sync(
                 IntStream.rangeClosed(FIRST_LEAGUE_ID, LAST_LEAGUE_ID).boxed().toList(),
-                leagueSyncCallback);
+                leagueSyncStrategy);
     }
 
     @Override
     public void syncTeams(List<League> leagues) {
-        syncTemplate.sync(
+        syncRunner.sync(
                 leagues,
-                teamSyncCallback
+                teamSyncStrategy
         );
     }
 
     @Override
     public void syncPlayers(List<Team> teams) {
-        syncTemplate.sync(
+        syncRunner.sync(
                 teams,
-                playerSyncCallback
+                playerSyncStrategy
         );
     }
 
     @Override
     public void syncSquadPlayers(List<Team> teams) {
-        syncTemplate.sync(
+        syncRunner.sync(
                 teams,
-                squadSyncCallback
+                squadSyncStrategy
         );
     }
 
