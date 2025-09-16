@@ -13,7 +13,6 @@ public class SyncTemplate {
         int success = 0; int failed = 0;
         for (K key : keys) {
             try {
-                callback.beforeEach(key);
                 List<D> dto = callback.requestSportsData(key);
                 callback.validate(dto);
                 List<T> target = callback.transformToTarget(dto);

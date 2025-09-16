@@ -20,11 +20,6 @@ public class LeagueSyncCallback implements SyncCallback<Integer, ApiFootballLeag
     private final ApiFootballValidator apiFootballValidator;
 
     @Override
-    public void beforeEach(Integer nowApiId) {
-        log.info("league upsert start apiId:{}", nowApiId);
-    }
-
-    @Override
     public List<ApiFootballLeague> requestSportsData(Integer key) {
         return List.of(apiFootballClient.requestLeagueByApiId(key));
     }
@@ -44,10 +39,5 @@ public class LeagueSyncCallback implements SyncCallback<Integer, ApiFootballLeag
     @Override
     public void persist(List<League> entities, Integer key) {
         leagueService.upsert(entities.getFirst());
-    }
-
-    @Override
-    public void afterEach(Integer nowApiId) {
-        log.info("league upsert complete apiId:{}", nowApiId);
     }
 }

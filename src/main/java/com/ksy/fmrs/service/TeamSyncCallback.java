@@ -21,11 +21,6 @@ public class TeamSyncCallback implements SyncCallback<League, ApiFootballTeamsBy
     private final TeamService teamService;
 
     @Override
-    public void beforeEach(League league) {
-        log.info("league apiId:{}, name:{} 내 팀 조회 시작", league.getLeagueApiId(), league.getName());
-    }
-
-    @Override
     public List<ApiFootballTeamsByLeague> requestSportsData(League league) {
         return List.of(apiFootballClient
                 .requestTeamsByLeague(league.getLeagueApiId(), league.getCurrentSeason()));
@@ -46,10 +41,5 @@ public class TeamSyncCallback implements SyncCallback<League, ApiFootballTeamsBy
     @Override
     public void persist(List<Team> teams, League league) {
         teamService.saveAll(teams, league.getId());
-    }
-
-    @Override
-    public void afterEach(League league) {
-        log.info("league:{} 내 팀 업데이트 종료", league.getName());
     }
 }

@@ -19,11 +19,6 @@ public class SquadSyncCallback implements SyncCallback<Team, ApiFootballSquad, I
     private final PlayerService playerService;
 
     @Override
-    public void beforeEach(Team key) {
-        log.info("team squad sync start apiId:{}", key.getTeamApiId());
-    }
-
-    @Override
     public List<ApiFootballSquad> requestSportsData(Team key) {
         return List.of(apiFootballRestClient.requestSquad(key.getTeamApiId()));
     }
@@ -47,10 +42,5 @@ public class SquadSyncCallback implements SyncCallback<Team, ApiFootballSquad, I
     @Override
     public void persist(List<Integer> entities, Team key) {
         playerService.updateSquadPlayers(entities, key.getId());
-    }
-
-    @Override
-    public void afterEach(Team key) {
-
     }
 }

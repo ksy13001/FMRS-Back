@@ -23,11 +23,6 @@ public class PlayerSyncCallback implements SyncCallback<Team, ApiFootballPlayers
     private final PlayerService playerService;
 
     @Override
-    public void beforeEach(Team team) {
-        log.info("player upsert start - team apiId:{}", team.getTeamApiId());
-    }
-
-    @Override
     public List<ApiFootballPlayersStatistics> requestSportsData(Team team) {
         List<ApiFootballPlayersStatistics> dtos = new ArrayList<>();
         League league = team.getLeague();
@@ -64,10 +59,5 @@ public class PlayerSyncCallback implements SyncCallback<Team, ApiFootballPlayers
     @Override
     public void persist(List<Player> players, Team team) {
         playerService.saveAll(players);
-    }
-
-    @Override
-    public void afterEach(Team team) {
-        log.info("player upsert complete - teamApiId:{}", team.getTeamApiId());
     }
 }
