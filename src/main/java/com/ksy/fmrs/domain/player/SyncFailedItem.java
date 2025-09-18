@@ -27,7 +27,7 @@ public class SyncFailedItem {
 
     private String errorCode;
 
-    @JoinColumn(name = "run_id")
+    @JoinColumn(name = "job_id")
     @ManyToOne(fetch = FetchType.LAZY)
     private SyncJob syncJob;
 

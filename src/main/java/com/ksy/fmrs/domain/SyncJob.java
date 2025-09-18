@@ -57,12 +57,20 @@ public class SyncJob {
         return new SyncJob(type, SyncStatus.STARTED, start, null, 0, 0, 0);
     }
 
-    public static SyncJob success(SyncType type, LocalDateTime start, LocalDateTime end, int total, int success, int failed){
-        return new SyncJob(type, SyncStatus.SUCCESS, start, end, total, success, failed);
+    public void success(LocalDateTime end, int total, int success, int failed){
+        this.end = end;
+        this.total = total;
+        this.success = success;
+        this.failed = failed;
+        this.status = SyncStatus.SUCCESS;
     }
 
-    public static SyncJob failed(SyncType type, LocalDateTime start, LocalDateTime end, int total, int success, int failed){
-        return new SyncJob(type, SyncStatus.FAILED, start, end, total, success, failed);
+    public void failed(LocalDateTime end, int total, int success, int failed){
+        this.end = end;
+        this.total = total;
+        this.success = success;
+        this.failed = failed;
+        this.status = SyncStatus.FAILED;
     }
 
 }

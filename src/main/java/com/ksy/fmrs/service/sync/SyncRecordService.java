@@ -26,12 +26,12 @@ public class SyncRecordService {
     }
 
     @Transactional
-    public void recordFinished(SyncType syncType, LocalDateTime start, int total, int success, int failed){
+    public void recordFinished(SyncJob syncJob, int total, int success, int failed){
         if (failed > 0) {
-            syncRunRepository.save(SyncJob.failed(syncType, start, timeProvider.getCurrentLocalDateTime(), total, success, failed));
+            syncJob.failed(timeProvider.getCurrentLocalDateTime(), total, success, failed);
             return;
         }
-        syncRunRepository.save(SyncJob.success(syncType, start, timeProvider.getCurrentLocalDateTime(), total, success, failed));
+        syncJob.success(timeProvider.getCurrentLocalDateTime(), total, success, failed);
     }
 
     @Transactional

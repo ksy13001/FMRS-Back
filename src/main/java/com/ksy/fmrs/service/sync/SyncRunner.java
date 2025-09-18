@@ -35,7 +35,7 @@ public class SyncRunner {
             }
         }
         log.info("Sync result: success: {}, failed: {}", success, failed);
-        syncRecordService.recordFinished(type, syncJob.getStart(), total, success, failed);
+        syncRecordService.recordFinished(syncJob, total, success, failed);
         return new SyncReport(total, success, failed);
     }
 }
