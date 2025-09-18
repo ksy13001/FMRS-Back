@@ -1,8 +1,8 @@
 package com.ksy.fmrs.config;
 
 import com.ksy.fmrs.domain.enums.LeagueType;
-import com.ksy.fmrs.service.ApiFootballSyncService;
-import com.ksy.fmrs.service.SportsDataSyncService;
+import com.ksy.fmrs.service.sync.ApiFootballSyncService;
+import com.ksy.fmrs.service.sync.SportsDataSyncService;
 import com.ksy.fmrs.service.SportsDataSyncServiceWebFlux;
 import com.ksy.fmrs.repository.LeagueRepository;
 import com.ksy.fmrs.repository.Team.TeamRepository;

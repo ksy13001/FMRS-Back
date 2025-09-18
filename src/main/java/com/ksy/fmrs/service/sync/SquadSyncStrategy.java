@@ -1,8 +1,11 @@
-package com.ksy.fmrs.service;
+package com.ksy.fmrs.service.sync;
 
 
 import com.ksy.fmrs.domain.Team;
 import com.ksy.fmrs.dto.apiFootball.ApiFootballSquad;
+import com.ksy.fmrs.service.ApiFootballRestClient;
+import com.ksy.fmrs.service.ApiFootballValidator;
+import com.ksy.fmrs.service.PlayerService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
@@ -17,6 +20,11 @@ public class SquadSyncStrategy implements SyncStrategy<Team, ApiFootballSquad, I
     private final ApiFootballValidator apiFootballValidator;
     private final ApiFootballRestClient apiFootballRestClient;
     private final PlayerService playerService;
+
+    @Override
+    public Integer getSyncApiId(Team key) {
+        return key.getTeamApiId();
+    }
 
     @Override
     public List<ApiFootballSquad> requestSportsData(Team key) {

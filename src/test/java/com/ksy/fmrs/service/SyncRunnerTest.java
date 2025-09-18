@@ -1,12 +1,19 @@
 package com.ksy.fmrs.service;
 
 import com.ksy.fmrs.domain.League;
+import com.ksy.fmrs.domain.enums.SyncType;
 import com.ksy.fmrs.dto.SyncReport;
 import com.ksy.fmrs.dto.apiFootball.ApiFootballLeague;
+import com.ksy.fmrs.repository.SyncFailedItemRepository;
+import com.ksy.fmrs.repository.SyncRunRepository;
+import com.ksy.fmrs.service.sync.SyncRecordService;
+import com.ksy.fmrs.service.sync.SyncRunner;
+import com.ksy.fmrs.service.sync.SyncStrategy;
 import org.assertj.core.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
+import org.mockito.Mock;
 
 import java.util.List;
 import java.util.stream.IntStream;
@@ -15,9 +22,10 @@ class SyncRunnerTest {
 
     private SyncRunner syncRunner;
 
+    @Mock private SyncRecordService syncRecordService;
     @BeforeEach
     void setUp() {
-        syncRunner = new SyncRunner();
+        syncRunner = new SyncRunner(syncRecordService);
     }
 
     private static final int TEST_FIRST_LEAGUE_ID = 1;
@@ -29,6 +37,7 @@ class SyncRunnerTest {
     void Sync_With_Exception() {
         // given && when
         SyncReport report = syncRunner.sync(
+                SyncType.LEAGUE,
                 IntStream.rangeClosed(TEST_FIRST_LEAGUE_ID, TEST_LAST_LEAGUE_ID).boxed().toList(),
                 new testLeagueStrategy()
         );
@@ -44,6 +53,7 @@ class SyncRunnerTest {
     void Sync_With_Empty_Input() {
         // given && when
         SyncReport report = syncRunner.sync(
+                SyncType.LEAGUE,
                 IntStream.rangeClosed(TEST_FIRST_LEAGUE_ID, -1).boxed().toList(),
                 new testLeagueStrategy()
         );
@@ -59,6 +69,7 @@ class SyncRunnerTest {
         // given && when
         failedStrategy failedStrategy = new failedStrategy();
         SyncReport report = syncRunner.sync(
+                SyncType.LEAGUE,
                 IntStream.rangeClosed(TEST_FIRST_LEAGUE_ID, TEST_LAST_LEAGUE_ID).boxed().toList(),
                 failedStrategy
         );
@@ -80,6 +91,9 @@ class SyncRunnerTest {
 
 
     static final class testLeagueStrategy implements SyncStrategy<Integer, ApiFootballLeague, League> {
+        @Override
+        public Integer getSyncApiId(Integer key) {return key;}
+
         @Override
         public List<ApiFootballLeague> requestSportsData(Integer key) {
             if (key % 3 == 0) {
@@ -106,6 +120,9 @@ class SyncRunnerTest {
 
     static final class failedStrategy implements SyncStrategy<Integer, ApiFootballLeague, League> {
         int next = 0;
+
+        @Override
+        public Integer getSyncApiId(Integer key) {return key;}
 
         @Override
         public List<ApiFootballLeague> requestSportsData(Integer key) {
