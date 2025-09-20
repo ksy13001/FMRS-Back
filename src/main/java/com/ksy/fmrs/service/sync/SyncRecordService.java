@@ -4,7 +4,7 @@ import com.ksy.fmrs.domain.SyncJob;
 import com.ksy.fmrs.domain.enums.SyncType;
 import com.ksy.fmrs.domain.player.SyncFailedItem;
 import com.ksy.fmrs.repository.SyncFailedItemRepository;
-import com.ksy.fmrs.repository.SyncRunRepository;
+import com.ksy.fmrs.repository.SyncJobRepository;
 import com.ksy.fmrs.util.time.TimeProvider;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -15,23 +15,24 @@ import java.time.LocalDateTime;
 @RequiredArgsConstructor
 @Service
 public class SyncRecordService {
-    private final SyncRunRepository syncRunRepository;
+    private final SyncJobRepository syncJobRepository;
     private final SyncFailedItemRepository syncFailedItemRepository;
     private final TimeProvider timeProvider;
 
     @Transactional
     public SyncJob recordStarted(SyncType syncType){
         LocalDateTime start = timeProvider.getCurrentLocalDateTime();
-        return syncRunRepository.save(SyncJob.started(syncType, start));
+        return syncJobRepository.save(SyncJob.started(syncType, start));
     }
 
     @Transactional
-    public void recordFinished(SyncJob syncJob, int total, int success, int failed){
+    public SyncJob recordFinished(SyncJob syncJob, int total, int success, int failed){
         if (failed > 0) {
             syncJob.failed(timeProvider.getCurrentLocalDateTime(), total, success, failed);
-            return;
+            return syncJob;
         }
         syncJob.success(timeProvider.getCurrentLocalDateTime(), total, success, failed);
+        return syncJob;
     }
 
     @Transactional

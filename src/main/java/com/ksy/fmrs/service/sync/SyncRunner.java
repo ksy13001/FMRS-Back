@@ -21,8 +21,9 @@ public class SyncRunner {
         SyncJob syncJob = syncRecordService.recordStarted(type);
         for (K key : keys) {
             total ++;
-            Integer apiId = strategy.getSyncApiId(key);
+            Integer apiId = null;
             try {
+                apiId = strategy.getSyncApiId(key);
                 List<D> data = strategy.requestSportsData(key);
                 strategy.validate(data);
                 List<T> target = strategy.transformToTarget(data);
