@@ -1,4 +1,4 @@
-package com.ksy.fmrs.service;
+package com.ksy.fmrs.service.sync;
 
 import com.ksy.fmrs.domain.League;
 import com.ksy.fmrs.domain.Team;

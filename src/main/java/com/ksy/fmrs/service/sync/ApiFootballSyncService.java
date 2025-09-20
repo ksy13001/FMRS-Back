@@ -1,7 +1,8 @@
-package com.ksy.fmrs.service;
+package com.ksy.fmrs.service.sync;
 
 import com.ksy.fmrs.domain.League;
 import com.ksy.fmrs.domain.Team;
+import com.ksy.fmrs.domain.enums.SyncType;
 import com.ksy.fmrs.domain.player.Player;
 import com.ksy.fmrs.dto.apiFootball.ApiFootballLeague;
 import com.ksy.fmrs.dto.apiFootball.ApiFootballTeamsByLeague;
@@ -9,7 +10,6 @@ import com.ksy.fmrs.dto.apiFootball.ApiFootballPlayersStatistics;
 import com.ksy.fmrs.dto.apiFootball.ApiFootballSquad;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -30,6 +30,7 @@ public class ApiFootballSyncService implements SportsDataSyncService {
     @Override
     public void syncLeagues() {
         syncRunner.sync(
+                SyncType.LEAGUE,
                 IntStream.rangeClosed(FIRST_LEAGUE_ID, LAST_LEAGUE_ID).boxed().toList(),
                 leagueSyncStrategy);
     }
@@ -37,6 +38,7 @@ public class ApiFootballSyncService implements SportsDataSyncService {
     @Override
     public void syncTeams(List<League> leagues) {
         syncRunner.sync(
+                SyncType.TEAM,
                 leagues,
                 teamSyncStrategy
         );
@@ -45,6 +47,7 @@ public class ApiFootballSyncService implements SportsDataSyncService {
     @Override
     public void syncPlayers(List<Team> teams) {
         syncRunner.sync(
+                SyncType.PLAYER,
                 teams,
                 playerSyncStrategy
         );
@@ -53,6 +56,7 @@ public class ApiFootballSyncService implements SportsDataSyncService {
     @Override
     public void syncSquadPlayers(List<Team> teams) {
         syncRunner.sync(
+                SyncType.SQUAD,
                 teams,
                 squadSyncStrategy
         );
