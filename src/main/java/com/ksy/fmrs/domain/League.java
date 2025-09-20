@@ -85,15 +85,9 @@ public class League {
         this.logoUrl = logoUrl;
     }
 
-    public void updateStartDate(LocalDate startDate) {
+    public void updateSeason(LocalDate startDate, LocalDate endDate, Integer currentSeason){
         this.startDate = startDate;
-    }
-
-    public void updateEndDate(LocalDate endDate) {
         this.endDate = endDate;
-    }
-
-    public void updateCurrentSeason(Integer currentSeason) {
         this.currentSeason = currentSeason;
     }
 }

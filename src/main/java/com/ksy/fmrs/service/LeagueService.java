@@ -9,10 +9,8 @@ import com.ksy.fmrs.util.time.TimeProvider;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.time.LocalDate;
 import java.util.List;
 import java.util.Optional;
 
@@ -69,20 +67,13 @@ public class LeagueService {
                 .orElseThrow(() -> new IllegalArgumentException("Api 응답 없음"));
     }
 
-    @Transactional(propagation = Propagation.REQUIRES_NEW)
+    @Transactional
     public void refreshLeagueSeason(Integer leagueApiId, LeagueAPIDetailsResponseDto dto) {
         League league = leagueRepository.findLeagueByLeagueApiId(leagueApiId)
                 .orElseThrow(() -> new IllegalArgumentException("League not found apiId: " + leagueApiId));
 
-        updateLeagueSeason(league, dto.getStartDate(), dto.getEndDate(), dto.getCurrentSeason());
+        league.updateSeason(dto.getStartDate(), dto.getEndDate(), dto.getCurrentSeason());
     }
-
-    private void updateLeagueSeason(League league, LocalDate startDate, LocalDate endDate, Integer currentSeason) {
-        league.updateStartDate(startDate);
-        league.updateEndDate(endDate);
-        league.updateCurrentSeason(currentSeason);
-    }
-
 
     @Transactional(readOnly = true)
     public List<Integer> findLeaguesApiIdsOutsideSeason() {
