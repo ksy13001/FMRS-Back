@@ -43,8 +43,8 @@ public class PlayerStat extends BaseTime {
         this.redCards = redCards;
     }
 
-    public boolean isExpired(Instant now){
-        return Duration.between(this.getModifiedDate(), now).toHours() >= 24;
+    public boolean isExpired(Instant now, Duration ttl){
+        return !this.getModifiedDate().isAfter(now.minus(ttl));
     }
 
     public void updatePlayerStat(Integer gamesPlayed, Integer substitutes, Integer goal, Integer pk,

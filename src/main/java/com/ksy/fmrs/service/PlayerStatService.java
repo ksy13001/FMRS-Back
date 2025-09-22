@@ -9,12 +9,15 @@ import com.ksy.fmrs.dto.player.PlayerStatDto;
 import com.ksy.fmrs.mapper.PlayerStatMapper;
 import com.ksy.fmrs.repository.Player.PlayerRepository;
 import com.ksy.fmrs.repository.Player.PlayerStatRepository;
+import com.ksy.fmrs.util.PlayerStatTtlProvider;
 import com.ksy.fmrs.util.time.TimeProvider;
 import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.Duration;
 import java.util.Optional;
 
 @RequiredArgsConstructor
@@ -26,6 +29,7 @@ public class PlayerStatService {
     private final FootballApiService footballApiService;
     private final PlayerStatMapper playerStatMapper;
     private final TimeProvider timeProvider;
+    private final PlayerStatTtlProvider ttlProvider;
 
     /**
      * Player 통해서 playerStat 조회
@@ -41,10 +45,11 @@ public class PlayerStatService {
                 .orElseThrow(()-> new EntityNotFoundException("Player not found with id: " + playerId));
         PlayerStat playerStat = player.getPlayerStat();
 
-        if (playerStat == null || playerStat.isExpired(timeProvider.getCurrentInstant())) {
+        if (playerStat == null || playerStat.isExpired(timeProvider.getCurrentInstant(), ttlProvider.getTtl())) {
             return savePlayerStat(player)
                     .map(PlayerStatDto::new);
         }
+
         return Optional.of(new PlayerStatDto(playerStat));
     }
 
