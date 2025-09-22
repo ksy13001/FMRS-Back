@@ -24,14 +24,13 @@ public class ApiFootballSyncService implements SportsDataSyncService {
     private final SyncStrategy<League, ApiFootballTeamsByLeague, Team> teamSyncStrategy;
     private final SyncStrategy<Team, ApiFootballPlayersStatistics, Player> playerSyncStrategy;
     private final SyncStrategy<Team, ApiFootballSquad, Integer> squadSyncStrategy;
-    private static final int LAST_LEAGUE_ID = 1172;
-    private static final int FIRST_LEAGUE_ID = 1;
+
 
     @Override
-    public void syncLeagues() {
+    public void syncLeagues(List<Integer> leagueApiIds) {
         syncRunner.sync(
                 SyncType.LEAGUE,
-                IntStream.rangeClosed(FIRST_LEAGUE_ID, LAST_LEAGUE_ID).boxed().toList(),
+                leagueApiIds,
                 leagueSyncStrategy);
     }
 

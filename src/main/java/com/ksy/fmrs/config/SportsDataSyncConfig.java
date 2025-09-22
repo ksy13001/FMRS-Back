@@ -13,9 +13,14 @@ import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
+import java.util.stream.IntStream;
+
 @Slf4j
 @Configuration
 public class SportsDataSyncConfig {
+
+    private static final int LAST_LEAGUE_ID = 1172;
+    private static final int FIRST_LEAGUE_ID = 1;
 
     /**
      * 서버 restart 시 환경 변수 파일에 INITIAL_DATA_INSERT=true 일 경우 서버 실행시 1번 실행됨
@@ -25,7 +30,7 @@ public class SportsDataSyncConfig {
     public ApplicationRunner initializeLeague(SportsDataSyncService syncService) {
         return args -> {
             log.info("Initial team insert started");
-            syncService.syncLeagues();
+            syncService.syncLeagues(IntStream.rangeClosed(FIRST_LEAGUE_ID, LAST_LEAGUE_ID).boxed().toList());
         };
     }
 

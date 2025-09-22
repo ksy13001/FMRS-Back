@@ -6,7 +6,7 @@ import com.ksy.fmrs.domain.Team;
 import java.util.List;
 
 public interface SportsDataSyncService {
-    void syncLeagues();
+    void syncLeagues(List<Integer> leagueApiIds);
     void syncTeams(List<League> leagues);
     void syncPlayers(List<Team> teams);
     void syncSquadPlayers(List<Team> teams);
