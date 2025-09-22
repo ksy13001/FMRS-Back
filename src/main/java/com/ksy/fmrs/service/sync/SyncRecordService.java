@@ -26,7 +26,9 @@ public class SyncRecordService {
     }
 
     @Transactional
-    public SyncJob recordFinished(SyncJob syncJob, int total, int success, int failed){
+    public SyncJob recordFinished(Long syncJobId, int total, int success, int failed){
+        SyncJob syncJob = syncJobRepository.findById(syncJobId)
+                .orElseThrow(()->new IllegalArgumentException("Sync Job Not Started"));
         if (failed > 0) {
             syncJob.failed(timeProvider.getCurrentLocalDateTime(), total, success, failed);
             return syncJob;

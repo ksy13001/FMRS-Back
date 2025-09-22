@@ -4,10 +4,16 @@ import java.util.List;
 
 public record ApiFootballSquad(
         String get,
+        Parameters parameters,
+        List<Object> errors,
         int results,
         Paging paging,
         List<ResponseItem> response
 ) {
+
+    public record Parameters(
+            String id
+    ) {}
 
     public static record Paging(
             int current,

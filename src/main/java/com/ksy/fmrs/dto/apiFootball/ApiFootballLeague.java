@@ -10,8 +10,8 @@ import java.util.List;
 @JsonIgnoreProperties(ignoreUnknown = true)
 public record ApiFootballLeague(
         String get,
-//        Parameters parameters,
-//        List<Object> errors,
+        Parameters parameters,
+        List<Object> errors,
         int results,
         Paging paging,
         List<ResponseItem> response

@@ -13,15 +13,17 @@ import java.util.List;
 @RequiredArgsConstructor
 @Component
 public class SyncRunner {
+
     private final SyncRecordService syncRecordService;
 
-
     public <K, D, T> SyncReport sync(Iterable<K> keys, SyncStrategy<K, D, T> strategy) {
-        int total = 0; int success = 0; int failed = 0;
+        int total = 0;
+        int success = 0;
+        int failed = 0;
         SyncType type = strategy.getSyncType();
         SyncJob syncJob = syncRecordService.recordStarted(type);
         for (K key : keys) {
-            total ++;
+            total++;
             Integer apiId = null;
             try {
                 apiId = strategy.getSyncApiId(key);
@@ -30,14 +32,14 @@ public class SyncRunner {
                 List<T> target = strategy.transformToTarget(data);
                 strategy.persist(target, key);
                 success++;
-            } catch (Exception e){
+            } catch (Exception e) {
                 log.error("Sync failed: {}", e.getMessage());
                 failed++;
                 syncRecordService.recordFailedItem(type, apiId, e.getMessage(), e.getClass().getSimpleName(), syncJob);
             }
         }
         log.info("Sync result: success: {}, failed: {}", success, failed);
-        syncRecordService.recordFinished(syncJob, total, success, failed);
+        syncRecordService.recordFinished(syncJob.getId(), total, success, failed);
         return new SyncReport(total, success, failed);
     }
 }
