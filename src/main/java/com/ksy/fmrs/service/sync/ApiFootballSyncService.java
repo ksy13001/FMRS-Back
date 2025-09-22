@@ -29,7 +29,6 @@ public class ApiFootballSyncService implements SportsDataSyncService {
     @Override
     public void syncLeagues(List<Integer> leagueApiIds) {
         syncRunner.sync(
-                SyncType.LEAGUE,
                 leagueApiIds,
                 leagueSyncStrategy);
     }
@@ -37,7 +36,6 @@ public class ApiFootballSyncService implements SportsDataSyncService {
     @Override
     public void syncTeams(List<League> leagues) {
         syncRunner.sync(
-                SyncType.TEAM,
                 leagues,
                 teamSyncStrategy
         );
@@ -46,7 +44,6 @@ public class ApiFootballSyncService implements SportsDataSyncService {
     @Override
     public void syncPlayers(List<Team> teams) {
         syncRunner.sync(
-                SyncType.PLAYER,
                 teams,
                 playerSyncStrategy
         );
@@ -55,7 +52,6 @@ public class ApiFootballSyncService implements SportsDataSyncService {
     @Override
     public void syncSquadPlayers(List<Team> teams) {
         syncRunner.sync(
-                SyncType.SQUAD,
                 teams,
                 squadSyncStrategy
         );

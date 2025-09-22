@@ -16,8 +16,9 @@ public class SyncRunner {
     private final SyncRecordService syncRecordService;
 
 
-    public <K, D, T> SyncReport sync(SyncType type, Iterable<K> keys, SyncStrategy<K, D, T> strategy) {
+    public <K, D, T> SyncReport sync(Iterable<K> keys, SyncStrategy<K, D, T> strategy) {
         int total = 0; int success = 0; int failed = 0;
+        SyncType type = strategy.getSyncType();
         SyncJob syncJob = syncRecordService.recordStarted(type);
         for (K key : keys) {
             total ++;
