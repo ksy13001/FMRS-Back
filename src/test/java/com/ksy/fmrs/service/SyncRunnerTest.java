@@ -56,7 +56,6 @@ class SyncRunnerTest {
 
         // when
         SyncReport report = syncRunner.sync(
-                SyncType.LEAGUE,
                 IntStream.rangeClosed(TEST_FIRST_LEAGUE_ID, TEST_LAST_LEAGUE_ID).boxed().toList(),
                 new testLeagueStrategy()
         );
@@ -87,7 +86,6 @@ class SyncRunnerTest {
 
         // when
         SyncReport report = syncRunner.sync(
-                SyncType.LEAGUE,
                 IntStream.rangeClosed(TEST_FIRST_LEAGUE_ID, -1).boxed().toList(),
                 new testLeagueStrategy()
         );
@@ -107,7 +105,6 @@ class SyncRunnerTest {
         // when
         allPassStrategy allPassStrategy = new allPassStrategy();
         SyncReport report = syncRunner.sync(
-                SyncType.LEAGUE,
                 IntStream.rangeClosed(TEST_FIRST_LEAGUE_ID, TEST_LAST_LEAGUE_ID).boxed().toList(),
                 allPassStrategy
         );
@@ -129,6 +126,11 @@ class SyncRunnerTest {
     }
 
     static final class testLeagueStrategy implements SyncStrategy<Integer, ApiFootballLeague, League> {
+        @Override
+        public SyncType getSyncType() {
+            return SyncType.LEAGUE;
+        }
+
         @Override
         public Integer getSyncApiId(Integer key) {return key;}
 
@@ -158,6 +160,11 @@ class SyncRunnerTest {
 
     static final class allPassStrategy implements SyncStrategy<Integer, ApiFootballLeague, League> {
         int next = 0;
+
+        @Override
+        public SyncType getSyncType() {
+            return SyncType.LEAGUE;
+        }
 
         @Override
         public Integer getSyncApiId(Integer key) {return key;}

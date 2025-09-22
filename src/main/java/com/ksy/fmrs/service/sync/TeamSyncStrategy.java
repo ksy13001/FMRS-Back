@@ -2,6 +2,7 @@ package com.ksy.fmrs.service.sync;
 
 import com.ksy.fmrs.domain.League;
 import com.ksy.fmrs.domain.Team;
+import com.ksy.fmrs.domain.enums.SyncType;
 import com.ksy.fmrs.dto.apiFootball.ApiFootballTeamsByLeague;
 import com.ksy.fmrs.mapper.ApiFootballMapper;
 import com.ksy.fmrs.service.ApiFootballClient;
@@ -22,6 +23,11 @@ public class TeamSyncStrategy implements SyncStrategy<League, ApiFootballTeamsBy
     private final ApiFootballMapper apiFootballMapper;
     private final ApiFootballValidator apiFootballValidator;
     private final TeamService teamService;
+
+    @Override
+    public SyncType getSyncType() {
+        return SyncType.TEAM;
+    }
 
     @Override
     public Integer getSyncApiId(League key) {
