@@ -10,4 +10,5 @@ public interface ApiFootballClient {
     ApiFootballTeamsByLeague requestTeamsByLeague(Integer leagueApiId, int currentSeason);
     ApiFootballPlayersStatistics requestPlayersByTeam(Integer teamApiId, int currentSeason, int page);
     ApiFootballSquad requestSquad(Integer teamApiId);
+
 }

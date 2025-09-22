@@ -9,6 +9,7 @@ import com.ksy.fmrs.dto.player.PlayerStatDto;
 import com.ksy.fmrs.mapper.PlayerStatMapper;
 import com.ksy.fmrs.repository.Player.PlayerRepository;
 import com.ksy.fmrs.repository.Player.PlayerStatRepository;
+import com.ksy.fmrs.util.PlayerStatTtlProvider;
 import com.ksy.fmrs.util.time.TestTimeProvider;
 import com.ksy.fmrs.util.time.TimeProvider;
 import org.assertj.core.api.Assertions;
@@ -21,6 +22,7 @@ import org.mockito.Spy;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.test.util.ReflectionTestUtils;
 
+import java.time.Duration;
 import java.time.Instant;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
@@ -45,6 +47,8 @@ class PlayerStatServiceTest {
     private FootballApiService footballApiService;
     @Mock
     private PlayerStatMapper playerStatMapper;
+    @Mock
+    private PlayerStatTtlProvider ttlProvider;
     @Spy
     private TimeProvider timeProvider =
             new TestTimeProvider(
@@ -173,6 +177,7 @@ class PlayerStatServiceTest {
         PlayerStat existingStat = PlayerStat.builder()
                 .gamesPlayed(10)
                 .build();
+        Duration ttl = Duration.ofDays(1);
         ReflectionTestUtils.setField(player, "id", playerId);
         ReflectionTestUtils.setField(existingStat, "modifiedDate",
                 Instant.EPOCH.minus(23L, ChronoUnit.HOURS));
@@ -183,6 +188,7 @@ class PlayerStatServiceTest {
 
         // when
         when(playerRepository.findById(playerId)).thenReturn(Optional.of(player));
+        when(ttlProvider.getTtl()).thenReturn(ttl);
         Optional<PlayerStatDto> actual = playerStatService.saveAndGetPlayerStat(playerId);
         // then
         verify(playerRepository, times(1)).findById(playerId);
