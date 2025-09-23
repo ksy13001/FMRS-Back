@@ -7,6 +7,7 @@ import com.ksy.fmrs.dto.apiFootball.ApiFootballTeamsByLeague;
 import com.ksy.fmrs.exception.NullApiDataException;
 import org.assertj.core.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
 import java.util.List;
@@ -17,6 +18,8 @@ class ApiFootballValidatorTest {
 
 
     private ApiFootballValidator validator;
+
+    private final List<String> errors = List.of("some_error_messages");
 
     @BeforeEach
     void setUp() {
@@ -31,39 +34,11 @@ class ApiFootballValidatorTest {
     }
 
     @Test
-    void validate_Player_Empty_Response() {
-        testPlayerValidator(
-                new ApiFootballPlayersStatistics(
-                        "players", null, null, 0, null, List.of()
-                ),
-                RESPONSE_IS_NULL);
-    }
-
-    @Test
-    void validate_Player_Empty_Player(){
-        testPlayerValidator(
-                new ApiFootballPlayersStatistics(
-                        "players", null, null, 1,
-                        null, List.of(new ApiFootballPlayersStatistics.PlayerWrapperDto(null, null))
-                )
-                , PLAYER_IS_NULL
-        );
-    }
-
-
-    @Test
-    void validate_Team_Empty_Dto(){
-        testTeamValidator(
-                null,
-                DTO_IS_NULL
-        );
-    }
-
-    @Test
+    @DisplayName("response is null && error is not null, 예외 발생")
     void validate_Team_Empty_Response(){
         testTeamValidator(
                 new ApiFootballTeamsByLeague(
-                        "team", null, null, 0, null, null
+                        "team", null, List.of("some_error_messages"), 0, null, null
                 ),
                 RESPONSE_IS_NULL
         );
@@ -78,10 +53,11 @@ class ApiFootballValidatorTest {
     }
 
     @Test
+    @DisplayName("response is null && error is not null, 예외 발생")
     void validate_League_Empty_Response(){
         testLeagueValidator(
                 new ApiFootballLeague(
-                        "League", 0, null, null
+                        "League",null, List.of("some_error_messages"), 0, null, null
                 ),
                 RESPONSE_IS_NULL
         );

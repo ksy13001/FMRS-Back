@@ -22,7 +22,10 @@ public class ApiFootballValidator{
         if(dto == null){
             throw new NullApiDataException(DTO_IS_NULL);
         }
-        if (dto.errors() != null && (dto.response() == null || dto.response().isEmpty())){
+        if (dto.errors() == null){
+            return;
+        }
+        if (dto.response() == null || dto.response().isEmpty()){
             throw new NullApiDataException(RESPONSE_IS_NULL);
         }
         if (dto.response().getFirst().league() == null){
@@ -37,6 +40,9 @@ public class ApiFootballValidator{
         if(dto == null){
             throw new NullApiDataException(DTO_IS_NULL);
         }
+        if (dto.errors() == null){
+            return;
+        }
         if (dto.response() == null || dto.response().isEmpty()){
             throw new NullApiDataException(RESPONSE_IS_NULL);
         }
@@ -50,6 +56,9 @@ public class ApiFootballValidator{
     public void validatePlayerStatistics(ApiFootballPlayersStatistics dto){
         if(dto == null){
             throw new NullApiDataException(DTO_IS_NULL);
+        }
+        if (dto.errors() == null){
+            return;
         }
         if (dto.response() == null || dto.response().isEmpty()){
             throw new NullApiDataException(RESPONSE_IS_NULL);
@@ -69,7 +78,10 @@ public class ApiFootballValidator{
         if (dto == null){
             throw new NullApiDataException(DTO_IS_NULL);
         }
-        if (!dto.errors().isEmpty() && (dto.response() == null || dto.response().isEmpty())){
+        if (dto.errors() == null){
+            return;
+        }
+        if (dto.response() == null || dto.response().isEmpty()){
             throw new NullApiDataException(RESPONSE_IS_NULL);
         }
     }
