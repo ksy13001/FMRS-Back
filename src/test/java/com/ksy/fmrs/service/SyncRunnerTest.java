@@ -2,9 +2,12 @@ package com.ksy.fmrs.service;
 
 import com.ksy.fmrs.domain.League;
 import com.ksy.fmrs.domain.SyncJob;
+import com.ksy.fmrs.domain.Team;
 import com.ksy.fmrs.domain.enums.SyncType;
 import com.ksy.fmrs.dto.SyncReport;
 import com.ksy.fmrs.dto.apiFootball.ApiFootballLeague;
+import com.ksy.fmrs.dto.player.SquadPlayerDto;
+import com.ksy.fmrs.exception.EmptyResponseException;
 import com.ksy.fmrs.service.sync.SyncRecordService;
 import com.ksy.fmrs.service.sync.SyncRunner;
 import com.ksy.fmrs.service.sync.SyncStrategy;
@@ -62,7 +65,7 @@ class SyncRunnerTest {
         // then
         int total = TEST_LAST_LEAGUE_ID - TEST_FIRST_LEAGUE_ID + 1;
         int success = (int) IntStream.rangeClosed(TEST_FIRST_LEAGUE_ID, TEST_LAST_LEAGUE_ID).filter(i -> i % 3 != 0).count();
-        checkReport(report, total, success, total - success);
+        checkReport(report, total, success, total - success, 0);
         IntStream.rangeClosed(TEST_FIRST_LEAGUE_ID, TEST_LAST_LEAGUE_ID)
                 .filter(i->i % 3 == 0)
                 .forEach(apiId->{
@@ -91,9 +94,31 @@ class SyncRunnerTest {
         );
 
         // then
-        checkReport(report, 0, 0, 0);
+        checkReport(report, 0, 0, 0, 0);
         verify(syncRecordService, never())
                 .recordFailedItem(any(), anyInt(), anyString(), anyString(), any());
+    }
+
+    @Test
+    @DisplayName("작업 도중 skippable 예외 발생 시, skipped++ 하고 작업 재개")
+    void Sync_With_Skippable_Exception(){
+        // given
+        SyncStrategy<Team, SquadPlayerDto, Integer> testSquadStrategy = mock(SyncStrategy.class);
+        given(syncRecordService.recordStarted(SyncType.SQUAD)).willReturn(syncJob);
+        given(testSquadStrategy.getSyncType()).willReturn(SyncType.SQUAD);
+        given(testSquadStrategy.getSyncApiId(any())).willReturn(1);
+        given(testSquadStrategy.requestSportsData(any())).willReturn(List.of());
+        doThrow(new EmptyResponseException("skippable exception")).when(testSquadStrategy).validate(any());
+        Team team = Team.builder().build();
+        List<Team> keys =  List.of(team, team, team);
+
+        // when
+        SyncReport report = syncRunner.sync(
+                keys,
+                testSquadStrategy
+        );
+        // then
+        checkReport(report, keys.size(), 0, 0, keys.size());
     }
 
     @Test
@@ -111,18 +136,19 @@ class SyncRunnerTest {
 
         // then
         int total = TEST_LAST_LEAGUE_ID - TEST_FIRST_LEAGUE_ID + 1;
-        checkReport(report, total, total, 0);
+        checkReport(report, total, total, 0, 0);
         Assertions.assertThat(allPassStrategy.getNext()).isEqualTo(total);
-
     }
 
-    private void checkReport(SyncReport report, int total, int success, int failed) {
+    private void checkReport(SyncReport report, int total, int success, int failed, int skipped) {
         Assertions.assertThat(report.getTotal())
                 .isEqualTo(total);
         Assertions.assertThat(report.getSuccess())
                 .isEqualTo(success);
         Assertions.assertThat(report.getFailed())
                 .isEqualTo(failed);
+        Assertions.assertThat(report.getSkipped())
+                .isEqualTo(skipped);
     }
 
     static final class testLeagueStrategy implements SyncStrategy<Integer, ApiFootballLeague, League> {

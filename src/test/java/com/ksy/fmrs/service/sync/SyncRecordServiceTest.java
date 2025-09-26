@@ -7,7 +7,6 @@ import com.ksy.fmrs.repository.SyncFailedItemRepository;
 import com.ksy.fmrs.repository.SyncJobRepository;
 import com.ksy.fmrs.util.time.TimeProvider;
 import jakarta.persistence.EntityNotFoundException;
-import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -67,7 +66,7 @@ class SyncRecordServiceTest {
         given(syncJobRepository.findById(syncJobId))
                 .willReturn(Optional.empty());
         // when && then
-        assertThatThrownBy(() -> syncRecordService.recordFinished(syncJobId, 0, 0, 0))
+        assertThatThrownBy(() -> syncRecordService.recordFinished(syncJobId, 0, 0, 0, 0))
                 .isInstanceOf(EntityNotFoundException.class);
     }
 
@@ -84,8 +83,9 @@ class SyncRecordServiceTest {
         int total = 10;
         int success = 9;
         int failed = 1;
+        int skipped = 0;
         // when
-        SyncJob actual = syncRecordService.recordFinished(syncJobId, total, success, failed);
+        SyncJob actual = syncRecordService.recordFinished(syncJobId, total, success, failed, skipped);
 
         // then
         checkUpdatedSyncJob(actual, SyncStatus.FAILED, start, end, total, success, failed);
@@ -104,8 +104,9 @@ class SyncRecordServiceTest {
         int total = 10;
         int success = 10;
         int failed = 0;
+        int skipped = 0;
         // when
-        SyncJob actual = syncRecordService.recordFinished(syncJobId, total, success, failed);
+        SyncJob actual = syncRecordService.recordFinished(syncJobId, total, success, failed, skipped);
 
         // then
         checkUpdatedSyncJob(actual, SyncStatus.SUCCESS, start, end, total, success, failed);
