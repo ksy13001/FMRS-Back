@@ -1,10 +1,11 @@
 package com.ksy.fmrs.service;
 
-import com.ksy.fmrs.dto.ValidateResponse;
 import com.ksy.fmrs.dto.apiFootball.ApiFootballLeague;
 import com.ksy.fmrs.dto.apiFootball.ApiFootballPlayersStatistics;
+import com.ksy.fmrs.dto.apiFootball.ApiFootballSquad;
 import com.ksy.fmrs.dto.apiFootball.ApiFootballTeamsByLeague;
 import com.ksy.fmrs.exception.NullApiDataException;
+import com.ksy.fmrs.exception.SkippableSyncException;
 import org.assertj.core.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -40,7 +41,7 @@ class ApiFootballValidatorTest {
                 new ApiFootballTeamsByLeague(
                         "team", null, List.of("some_error_messages"), 0, null, null
                 ),
-                RESPONSE_IS_NULL
+                RESPONSE_IS_Empty
         );
     }
 
@@ -59,8 +60,20 @@ class ApiFootballValidatorTest {
                 new ApiFootballLeague(
                         "League",null, List.of("some_error_messages"), 0, null, null
                 ),
-                RESPONSE_IS_NULL
+                RESPONSE_IS_Empty
         );
+    }
+
+    @Test
+    @DisplayName("response is empty AND error is empty, SkippableException 발생")
+    void validate_Squad_Empty_Response(){
+        // given
+        ApiFootballSquad squad = new ApiFootballSquad(
+                "1", null, List.of(), 1, null, List.of()
+        );
+        // when && then
+        Assertions.assertThatThrownBy(() -> validator.validateSquad(squad))
+                .isInstanceOf(SkippableSyncException.class);
     }
 
     private void testTeamValidator(ApiFootballTeamsByLeague dto, String message) {
@@ -80,4 +93,5 @@ class ApiFootballValidatorTest {
                 .isInstanceOf(NullApiDataException.class)
                 .hasMessage(message);
     }
+
 }

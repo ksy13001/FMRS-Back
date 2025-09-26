@@ -26,14 +26,14 @@ public class SyncRecordService {
     }
 
     @Transactional
-    public SyncJob recordFinished(Long syncJobId, int total, int success, int failed){
+    public SyncJob recordFinished(Long syncJobId, int total, int success, int failed, int skipped){
         SyncJob syncJob = syncJobRepository.findById(syncJobId)
                 .orElseThrow(()->new EntityNotFoundException("Sync Job Not Started"));
         if (failed > 0) {
-            syncJob.failed(timeProvider.getCurrentLocalDateTime(), total, success, failed);
+            syncJob.failed(timeProvider.getCurrentLocalDateTime(), total, success, failed, skipped);
             return syncJob;
         }
-        syncJob.success(timeProvider.getCurrentLocalDateTime(), total, success, failed);
+        syncJob.success(timeProvider.getCurrentLocalDateTime(), total, success, failed, skipped);
         return syncJob;
     }
 

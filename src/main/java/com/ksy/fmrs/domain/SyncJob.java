@@ -36,6 +36,8 @@ public class SyncJob {
     private int success;
     @Column(nullable = false)
     private int failed;
+    @Column(nullable = false)
+    private int skipped;
 
     public SyncJob(SyncType type,
                    SyncStatus status,
@@ -57,19 +59,21 @@ public class SyncJob {
         return new SyncJob(type, SyncStatus.STARTED, start, null, 0, 0, 0);
     }
 
-    public void success(LocalDateTime end, int total, int success, int failed){
+    public void success(LocalDateTime end, int total, int success, int failed, int skipped){
         this.end = end;
         this.total = total;
         this.success = success;
         this.failed = failed;
+        this.skipped = skipped;
         this.status = SyncStatus.SUCCESS;
     }
 
-    public void failed(LocalDateTime end, int total, int success, int failed){
+    public void failed(LocalDateTime end, int total, int success, int failed, int  skipped){
         this.end = end;
         this.total = total;
         this.success = success;
         this.failed = failed;
+        this.skipped = skipped;
         this.status = SyncStatus.FAILED;
     }
 

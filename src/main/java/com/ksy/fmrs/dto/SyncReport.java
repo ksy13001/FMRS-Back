@@ -9,4 +9,5 @@ public class SyncReport {
     private Integer total;
     private Integer success;
     private Integer failed;
+    private Integer skipped;
 }
