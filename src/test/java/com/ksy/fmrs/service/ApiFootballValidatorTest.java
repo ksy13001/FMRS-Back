@@ -34,7 +34,7 @@ class ApiFootballValidatorTest {
     }
 
     @Test
-    @DisplayName("response is null && error is not null, 예외 발생")
+    @DisplayName("response is null && error is not empty, 예외 발생")
     void validate_Team_Empty_Response(){
         testTeamValidator(
                 new ApiFootballTeamsByLeague(
