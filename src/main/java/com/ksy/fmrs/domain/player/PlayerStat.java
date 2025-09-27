@@ -26,6 +26,7 @@ public class PlayerStat extends BaseTime {
     private Integer assist;
     private Integer yellowCards;
     private Integer redCards;
+    @Column(length = 10)
     private String rating;
 
 
