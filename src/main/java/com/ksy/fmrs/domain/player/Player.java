@@ -3,6 +3,7 @@ package com.ksy.fmrs.domain.player;
 
 import com.ksy.fmrs.domain.Comment;
 import com.ksy.fmrs.domain.Team;
+import com.ksy.fmrs.domain.Transfer;
 import com.ksy.fmrs.domain.enums.MappingStatus;
 import com.ksy.fmrs.util.time.TimeUtils;
 import jakarta.persistence.*;
@@ -64,8 +65,11 @@ public class Player {
     @JoinColumn(name = "player_stat_id", unique = true)
     private PlayerStat playerStat;
 
-    @OneToMany(fetch = FetchType.LAZY, mappedBy = "player", cascade = CascadeType.ALL)
+    @OneToMany(mappedBy = "player", cascade = CascadeType.ALL)
     private List<Comment> comments = new ArrayList<>();
+
+    @OneToMany(mappedBy = "player")
+    private List<Transfer> transfers = new ArrayList<>();
 
     @Column(name = "is_gk")
     private Boolean isGK;

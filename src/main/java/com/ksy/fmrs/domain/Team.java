@@ -54,6 +54,9 @@ public class Team {
     @JoinColumn(name = "league_id")
     private League league;
 
+    @OneToMany(mappedBy = "team")
+    private List<Transfer> transfers = new ArrayList<>();
+
     @Builder
     public Team(String name, Integer teamApiId, String logoUrl) {
         this.name = name;
