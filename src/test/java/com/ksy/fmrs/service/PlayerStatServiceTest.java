@@ -2,6 +2,7 @@ package com.ksy.fmrs.service;
 
 import com.ksy.fmrs.domain.League;
 import com.ksy.fmrs.domain.Team;
+import com.ksy.fmrs.domain.enums.SyncType;
 import com.ksy.fmrs.domain.player.Player;
 import com.ksy.fmrs.domain.player.PlayerStat;
 import com.ksy.fmrs.dto.apiFootball.PlayerStatisticApiDto;
@@ -33,6 +34,7 @@ import java.util.Optional;
 
 import static org.mockito.ArgumentMatchers.anyInt;
 import static org.mockito.ArgumentMatchers.anyLong;
+import static org.mockito.BDDMockito.given;
 import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
@@ -220,6 +222,29 @@ class PlayerStatServiceTest {
         // then
         verify(playerRepository, never()).save(any());
         Assertions.assertThat(actual.isPresent()).isFalse();
+    }
+
+    @Test
+    @DisplayName("FA 인 player 는 stat 요청 시, Optional.Empty() 반환")
+    void FA_PlayerStat_is_empty(){
+        // given
+        Long playerId = 10L;
+        Player faPlayer = Player.builder()
+                .name("cross").build();
+        given(playerRepository.findById(playerId))
+                .willReturn(Optional.of(faPlayer));
+
+        // when
+        Optional<PlayerStatDto> actual =
+                playerStatService.saveAndGetPlayerStat(playerId);
+
+        // then
+        verify(playerStatMapper,never())
+                .toEntity(any());
+    }
+
+    public void givenExpiredTime(){
+        given(ttlProvider.getTtl()).willReturn(Duration.ZERO);
     }
 
     private PlayerStatisticApiDto createPlayerStatisticApiDto() {
