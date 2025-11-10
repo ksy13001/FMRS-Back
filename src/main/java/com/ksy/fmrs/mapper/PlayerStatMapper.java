@@ -3,8 +3,10 @@ package com.ksy.fmrs.mapper;
 import com.ksy.fmrs.domain.player.PlayerStat;
 import com.ksy.fmrs.dto.apiFootball.ApiFootballPlayersStatistics;
 import com.ksy.fmrs.dto.apiFootball.PlayerStatisticApiDto;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 
+@Slf4j
 @Component
 public class PlayerStatMapper {
 
@@ -12,6 +14,7 @@ public class PlayerStatMapper {
         if(dto == null ||
                 dto.response() == null ||
                 dto.response().isEmpty()) {
+            log.warn("dto is null or empty");
             return null;
         }
         ApiFootballPlayersStatistics.StatisticDto statistic = dto.response().getFirst().statistics().getFirst();
