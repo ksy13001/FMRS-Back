@@ -24,11 +24,6 @@ public class PlayerController {
     private final PlayerFacadeService playerFacadeService;
     private final PlayerService playerService;
 
-    /**
-     * 1. player 상세정보
-     * 2. 매핑된 상태라면 fmplayer 정보
-     * 3. 실제 스탯
-     */
     @GetMapping("/api/players/{playerId}")
     public PlayerOverviewDto getPlayerDetail(@PathVariable Long playerId) {
         return playerFacadeService.getPlayerOverview(playerId);
