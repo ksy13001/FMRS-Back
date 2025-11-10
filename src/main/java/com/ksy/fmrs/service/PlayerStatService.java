@@ -58,7 +58,7 @@ public class PlayerStatService {
                         league.getCurrentSeason()));
 
         log.info("-------------savePlayerStat: league_api_id={}, team_api_id={}, player_api_id={}, currentSeason={}",
-                league.getLeagueApiId(), team.getTeamApiId(), player.getPlayerApiId(), league.getLeagueApiId());
+                league.getLeagueApiId(), team.getTeamApiId(), player.getPlayerApiId(), league.getCurrentSeason());
         if(ps == null) {
             return Optional.empty();
         }

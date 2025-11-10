@@ -31,7 +31,7 @@ public enum UrlEnum {
     }
 
     // 선수 통계 API URL을 생성 (playerName, teamApiId, 시즌)
-    public static String buildPlayerStatUrl(Integer playerApiId, Integer teamApiId, Integer leagueApiId, int currentSeason) {
+    public static String buildPlayerStatUrl(Integer leagueApiId,  Integer teamApiId, Integer playerApiId, int currentSeason) {
         return PLAYER_STATISTICS_URL.getValue() +
                 PARAM_ID.getValue() + playerApiId +
                 AND.getValue() +
