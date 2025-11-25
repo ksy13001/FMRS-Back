@@ -47,5 +47,13 @@ public class ApiFootballRestClient implements ApiFootballClient {
         );
     }
 
+    @Override
+    public ApiFootballPlayersStatistics requestPlayerStatistics(Integer leagueApiId, Integer teamApiId, Integer playerApiId, int currentSeason) {
+        return restClientService.getApiResponse(
+                UrlEnum.buildPlayerStatUrl(leagueApiId, teamApiId, playerApiId, currentSeason),
+                ApiFootballPlayersStatistics.class
+        );
+    }
+
 
 }

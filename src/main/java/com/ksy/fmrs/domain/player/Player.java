@@ -9,6 +9,8 @@ import com.ksy.fmrs.util.time.TimeUtils;
 import jakarta.persistence.*;
 import lombok.*;
 
+import java.time.Duration;
+import java.time.Instant;
 import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
@@ -171,5 +173,9 @@ public class Player {
 
     public boolean isFA(){
         return this.team == null;
+    }
+
+    public boolean needsStatRefresh(Instant now, Duration ttl){
+        return playerStat == null || playerStat.isExpired(now, ttl);
     }
 }
