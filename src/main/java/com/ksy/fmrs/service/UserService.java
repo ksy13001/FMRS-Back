@@ -21,12 +21,12 @@ public class UserService {
     @Transactional(readOnly = true)
     public User findByUsername(String username) {
         return userRepository.findByUsername(username)
-                .orElseThrow(()-> new EntityNotFoundException("user not found"+User.class));
+                .orElseThrow(()-> new EntityNotFoundException("user not found"+username));
     }
 
     @Transactional
     public ResponseEntity<SignupResponseDto> createUser(SignupRequestDto signupRequestDto) {
-        if (existsByUsername(signupRequestDto.username()) || existsByUsername(signupRequestDto.username())) {
+        if (existsByUsername(signupRequestDto.username())) {
             return SignupResponseDto.duplicated();
         }
 
