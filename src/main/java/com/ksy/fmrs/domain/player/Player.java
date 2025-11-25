@@ -68,9 +68,6 @@ public class Player {
     @OneToMany(mappedBy = "player", cascade = CascadeType.ALL)
     private List<Comment> comments = new ArrayList<>();
 
-    @OneToMany(mappedBy = "player")
-    private List<Transfer> transfers = new ArrayList<>();
-
     @Column(name = "is_gk")
     private Boolean isGK;
 
