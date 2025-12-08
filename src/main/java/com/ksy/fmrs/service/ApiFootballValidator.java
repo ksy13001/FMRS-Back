@@ -1,9 +1,6 @@
 package com.ksy.fmrs.service;
 
-import com.ksy.fmrs.dto.apiFootball.ApiFootballLeague;
-import com.ksy.fmrs.dto.apiFootball.ApiFootballPlayersStatistics;
-import com.ksy.fmrs.dto.apiFootball.ApiFootballTeamsByLeague;
-import com.ksy.fmrs.dto.apiFootball.ApiFootballSquad;
+import com.ksy.fmrs.dto.apiFootball.*;
 import com.ksy.fmrs.exception.ErrorResponseException;
 import com.ksy.fmrs.exception.NullApiDataException;
 import com.ksy.fmrs.exception.EmptyResponseException;
@@ -21,6 +18,7 @@ public class ApiFootballValidator{
     public static final String SEASONS_IS_NULL = "validate: seasons is null";
     public static final String TEAM_IS_NULL = "validate: team is null";
     public static final String ERROR_RESPONSE="validate: error response";
+    public static final String OVER_PAGE = "validate: Paging error: start page should be 1";
 
     public void validateLeague(ApiFootballLeague dto){
         if(dto == null){
@@ -92,4 +90,23 @@ public class ApiFootballValidator{
         }
 
     }
+
+    public void validateTransfer(ApiFootballTransfers dto) {
+        if (dto == null){
+            throw new NullApiDataException(DTO_IS_NULL);
+        }
+
+        if (!dto.errors().isEmpty()){
+            throw new ErrorResponseException(ERROR_RESPONSE);
+        }
+
+        if(dto.response().isEmpty()){
+            throw new EmptyResponseException(RESPONSE_IS_Empty);
+        }
+
+        if(dto.paging().total() != 1){
+            throw new IllegalArgumentException(OVER_PAGE);
+        }
+    }
+
 }
