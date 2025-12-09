@@ -3,8 +3,8 @@ package com.ksy.fmrs.domain.player;
 
 import com.ksy.fmrs.domain.Comment;
 import com.ksy.fmrs.domain.Team;
-import com.ksy.fmrs.domain.Transfer;
 import com.ksy.fmrs.domain.enums.MappingStatus;
+import com.ksy.fmrs.domain.enums.TransferType;
 import com.ksy.fmrs.util.time.TimeUtils;
 import jakarta.persistence.*;
 import lombok.*;
@@ -12,9 +12,9 @@ import lombok.*;
 import java.time.Duration;
 import java.time.Instant;
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Optional;
 
 @Getter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
@@ -69,6 +69,10 @@ public class Player {
 
     @OneToMany(mappedBy = "player", cascade = CascadeType.ALL)
     private List<Comment> comments = new ArrayList<>();
+
+    @Getter(AccessLevel.PRIVATE)
+    @OneToMany(mappedBy = "player")
+    private List<Transfer> transfers = new ArrayList<>();
 
     @Column(name = "is_gk")
     private Boolean isGK;
@@ -177,5 +181,13 @@ public class Player {
 
     public boolean needsStatRefresh(Instant now, Duration ttl){
         return playerStat == null || playerStat.isExpired(now, ttl);
+    }
+
+    public Transfer addTransfer(Team toTeam, Team fromTeam, TransferType type, Integer fee, LocalDate date, LocalDateTime update) {
+        Transfer transfer = new Transfer(
+            this, toTeam, fromTeam, type, fee, date, update
+        );
+        this.transfers.add(transfer);
+        return transfer;
     }
 }
