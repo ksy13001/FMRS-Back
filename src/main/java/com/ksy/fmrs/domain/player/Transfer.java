@@ -16,7 +16,7 @@ public class Transfer extends BaseTime {
 
     @Id
     @GeneratedValue
-    private int id;
+    private Long id;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "player_id")
@@ -39,14 +39,13 @@ public class Transfer extends BaseTime {
 
     private LocalDateTime update;
 
-    public Transfer(Player player, Team toTeam, Team fromTeam, TransferType type, Integer fee, LocalDate date, LocalDateTime update) {
-        Transfer transfer = new Transfer();
-        transfer.player = player;
-        transfer.toTeam = toTeam;
-        transfer.fromTeam = fromTeam;
-        transfer.type = type;
-        transfer.fee = fee;
-        transfer.date = date;
-        transfer.update = update;
+    protected Transfer(Player player, Team toTeam, Team fromTeam, TransferType type, Integer fee, LocalDate date, LocalDateTime update) {
+        this.player = player;
+        this.toTeam = toTeam;
+        this.fromTeam = fromTeam;
+        this.type = type;
+        this.fee = fee;
+        this.date = date;
+        this.update = update;
     }
 }
