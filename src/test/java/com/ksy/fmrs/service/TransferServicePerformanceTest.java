@@ -81,7 +81,7 @@ class TransferServicePerformanceTest {
         List<TransferRequestDto> dtos = new ArrayList<>();
         for (int i = 0; i < TOTAL; i++) {
             dtos.add(new TransferRequestDto(
-                    i, i, i + TOTAL, TransferType.PERMANENT, 300, LocalDate.now(), LocalDateTime.now()
+                    i, i, i + TOTAL, TransferType.PERMANENT, 300d, "EUR", LocalDate.now(), LocalDateTime.now()
             ));
         }
         return dtos;

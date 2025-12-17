@@ -3,10 +3,12 @@ package com.ksy.fmrs.service.apiClient;
 
 import org.junit.jupiter.api.Test;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.test.context.ActiveProfiles;
 import reactor.core.publisher.Mono;
 import reactor.core.scheduler.Schedulers;
 
 @SpringBootTest
+@ActiveProfiles("test")
 class WebClientServiceTest {
 
 //
