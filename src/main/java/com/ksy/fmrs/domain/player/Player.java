@@ -183,9 +183,9 @@ public class Player {
         return playerStat == null || playerStat.isExpired(now, ttl);
     }
 
-    public Transfer recordTransfer(Team toTeam, Team fromTeam, TransferType type, Integer fee, LocalDate date, LocalDateTime update) {
+    public Transfer recordTransfer(Team fromTeam, Team toTeam, TransferType type, Double fee, String currency, LocalDate date, LocalDateTime update) {
         Transfer transfer = new Transfer(
-            this, toTeam, fromTeam, type, fee, date, update
+            this, fromTeam, toTeam, type, fee, currency, date, update
         );
         this.transfers.add(transfer);
         return transfer;

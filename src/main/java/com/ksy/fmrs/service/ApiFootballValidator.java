@@ -1,5 +1,6 @@
 package com.ksy.fmrs.service;
 
+import com.fasterxml.jackson.databind.JsonNode;
 import com.ksy.fmrs.dto.apiFootball.*;
 import com.ksy.fmrs.exception.ErrorResponseException;
 import com.ksy.fmrs.exception.NullApiDataException;
@@ -96,7 +97,8 @@ public class ApiFootballValidator{
             throw new NullApiDataException(DTO_IS_NULL);
         }
 
-        if (!dto.errors().isEmpty()){
+        JsonNode errors = dto.errors();
+        if (errors != null && !errors.isEmpty()){
             throw new ErrorResponseException(ERROR_RESPONSE);
         }
 

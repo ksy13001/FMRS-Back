@@ -20,25 +20,33 @@ public class SportsDataOperationsScheduler {
     private final LeagueService leagueService;
 
     @Scheduled(cron = "${init.update_squad_time}", zone = "Asia/Seoul")
-    public void updateAllSquad() {
+    public void syncAllSquad() {
         sportsDataSyncService.syncSquadPlayers(
                 teamRepository.findTeamsByLeagueType(LeagueType.LEAGUE)
         );
     }
 
     @Scheduled(cron = "${init.update_league_time}", zone = "Asia/Seoul")
-    public void updateLeagueSeason(){
+    public void refreshLeagueSeasonIfNeeded() {
         log.info("start update league season");
         leagueService.findLeaguesApiIdsOutsideSeason()
-                .forEach(apiIds->{
+                .forEach(apiIds -> {
                     try {
                         leagueService.findLeagueApiInfo(apiIds)
-                                .ifPresent(dto->
+                                .ifPresent(dto ->
                                         leagueService.refreshLeagueSeason(apiIds, dto));
                     } catch (Exception e) {
                         log.info("fail to update league season : leagueApiId ={}", apiIds);
                     }
                 });
+    }
+
+    @Scheduled(cron = "${init.update_transfer_time}", zone = "Asia/Seoul")
+    public void syncAllTransfers() {
+        log.info("start update all transfers");
+        sportsDataSyncService.syncTransfers(
+                teamRepository.findTeamsByLeagueType(LeagueType.LEAGUE)
+        );
     }
 
 }
