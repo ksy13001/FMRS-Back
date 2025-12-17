@@ -23,6 +23,7 @@ public class SyncFailedItem {
     @Enumerated(EnumType.STRING)
     private SyncType type;
 
+    @Column(columnDefinition = "TEXT")
     private String errorMessage;
 
     private String errorCode;

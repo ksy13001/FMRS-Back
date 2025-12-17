@@ -1,10 +1,7 @@
 package com.ksy.fmrs.service;
 
 import com.ksy.fmrs.domain.enums.UrlEnum;
-import com.ksy.fmrs.dto.apiFootball.ApiFootballLeague;
-import com.ksy.fmrs.dto.apiFootball.ApiFootballPlayersStatistics;
-import com.ksy.fmrs.dto.apiFootball.ApiFootballTeamsByLeague;
-import com.ksy.fmrs.dto.apiFootball.ApiFootballSquad;
+import com.ksy.fmrs.dto.apiFootball.*;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
@@ -52,6 +49,14 @@ public class ApiFootballRestClient implements ApiFootballClient {
         return restClientService.getApiResponse(
                 UrlEnum.buildPlayerStatUrl(leagueApiId, teamApiId, playerApiId, currentSeason),
                 ApiFootballPlayersStatistics.class
+        );
+    }
+
+    @Override
+    public ApiFootballTransfers requestTransfers(Integer teamApiId) {
+        return restClientService.getApiResponse(
+                UrlEnum.buildTransfersUrl(teamApiId),
+                ApiFootballTransfers.class
         );
     }
 

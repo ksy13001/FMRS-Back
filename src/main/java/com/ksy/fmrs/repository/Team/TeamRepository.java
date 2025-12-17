@@ -7,13 +7,15 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
+import java.util.Collection;
 import java.util.List;
 import java.util.Optional;
-import java.util.Set;
 
 @Repository
 public interface TeamRepository extends JpaRepository<Team, Long>, TeamRepositoryCustom {
-    Optional<Team> findTeamByTeamApiId(Integer teamApiId);
+    Optional<Team> findByTeamApiId(Integer teamApiId);
+
+    List<Team> findByTeamApiIdIn(Collection<Integer> teamApiIds);
 
     @Query("SELECT t FROM Team t " +
             "JOIN t.league")

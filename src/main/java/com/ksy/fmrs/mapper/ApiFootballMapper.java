@@ -4,11 +4,14 @@ import com.ksy.fmrs.domain.League;
 import com.ksy.fmrs.domain.Team;
 import com.ksy.fmrs.domain.enums.LeagueType;
 import com.ksy.fmrs.domain.enums.MappingStatus;
+import com.ksy.fmrs.domain.enums.TransferType;
 import com.ksy.fmrs.domain.player.Player;
 import com.ksy.fmrs.dto.apiFootball.ApiFootballLeague;
 import com.ksy.fmrs.dto.apiFootball.ApiFootballPlayersStatistics;
 import com.ksy.fmrs.dto.apiFootball.ApiFootballTeamsByLeague;
-import com.ksy.fmrs.exception.NullApiDataException;
+import com.ksy.fmrs.dto.apiFootball.ApiFootballTransfers;
+import com.ksy.fmrs.dto.transfer.TransferRequestDto;
+import com.ksy.fmrs.util.MoneyParser;
 import com.ksy.fmrs.util.NationNormalizer;
 import com.ksy.fmrs.util.StringUtils;
 import org.springframework.stereotype.Component;
@@ -74,5 +77,33 @@ public class ApiFootballMapper {
                 .endDate(seasons.getLast().end())
                 .leagueType(LeagueType.fromValue(league.type()))
                 .build();
+    }
+
+    public List<TransferRequestDto> toDto(ApiFootballTransfers data) {
+        List<TransferRequestDto> result = new ArrayList<>();
+
+        for (ApiFootballTransfers.PlayerTransfersDto dto : data.response()) {
+            Integer playerApiId = dto.player().id();
+            var updatedAt = dto.update() != null ? dto.update().toLocalDateTime() : null;
+            for (ApiFootballTransfers.TransferDto transferDto : dto.transfers()) {
+                Integer fromTeamApiId = transferDto.teams().outgoingTeam().id();
+                Integer toTeamApiId = transferDto.teams().incomingTeam().id();
+                String rawType = transferDto.type();
+                var money = MoneyParser.parse(rawType);
+
+                result.add(new TransferRequestDto(
+                        playerApiId,
+                        fromTeamApiId,
+                        toTeamApiId,
+                        TransferType.fromValue(rawType),
+                        money != null ? money.amount() : null,
+                        money != null ? money.currency() : null,
+                        transferDto.date(),
+                        updatedAt
+                ));
+            }
+        }
+
+        return result;
     }
 }

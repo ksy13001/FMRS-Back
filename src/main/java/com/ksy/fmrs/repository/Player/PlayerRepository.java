@@ -6,6 +6,7 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.stereotype.Repository;
 
+import java.util.Collection;
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
@@ -16,6 +17,10 @@ public interface PlayerRepository extends JpaRepository<Player, Long>, PlayerRep
     List<Player> findAllByTeamId(Long teamId);
 
     Optional<Player> findByPlayerApiId(Integer playerApiId);
+
+    @Query("SELECT p FROM Player p " +
+            "WHERE p.playerApiId IN :playerApiIds")
+    List<Player> findByPlayerApiIdIn(Collection<Integer> playerApiIds);
 
     List<Player> findByMappingStatus(MappingStatus mappingStatus);
 
