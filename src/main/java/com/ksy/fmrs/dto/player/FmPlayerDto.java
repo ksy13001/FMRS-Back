@@ -15,6 +15,8 @@ public class FmPlayerDto {
     // 기본 속성
     private String name;
 
+    private Integer fmUid;
+
     @JsonProperty("CA")
     private int currentAbility;
 

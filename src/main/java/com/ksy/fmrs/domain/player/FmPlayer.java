@@ -26,6 +26,9 @@ public class FmPlayer {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
+    @Column(name = "fm_uid", unique = true, nullable = false)
+    private Integer fmUid;
+
     private String name;
 
     @Column(name = "first_name")
@@ -83,6 +86,7 @@ public class FmPlayer {
 
     @Builder
     public FmPlayer(
+            Integer fmUid,
             String name,
             String firstName,
             String lastName,
@@ -97,6 +101,7 @@ public class FmPlayer {
             HiddenAttributes hiddenAttributes,
             Integer currentAbility,
             Integer potentialAbility) {
+        this.fmUid = fmUid;
         this.name = name;
         this.firstName = firstName;
         this.lastName = lastName;
@@ -117,6 +122,7 @@ public class FmPlayer {
         String name = fmPlayerDto.getName();
         return FmPlayer.builder()
                 .name(name)
+                .fmUid(fmPlayerDto.getFmUid())
                 .firstName(StringUtils.getFirstName(name).toUpperCase())
                 .lastName(StringUtils.getLastName(name).toUpperCase())
                 .birth(fmPlayerDto.getBorn())
