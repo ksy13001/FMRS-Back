@@ -30,6 +30,7 @@ public class FmPlayer {
     @Column(name = "fm_uid", unique = true, nullable = false)
     private Integer fmUid;
 
+    @Column(name = "fm_version", nullable = false)
     @Enumerated(EnumType.STRING)
     private FmVersion fmVersion;
 
