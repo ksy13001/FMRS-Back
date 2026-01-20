@@ -1,5 +1,6 @@
 package com.ksy.fmrs.domain.player;
 
+import com.ksy.fmrs.domain.enums.FmVersion;
 import com.ksy.fmrs.domain.enums.MappingStatus;
 import com.ksy.fmrs.dto.player.FmPlayerDto;
 import com.ksy.fmrs.util.FmUtils;
@@ -28,6 +29,9 @@ public class FmPlayer {
 
     @Column(name = "fm_uid", unique = true, nullable = false)
     private Integer fmUid;
+
+    @Enumerated(EnumType.STRING)
+    private FmVersion fmVersion;
 
     private String name;
 
@@ -88,6 +92,7 @@ public class FmPlayer {
     public FmPlayer(
             Integer fmUid,
             String name,
+            FmVersion fmVersion,
             String firstName,
             String lastName,
             LocalDate birth,
@@ -103,6 +108,7 @@ public class FmPlayer {
             Integer potentialAbility) {
         this.fmUid = fmUid;
         this.name = name;
+        this.fmVersion = fmVersion;
         this.firstName = firstName;
         this.lastName = lastName;
         this.birth = birth;
@@ -118,10 +124,11 @@ public class FmPlayer {
         this.potentialAbility = potentialAbility;
     }
 
-    public static FmPlayer FmPlayerDtoToEntity(FmPlayerDto fmPlayerDto) {
+    public static FmPlayer FmPlayerDtoToEntity(FmPlayerDto fmPlayerDto, FmVersion fmVersion) {
         String name = fmPlayerDto.getName();
         return FmPlayer.builder()
                 .name(name)
+                .fmVersion(fmVersion)
                 .fmUid(fmPlayerDto.getFmUid())
                 .firstName(StringUtils.getFirstName(name).toUpperCase())
                 .lastName(StringUtils.getLastName(name).toUpperCase())

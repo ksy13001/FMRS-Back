@@ -1,5 +1,6 @@
 package com.ksy.fmrs.config;
 
+import com.ksy.fmrs.domain.enums.FmVersion;
 import com.ksy.fmrs.domain.enums.LeagueType;
 import com.ksy.fmrs.service.sync.ApiFootballSyncService;
 import com.ksy.fmrs.service.sync.SportsDataSyncService;
@@ -93,11 +94,12 @@ public class SportsDataSyncConfig {
     @Bean
     @ConditionalOnProperty(name = "INITIAL_DATA_INSERT", havingValue = "fmplayer")
     public ApplicationRunner initializeFMPlayer(SportsDataSyncServiceWebFlux initializerService,
-                                                @Value("${init.fmplayer_dir_path}") String dirPath) {
+                                                @Value("${init.fmplayer_dir_path}") String dirPath,
+                                                @Value("${fm.version}") String fmVersion) {
 
         return args -> {
             log.info("Initializing fmplayer started");
-            initializerService.saveFmPlayers(dirPath);
+            initializerService.saveFmPlayers(dirPath, FmVersion.fromString(fmVersion));
         };
     }
 

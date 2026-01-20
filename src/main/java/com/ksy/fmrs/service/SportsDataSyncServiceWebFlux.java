@@ -3,6 +3,7 @@ package com.ksy.fmrs.service;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.ksy.fmrs.domain.League;
+import com.ksy.fmrs.domain.enums.FmVersion;
 import com.ksy.fmrs.domain.enums.LeagueType;
 import com.ksy.fmrs.domain.enums.MappingStatus;
 import com.ksy.fmrs.domain.player.*;
@@ -180,13 +181,13 @@ public class SportsDataSyncServiceWebFlux{
     }
 
 
-    public void saveFmPlayers(String dirPath) {
+    public void saveFmPlayers(String dirPath, FmVersion fmVersion) {
         log.info("dir 위치 : {}",dirPath);
         List<FmPlayerDto> fmPlayerDtos = getPlayersFromFmPlayers(dirPath);
         log.info("fmPlayer 저장 시작: {}", fmPlayerDtos.size());
         List<FmPlayer> fmPlayers = new ArrayList<>();
         fmPlayerDtos.forEach(fmPlayer -> {
-            fmPlayers.add(FmPlayer.FmPlayerDtoToEntity(fmPlayer));
+            fmPlayers.add(FmPlayer.FmPlayerDtoToEntity(fmPlayer, fmVersion));
         });
         int total = fmPlayers.size();
         // 1000개씩 bulk insert
