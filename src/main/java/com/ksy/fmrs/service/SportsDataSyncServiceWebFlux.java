@@ -3,6 +3,7 @@ package com.ksy.fmrs.service;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.ksy.fmrs.domain.League;
+import com.ksy.fmrs.domain.enums.FmVersion;
 import com.ksy.fmrs.domain.enums.LeagueType;
 import com.ksy.fmrs.domain.enums.MappingStatus;
 import com.ksy.fmrs.domain.player.*;
@@ -39,7 +40,6 @@ import static java.util.stream.Collectors.toMap;
 @RequiredArgsConstructor
 @Service
 public class SportsDataSyncServiceWebFlux{
-    private final ObjectMapper objectMapper;
     private final BulkRepository bulkRepository;
     private final FootballApiService footballApiService;
     private final PlayerRawRepository playerRawRepository;
@@ -52,7 +52,6 @@ public class SportsDataSyncServiceWebFlux{
     //각 요청 사이에 약 133ms 딜레이 (450회/분 ≒ 7.5회/초)
     private static final int DELAY_MS = 150;
     private static final int TIME_OUT = 10;
-    private static final int CHUNK_SIZE = 1000;
     private final LocaleResolver localeResolver;
 
     /**
@@ -179,24 +178,6 @@ public class SportsDataSyncServiceWebFlux{
                 }).then();
     }
 
-
-    public void saveFmPlayers(String dirPath) {
-        log.info("dir 위치 : {}",dirPath);
-        List<FmPlayerDto> fmPlayerDtos = getPlayersFromFmPlayers(dirPath);
-        log.info("fmPlayer 저장 시작: {}", fmPlayerDtos.size());
-        List<FmPlayer> fmPlayers = new ArrayList<>();
-        fmPlayerDtos.forEach(fmPlayer -> {
-            fmPlayers.add(FmPlayer.FmPlayerDtoToEntity(fmPlayer));
-        });
-        int total = fmPlayers.size();
-        // 1000개씩 bulk insert
-        for (int i = 0; i < total; i += CHUNK_SIZE) {
-            int end = Math.min(i + CHUNK_SIZE, total);
-            List<FmPlayer> now = fmPlayers.subList(i, end);
-            bulkRepository.bulkInsertFmPlayers(now);
-        }
-    }
-
     public Mono<Void> savePlayerRaws(List<League> leagues) {
         AtomicInteger totalCnt = new AtomicInteger(0);
 
@@ -312,27 +293,6 @@ public class SportsDataSyncServiceWebFlux{
                 leagueAPIDetailsResponseDto.getLeagueType().equals(LeagueType.LEAGUE.getValue()) &&
                 leagueAPIDetailsResponseDto.getCurrentSeason() >= SEASON_2024 &&
                 leagueAPIDetailsResponseDto.getStanding();
-    }
-
-    private List<FmPlayerDto> getPlayersFromFmPlayers(String dirPath) {
-        log.info("dir 탐색 시작");
-        File folder = new File(dirPath);
-        File[] jsonFiles = folder.listFiles((dir, name) -> name.toLowerCase().endsWith(".json"));
-
-        return Arrays.stream(Objects.requireNonNull(jsonFiles))
-                .map(file -> {
-                    try {
-                        // JSON 파일을 FmPlayerDto로 변환
-                        FmPlayerDto dto = objectMapper.readValue(file, FmPlayerDto.class);
-                        dto.setName(StringUtils.getPlayerNameFromFileName(file.getName().toUpperCase()));
-                        return dto;
-                    } catch (Exception e) {
-                        // 변환에 실패하면 에러 로그 남기고 null 반환 (또는 예외 전파)
-                        e.printStackTrace();
-                        return null;
-                    }
-                })
-                .collect(Collectors.toList());
     }
 
     private List<PlayerRaw> convertPlayerStatisticsDtoToPlayerRaws(List<String> playerStatisticsApiResponseDtos) {

@@ -1,11 +1,55 @@
-package com.ksy.fmrs.util;
+package com.ksy.fmrs.mapper;
 
-import com.ksy.fmrs.domain.player.*;
+import com.ksy.fmrs.domain.enums.FmVersion;
+import com.ksy.fmrs.domain.player.FmPlayer;
+import com.ksy.fmrs.domain.player.GoalKeeperAttributes;
+import com.ksy.fmrs.domain.player.HiddenAttributes;
+import com.ksy.fmrs.domain.player.MentalAttributes;
+import com.ksy.fmrs.domain.player.PersonalityAttributes;
+import com.ksy.fmrs.domain.player.PhysicalAttributes;
+import com.ksy.fmrs.domain.player.Position;
+import com.ksy.fmrs.domain.player.TechnicalAttributes;
 import com.ksy.fmrs.dto.player.FmPlayerDto;
+import com.ksy.fmrs.util.NationNormalizer;
+import com.ksy.fmrs.util.StringUtils;
+import org.springframework.stereotype.Component;
 
-public class FmUtils {
+import java.util.ArrayList;
+import java.util.List;
 
-    public static GoalKeeperAttributes getGoalKeeperAttributesFromFmPlayer(FmPlayerDto fmPlayerDto) {
+@Component
+public class FmPlayerMapper {
+
+    public List<FmPlayer> toEntity(List<FmPlayerDto> fmPlayerDtos, FmVersion fmVersion) {
+        List<FmPlayer> fmPlayers = new ArrayList<>();
+        fmPlayerDtos.forEach(fmPlayer -> fmPlayers.add(toEntity(fmPlayer, fmVersion)));
+
+        return fmPlayers;
+    }
+
+    public FmPlayer toEntity(FmPlayerDto fmPlayerDto, FmVersion fmVersion) {
+        String name = fmPlayerDto.getName();
+        return FmPlayer.builder()
+                .name(name)
+                .fmVersion(fmVersion)
+                .fmUid(fmPlayerDto.getFmUid())
+                .firstName(StringUtils.getFirstName(name).toUpperCase())
+                .lastName(StringUtils.getLastName(name).toUpperCase())
+                .birth(fmPlayerDto.getBorn())
+                .nationName(NationNormalizer.normalize(fmPlayerDto.getNation().getName().toUpperCase()))
+                .personalityAttributes(toPersonalityAttributes(fmPlayerDto))
+                .hiddenAttributes(toHiddenAttributes(fmPlayerDto))
+                .mentalAttributes(toMentalAttributes(fmPlayerDto))
+                .physicalAttributes(toPhysicalAttributes(fmPlayerDto))
+                .goalKeeperAttributes(toGoalKeeperAttributes(fmPlayerDto))
+                .technicalAttributes(toTechnicalAttributes(fmPlayerDto))
+                .position(toPosition(fmPlayerDto))
+                .currentAbility(fmPlayerDto.getCurrentAbility())
+                .potentialAbility(fmPlayerDto.getPotentialAbility())
+                .build();
+    }
+
+    private GoalKeeperAttributes toGoalKeeperAttributes(FmPlayerDto fmPlayerDto) {
         FmPlayerDto.GoalKeeperAttributesDto goalKeeperAttributesDto = fmPlayerDto.getGoalKeeperAttributes();
         if (goalKeeperAttributesDto == null) {
             return null;
@@ -25,7 +69,7 @@ public class FmUtils {
                 .build();
     }
 
-    public static HiddenAttributes getHiddenAttributesFromFmPlayer(FmPlayerDto fmPlayerDto) {
+    private HiddenAttributes toHiddenAttributes(FmPlayerDto fmPlayerDto) {
         FmPlayerDto.HiddenAttributesDto hiddenAttributesDto = fmPlayerDto.getHiddenAttributes();
         if (hiddenAttributesDto == null) {
             return null;
@@ -39,7 +83,7 @@ public class FmUtils {
                 .build();
     }
 
-    public static MentalAttributes getMentalAttributesFromFmPlayer(FmPlayerDto fmPlayerDto) {
+    private MentalAttributes toMentalAttributes(FmPlayerDto fmPlayerDto) {
         FmPlayerDto.MentalAttributesDto mentalAttributesDto = fmPlayerDto.getMentalAttributes();
         if (mentalAttributesDto == null) {
             return null;
@@ -62,7 +106,7 @@ public class FmUtils {
                 .build();
     }
 
-    public static PersonalityAttributes getPersonalityAttributesFromFmPlayer(FmPlayerDto fmPlayerDto) {
+    private PersonalityAttributes toPersonalityAttributes(FmPlayerDto fmPlayerDto) {
         FmPlayerDto.PersonalityAttributesDto personalityAttributesDto = fmPlayerDto.getPersonalityAttributes();
         if (personalityAttributesDto == null) {
             return null;
@@ -79,7 +123,7 @@ public class FmUtils {
                 .build();
     }
 
-    public static PhysicalAttributes getPhysicalAttributesFromFmPlayer(FmPlayerDto fmPlayerDto) {
+    private PhysicalAttributes toPhysicalAttributes(FmPlayerDto fmPlayerDto) {
         FmPlayerDto.PhysicalAttributesDto physicalAttributesDto = fmPlayerDto.getPhysicalAttributes();
         if (physicalAttributesDto == null) {
             return null;
@@ -96,7 +140,7 @@ public class FmUtils {
                 .build();
     }
 
-    public static TechnicalAttributes getTechnicalAttributesFromFmPlayer(FmPlayerDto fmPlayerDto) {
+    private TechnicalAttributes toTechnicalAttributes(FmPlayerDto fmPlayerDto) {
         FmPlayerDto.TechnicalAttributesDto technicalAttributesDto = fmPlayerDto.getTechnicalAttributes();
         if (technicalAttributesDto == null) {
             return null;
@@ -119,7 +163,7 @@ public class FmUtils {
                 .build();
     }
 
-    public static Position getPositionFromFmPlayer(FmPlayerDto fmPlayerDto) {
+    private Position toPosition(FmPlayerDto fmPlayerDto) {
         FmPlayerDto.PositionAttributesDto positionAttributesDto = fmPlayerDto.getPositions();
         if (positionAttributesDto == null) {
             return null;

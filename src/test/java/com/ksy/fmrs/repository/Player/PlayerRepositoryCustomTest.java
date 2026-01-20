@@ -2,6 +2,7 @@ package com.ksy.fmrs.repository.Player;
 
 import com.ksy.fmrs.config.TestQueryDSLConfig;
 import com.ksy.fmrs.config.TestTimeProviderConfig;
+import com.ksy.fmrs.domain.enums.FmVersion;
 import com.ksy.fmrs.domain.enums.MappingStatus;
 import com.ksy.fmrs.domain.player.FmPlayer;
 import com.ksy.fmrs.domain.player.Player;
@@ -83,19 +84,9 @@ class PlayerRepositoryCustomTest {
         String firstName = "messi";
         int totalPlayerSize = 60;
         int totalPage = totalPlayerSize / LIMIT;
-        for(int i=0;i<20;i++){
-            Player player = Player.builder().firstName(firstName + i).mappingStatus(MappingStatus.MATCHED).build();
-            FmPlayer fmPlayer = FmPlayer.builder().firstName(firstName + i).currentAbility(100 + i*10).build();
-            player.updateFmPlayer(fmPlayer);
-            tem.persist(player);
-            tem.persist(fmPlayer);
-        }
-        for(int i=20;i<40;i++){
-            tem.persist(Player.builder().firstName(firstName + i).mappingStatus(MappingStatus.UNMAPPED).build());
-        }
-        for(int i=40;i<60;i++){
-            tem.persist(Player.builder().firstName(firstName + i).mappingStatus(MappingStatus.FAILED).build());
-        }
+        persistMatchedPlayers(firstName, 0, 20);
+        persistPlayersWithStatus(firstName, 20, 40, MappingStatus.UNMAPPED);
+        persistPlayersWithStatus(firstName, 40, 60, MappingStatus.FAILED);
         tem.flush();
         tem.clear();
         List<MappingStatus> actualMappingStatus = new ArrayList<>();
@@ -141,13 +132,7 @@ class PlayerRepositoryCustomTest {
     void search_MATCHED_player_by_current_ability(){
         // given
         String name = "messi";
-        for(int i=0;i<30;i++){
-            Player player = Player.builder().firstName(name + i).mappingStatus(MappingStatus.MATCHED).build();
-            FmPlayer fmPlayer = FmPlayer.builder().firstName(name + i).currentAbility(100 + i*10).build();
-            player.updateFmPlayer(fmPlayer);
-            tem.persist(player);
-            tem.persist(fmPlayer);
-        }
+        persistMatchedPlayers(name, 0, 30);
         tem.flush();
         tem.clear();
         // when
@@ -212,21 +197,8 @@ class PlayerRepositoryCustomTest {
 
     private void createPlayers(String name){
         List<Player> players = new ArrayList<>();
-        for (int i=0;i<LIMIT;i++){
-            Player player = Player.builder()
-                    .firstName(name + i)
-                    .mappingStatus(MappingStatus.MATCHED)
-                    .build();
-            players.add(player);
-        }
-
-        for (int i=LIMIT;i<LIMIT*2;i++){
-            Player player = Player.builder()
-                    .firstName(name + i)
-                    .mappingStatus(MappingStatus.UNMAPPED)
-                    .build();
-            players.add(player);
-        }
+        players.addAll(buildPlayers(name, 0, LIMIT, MappingStatus.MATCHED));
+        players.addAll(buildPlayers(name, LIMIT, LIMIT * 2, MappingStatus.UNMAPPED));
         persistAndFlushPlayers(players);
     }
 
@@ -253,5 +225,43 @@ class PlayerRepositoryCustomTest {
             tem.persist(player);
         }
         tem.flush();
+    }
+
+    private List<Player> buildPlayers(String name, int startInclusive, int endExclusive, MappingStatus status) {
+        List<Player> players = new ArrayList<>();
+        for (int i = startInclusive; i < endExclusive; i++) {
+            players.add(Player.builder()
+                    .firstName(name + i)
+                    .mappingStatus(status)
+                    .build());
+        }
+        return players;
+    }
+
+    private void persistPlayersWithStatus(String name, int startInclusive, int endExclusive, MappingStatus status) {
+        for (int i = startInclusive; i < endExclusive; i++) {
+            tem.persist(Player.builder()
+                    .firstName(name + i)
+                    .mappingStatus(status)
+                    .build());
+        }
+    }
+
+    private void persistMatchedPlayers(String name, int startInclusive, int endExclusive) {
+        for (int i = startInclusive; i < endExclusive; i++) {
+            Player player = Player.builder()
+                    .firstName(name + i)
+                    .mappingStatus(MappingStatus.MATCHED)
+                    .build();
+            FmPlayer fmPlayer = FmPlayer.builder()
+                    .firstName(name + i)
+                    .currentAbility(100 + i * 10)
+                    .fmUid(i + 1)
+                    .fmVersion(FmVersion.FM24)
+                    .build();
+            player.updateFmPlayer(fmPlayer);
+            tem.persist(fmPlayer);
+            tem.persist(player);
+        }
     }
 }
