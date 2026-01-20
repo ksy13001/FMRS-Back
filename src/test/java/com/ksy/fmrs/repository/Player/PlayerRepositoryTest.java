@@ -2,6 +2,7 @@ package com.ksy.fmrs.repository.Player;
 
 import com.ksy.fmrs.config.TestQueryDSLConfig;
 import com.ksy.fmrs.config.TestTimeProviderConfig;
+import com.ksy.fmrs.domain.enums.FmVersion;
 import com.ksy.fmrs.domain.enums.MappingStatus;
 import com.ksy.fmrs.domain.player.FmPlayer;
 import com.ksy.fmrs.domain.player.Player;
@@ -137,6 +138,8 @@ class PlayerRepositoryTest {
         // given
         FmPlayer fmPlayer1 = FmPlayer.builder()
                 .firstName("MANUEL")
+                .fmUid(1)
+                .fmVersion(FmVersion.FM24)
                 .lastName("AKANJI")
                 .nationName("SWITZERLAND")
                 .birth(LocalDate.of(1995, 7, 19))
@@ -144,6 +147,8 @@ class PlayerRepositoryTest {
         FmPlayer fmPlayer2 = FmPlayer.builder()
                 .firstName("MANUEL")
                 .lastName("AKANJI")
+                .fmUid(2)
+                .fmVersion(FmVersion.FM24)
                 .nationName("SWITZERLAND")
                 .birth(LocalDate.of(1995, 7, 19))
                 .build();
