@@ -110,7 +110,7 @@ public class BulkRepository {
                 "goalkeeper", "defender_central", "defender_left", "defender_right", "wing_back_left", "wing_back_right",
                 "defensive_midfielder", "midfielder_left", "midfielder_right", "midfielder_central",
                 "attacking_mid_central", "attacking_mid_left", "attacking_mid_right", "striker",
-                "first_name", "last_name", "birth", "nation_name"
+                "first_name", "last_name", "birth", "nation_name", "fm_uid"
         );
         String sql = buildInsertSql("fmplayer", columns);
         jdbcTemplate.batchUpdate(sql, new BatchPreparedStatementSetter() {
@@ -198,6 +198,7 @@ public class BulkRepository {
                 ps.setString(79, fmPlayer.getLastName());
                 ps.setString(80, String.valueOf(fmPlayer.getBirth()));
                 ps.setString(81, fmPlayer.getNationName());
+                ps.setInt(82, fmPlayer.getFmUid());
             }
 
             @Override
