@@ -6,7 +6,7 @@ import java.util.Arrays;
 
 @Getter
 public enum FmVersion {
-    FM25("FM25"),
+    FM25("FM24"),
     FM26("FM26");
 
     private final String value;
