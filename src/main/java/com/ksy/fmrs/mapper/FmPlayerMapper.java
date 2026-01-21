@@ -32,7 +32,7 @@ public class FmPlayerMapper {
         return FmPlayer.builder()
                 .name(name)
                 .fmVersion(fmVersion)
-                .fmUid(fmPlayerDto.getFmUid())
+                .fmUid(fmPlayerDto.getFmPlayerId())
                 .firstName(StringUtils.getFirstName(name).toUpperCase())
                 .lastName(StringUtils.getLastName(name).toUpperCase())
                 .birth(fmPlayerDto.getBorn())
