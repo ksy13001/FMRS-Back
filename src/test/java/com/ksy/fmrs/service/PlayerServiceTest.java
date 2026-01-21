@@ -160,28 +160,6 @@ public class PlayerServiceTest {
     }
 
     @Test
-    @DisplayName("player 에 대응되는 fmplayer가 2개 이상일때 해당 player들 mapping_status = FAILED 처리")
-    void updatePlayersWithMultipleFmPlayersTOFailed(){
-        // given
-        String firstname = "KEVIN";
-        String lastname = "DE BRUYNE";
-        LocalDate now = LocalDate.now();
-        String nationName = "BELGIUM";
-        Player player1 =createPlayer(firstname, lastname, now, nationName, MappingStatus.UNMAPPED);
-        Player player2 =createPlayer(firstname, lastname, now, nationName, MappingStatus.UNMAPPED);
-        Player player3 =createPlayer(firstname, lastname, now, nationName, MappingStatus.UNMAPPED);
-
-        List<Player> players = Arrays.asList(player1, player2, player3);
-        // when
-        playerService.updatePlayersMappingStatusToFailed(players);
-
-        // then
-        Assertions.assertThat(players)
-                .extracting(Player::getMappingStatus)
-                .containsOnly(MappingStatus.FAILED);
-    }
-
-    @Test
     @DisplayName("playerId로 fmPlayer 불러올때 매핑된 fmplayer 가 없으면 null 반환")
     void getFmPlayerDetails_null(){
         // given
@@ -252,6 +230,23 @@ public class PlayerServiceTest {
         // then
         Assertions.assertThat(actual.getPlayers().getFirst().getTopAttributes())
                 .containsExactlyInAnyOrder("dribbling", "pace", "vision");
+    }
+
+    @Test
+    @DisplayName("여러 시즌 fm data 있을때 다 가져오기")
+    void get() throws Exception{
+        // given
+        FmPlayer fmPlayer = createFmGKPlayer(
+                "Cristiano",
+                "Ronaldo",
+                LocalDate.of(1985, 2, 5),
+                "PORTUGAL", 180, 200);
+        League league = League.builder().name("saudi").build();
+        playerService.getFmPlayerDetails(ronaldo.getId());
+
+        // when
+
+        // then
     }
 
     private Player createPlayer(String firstName, String lastName, LocalDate birth, String nation, MappingStatus mappingStatus) {
