@@ -4,7 +4,6 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.ksy.fmrs.domain.enums.MappingStatus;
 import com.ksy.fmrs.domain.player.*;
-import com.ksy.fmrs.domain.Team;
 import com.ksy.fmrs.dto.apiFootball.ApiFootballPlayersStatistics;
 import com.ksy.fmrs.dto.nation.NationDto;
 import com.ksy.fmrs.dto.player.FmPlayerDetailsDto;
@@ -15,7 +14,6 @@ import com.ksy.fmrs.mapper.PlayerMapper;
 import com.ksy.fmrs.repository.BulkRepository;
 import com.ksy.fmrs.repository.Player.PlayerRepository;
 import com.ksy.fmrs.repository.Team.TeamRepository;
-import com.ksy.fmrs.util.StringUtils;
 import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -53,13 +51,13 @@ public class  PlayerService {
     }
 
     @Transactional(readOnly = true)
-    public Optional<FmPlayerDetailsDto> getFmPlayerDetails(Long playerId) {
+    public Optional<List<FmPlayerDetailsDto>> findFmPlayerDetails(Long playerId) {
         Player player = playerRepository.findById(playerId)
                 .orElseThrow(() -> new IllegalArgumentException("Player not found: " + playerId));
         if (player.getMappingStatus() != MappingStatus.MATCHED) {
             return Optional.empty();
         }
-        return Optional.of(new FmPlayerDetailsDto(player.getFmPlayer()));
+        return Optional.of(player.getFmPlayer().stream().map(FmPlayerDetailsDto::new).toList());
     }
 
     @Transactional
@@ -156,8 +154,8 @@ public class  PlayerService {
     }
 
     private DetailSearchPlayerResponseDto convertPlayerToDetailSearchPlayerResponseDto(Player player) {
-        if(player.isMatched()){
-            FmPlayer fmPlayer = player.getFmPlayer();
+        FmPlayer fmPlayer = player.getLatestFmPlayer();
+        if(player.isMatched() && fmPlayer != null){
             return new DetailSearchPlayerResponseDto(
                     player,
                     player.getTeamName(),
@@ -174,8 +172,8 @@ public class  PlayerService {
     }
 
     private SimpleSearchPlayerResponseDto convertPlayerToSimpleSearchPlayerResponseDto(Player player) {
-        if(player.isMatched()){
-            FmPlayer fmPlayer = player.getFmPlayer();
+        FmPlayer fmPlayer = player.getLatestFmPlayer();
+        if(player.isMatched() && fmPlayer != null){
             return new SimpleSearchPlayerResponseDto(player,
                     fmPlayer.getCurrentAbility());
         }
@@ -196,7 +194,10 @@ public class  PlayerService {
             return Collections.emptyList();
         }
 
-        FmPlayer fmPlayer = player.getFmPlayer();
+        FmPlayer fmPlayer = player.getLatestFmPlayer();
+        if (fmPlayer == null) {
+            return Collections.emptyList();
+        }
         Map<String, Integer> allAttributes = fmPlayer.getAllAttributes();
 
         if(n<=0 || n > allAttributes.size()){
@@ -205,17 +206,6 @@ public class  PlayerService {
         return fmPlayer.getTopNAttributes(n, allAttributes);
     }
 
-
-    /**
-     * 하나의 player 에 대응되는 fmPlayer 가 여러개인 경우 Failed 처리
-     */
-    @Transactional
-    public void updatePlayersMappingStatusToFailed(List<Player> players) {
-        players.forEach(player -> {
-            log.info("id:" + player.getId());
-            player.updateMappingStatus(MappingStatus.FAILED);
-        });
-    }
 
     @Transactional(readOnly = true)
     public List<Player> getPlayersWithMultipleFmPlayers() {

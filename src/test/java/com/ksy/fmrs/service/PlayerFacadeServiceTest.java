@@ -77,7 +77,7 @@ class PlayerFacadeServiceTest {
         Long playerId = PLAYER_ID;
         // when
         stubCommonServices(playerId);
-        when(playerService.getFmPlayerDetails(playerId)).thenReturn(Optional.of(fmPlayerDetailsDtos));
+        when(playerService.findFmPlayerDetails(playerId)).thenReturn(Optional.of(fmPlayerDetailsDtos));
         PlayerOverviewDto result = playerFacadeService.getPlayerOverview(playerId);
         // then
         Assertions.assertThat(result.fmPlayerDetailsDto()).isEqualTo(fmPlayerDetailsDtos);
@@ -93,7 +93,7 @@ class PlayerFacadeServiceTest {
         Long playerId = PLAYER_ID;
         // when
         stubCommonServices(playerId);
-        when(playerService.getFmPlayerDetails(playerId)).thenReturn(Optional.empty());
+        when(playerService.findFmPlayerDetails(playerId)).thenReturn(Optional.empty());
         PlayerOverviewDto result = playerFacadeService.getPlayerOverview(playerId);
         // then
         Assertions.assertThat(result.fmPlayerDetailsDto()).isNull();
