@@ -45,5 +45,9 @@ class FmVersionTest {
                 .isInstanceOf(IllegalArgumentException.class);
     }
 
-
+    @Test
+    void return_latest_fm_version(){
+        Assertions.assertThat(FmVersion.FM26)
+                .isEqualTo(FmVersion.latest());
+    }
 }

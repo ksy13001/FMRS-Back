@@ -5,6 +5,7 @@ import static org.mockito.BDDMockito.given;
 import static org.mockito.Mockito.*;
 
 import com.ksy.fmrs.domain.League;
+import com.ksy.fmrs.domain.enums.FmVersion;
 import com.ksy.fmrs.domain.enums.MappingStatus;
 import com.ksy.fmrs.domain.player.*;
 import com.ksy.fmrs.domain.Team;
@@ -88,7 +89,7 @@ public class PlayerServiceTest {
         Assertions.assertThat(result.getBirth()).isEqualTo(ronaldo.getBirth());
         Assertions.assertThat(result.getNationName()).isEqualTo(ronaldo.getNationName());
         Assertions.assertThat(result.getMappingStatus()).isEqualTo(ronaldo.getMappingStatus());
-        Assertions.assertThat(result.getCurrentAbility()).isEqualTo(ronaldo.getFmPlayer().getCurrentAbility());
+        Assertions.assertThat(result.getCurrentAbility()).isEqualTo(ronaldo.getLatestFmPlayer().getCurrentAbility());
         Assertions.assertThat(result.getCurrentSeason()).isEqualTo(ronaldo.getTeam().getLeague().getCurrentSeason());
         Assertions.assertThat(result.getTeamName()).isEqualTo(ronaldo.getTeam().getName());
         Assertions.assertThat(result.getTeamLogoUrl()).isEqualTo(ronaldo.getTeam().getLogoUrl());
@@ -188,7 +189,7 @@ public class PlayerServiceTest {
         ReflectionTestUtils.setField(player, "id", 1L);
         // when
         when(playerRepository.findById(player.getId())).thenReturn(Optional.of(player));
-        Optional<FmPlayerDetailsDto> result = playerService.getFmPlayerDetails(player.getId());
+        Optional<List<FmPlayerDetailsDto>> result = playerService.getFmPlayerDetails(player.getId());
         // then
         Assertions.assertThat(result).isEmpty();
     }
@@ -266,6 +267,8 @@ public class PlayerServiceTest {
 
     private FmPlayer createFmFiledPlayer(String firstName, String lastName, LocalDate birth, String nation) {
         return FmPlayer.builder()
+                .fmUid(1)
+                .fmVersion(FmVersion.FM24)
                 .firstName(firstName)
                 .lastName(lastName)
                 .birth(birth)
@@ -365,6 +368,8 @@ public class PlayerServiceTest {
 
     private FmPlayer createFmGKPlayer(String firstName, String lastName, LocalDate birth, String nation, Integer currentAbility, Integer potentialAbility) {
         return FmPlayer.builder()
+                .fmUid(1)
+                .fmVersion(FmVersion.FM24)
                 .firstName(firstName)
                 .lastName(lastName)
                 .birth(birth)
