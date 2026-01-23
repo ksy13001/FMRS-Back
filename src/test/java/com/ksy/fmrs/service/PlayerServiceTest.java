@@ -1,10 +1,13 @@
 package com.ksy.fmrs.service;
 
+import static org.assertj.core.api.Assertions.as;
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.BDDMockito.given;
 import static org.mockito.Mockito.*;
 
 import com.ksy.fmrs.domain.League;
+import com.ksy.fmrs.domain.enums.FmVersion;
 import com.ksy.fmrs.domain.enums.MappingStatus;
 import com.ksy.fmrs.domain.player.*;
 import com.ksy.fmrs.domain.Team;
@@ -15,8 +18,6 @@ import com.ksy.fmrs.dto.search.DetailSearchPlayerResultDto;
 import com.ksy.fmrs.dto.search.SearchPlayerCondition;
 import com.ksy.fmrs.dto.team.TeamPlayersResponseDto;
 import com.ksy.fmrs.repository.Player.PlayerRepository;
-import com.ksy.fmrs.util.StringUtils;
-import org.assertj.core.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -27,7 +28,6 @@ import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.test.util.ReflectionTestUtils;
-import org.springframework.web.client.RestTemplate;
 
 import java.time.LocalDate;
 import java.util.Arrays;
@@ -43,11 +43,11 @@ public class PlayerServiceTest {
     @InjectMocks
     private PlayerService playerService;
 
-    private Player ronaldo;
+    private Player ronaldo24;
 
     @BeforeEach
     void setUp() {
-        ronaldo = Player.builder()
+        ronaldo24 = Player.builder()
                 .name("ronaldo")
                 .birth(LocalDate.of(1985, 2, 5))
                 .nationName("PORTUGAL")
@@ -62,15 +62,17 @@ public class PlayerServiceTest {
                 .isGK(false)
                 .build();
         Team team = Team.builder().name("Al nasr").build();
-        FmPlayer fmPlayer = createFmGKPlayer(
+        FmPlayer fmPlayer = createFmFieldPlayer(
+                1,
+                FmVersion.FM24,
                 "Cristiano",
                 "Ronaldo",
                 LocalDate.of(1985, 2, 5),
                 "PORTUGAL", 180, 200);
         League league = League.builder().name("saudi").build();
         team.updateLeague(league);
-        ronaldo.updateTeam(team);
-        ronaldo.updateFmPlayer(fmPlayer);
+        ronaldo24.updateTeam(team);
+        ronaldo24.updateFmPlayer(fmPlayer);
     }
 
     @Test
@@ -78,20 +80,20 @@ public class PlayerServiceTest {
     void getPlayerDetails(){
         // given
         Long playerId = 1L;
-        ReflectionTestUtils.setField(ronaldo, "id", playerId);
-        given(playerRepository.findById(playerId)).willReturn(Optional.of(ronaldo));
+        ReflectionTestUtils.setField(ronaldo24, "id", playerId);
+        given(playerRepository.findById(playerId)).willReturn(Optional.of(ronaldo24));
         // when
         PlayerDetailsDto result = playerService.getPlayerDetails(playerId);
         // then
-        Assertions.assertThat(result).isNotNull();
-        Assertions.assertThat(result.getName()).isEqualTo(ronaldo.getName());
-        Assertions.assertThat(result.getBirth()).isEqualTo(ronaldo.getBirth());
-        Assertions.assertThat(result.getNationName()).isEqualTo(ronaldo.getNationName());
-        Assertions.assertThat(result.getMappingStatus()).isEqualTo(ronaldo.getMappingStatus());
-        Assertions.assertThat(result.getCurrentAbility()).isEqualTo(ronaldo.getFmPlayer().getCurrentAbility());
-        Assertions.assertThat(result.getCurrentSeason()).isEqualTo(ronaldo.getTeam().getLeague().getCurrentSeason());
-        Assertions.assertThat(result.getTeamName()).isEqualTo(ronaldo.getTeam().getName());
-        Assertions.assertThat(result.getTeamLogoUrl()).isEqualTo(ronaldo.getTeam().getLogoUrl());
+        assertThat(result).isNotNull();
+        assertThat(result.getName()).isEqualTo(ronaldo24.getName());
+        assertThat(result.getBirth()).isEqualTo(ronaldo24.getBirth());
+        assertThat(result.getNationName()).isEqualTo(ronaldo24.getNationName());
+        assertThat(result.getMappingStatus()).isEqualTo(ronaldo24.getMappingStatus());
+        assertThat(result.getCurrentAbility()).isEqualTo(ronaldo24.getLatestFmPlayer().getCurrentAbility());
+        assertThat(result.getCurrentSeason()).isEqualTo(ronaldo24.getTeam().getLeague().getCurrentSeason());
+        assertThat(result.getTeamName()).isEqualTo(ronaldo24.getTeam().getName());
+        assertThat(result.getTeamLogoUrl()).isEqualTo(ronaldo24.getTeam().getLogoUrl());
     }
 
     @Test
@@ -133,64 +135,16 @@ public class PlayerServiceTest {
     }
 
     @Test
-    @DisplayName("이름 한 단어인 경우 테스트")
-    void oneNameTest(){
-        // given
-        String name = "ronaldo";
-        // when
-        String lastName = StringUtils.getLastName(name);
-        String firstName = StringUtils.getFirstName(name);
-        // then
-        Assertions.assertThat("ronaldo").isEqualTo(firstName);
-        Assertions.assertThat("ronaldo").isEqualTo(lastName);
-    }
-
-
-    @Test
-    @DisplayName("파싱 테스트")
-    void parseName(){
-        // given
-        String name = "K. De Bruyne";
-        String firstname = "Kevin";
-        String lastname = "De Bruyne";
-
-        Assertions.assertThat("Kevin").isEqualTo(StringUtils.getFirstName(firstname));
-        Assertions.assertThat("Bruyne").isEqualTo(StringUtils.getLastName(name));
-    }
-
-    @Test
-    @DisplayName("player 에 대응되는 fmplayer가 2개 이상일때 해당 player들 mapping_status = FAILED 처리")
-    void updatePlayersWithMultipleFmPlayersTOFailed(){
-        // given
-        String firstname = "KEVIN";
-        String lastname = "DE BRUYNE";
-        LocalDate now = LocalDate.now();
-        String nationName = "BELGIUM";
-        Player player1 =createPlayer(firstname, lastname, now, nationName, MappingStatus.UNMAPPED);
-        Player player2 =createPlayer(firstname, lastname, now, nationName, MappingStatus.UNMAPPED);
-        Player player3 =createPlayer(firstname, lastname, now, nationName, MappingStatus.UNMAPPED);
-
-        List<Player> players = Arrays.asList(player1, player2, player3);
-        // when
-        playerService.updatePlayersMappingStatusToFailed(players);
-
-        // then
-        Assertions.assertThat(players)
-                .extracting(Player::getMappingStatus)
-                .containsOnly(MappingStatus.FAILED);
-    }
-
-    @Test
     @DisplayName("playerId로 fmPlayer 불러올때 매핑된 fmplayer 가 없으면 null 반환")
-    void getFmPlayerDetails_null(){
+    void findFmPlayerDetails_null(){
         // given
         Player player = createPlayer("p1", "p1", LocalDate.now(), "n1",  MappingStatus.UNMAPPED);
         ReflectionTestUtils.setField(player, "id", 1L);
         // when
         when(playerRepository.findById(player.getId())).thenReturn(Optional.of(player));
-        Optional<FmPlayerDetailsDto> result = playerService.getFmPlayerDetails(player.getId());
+        Optional<List<FmPlayerDetailsDto>> result = playerService.findFmPlayerDetails(player.getId());
         // then
-        Assertions.assertThat(result).isEmpty();
+        assertThat(result).isEmpty();
     }
 
     @Test
@@ -209,7 +163,7 @@ public class PlayerServiceTest {
         DetailSearchPlayerResultDto actual = playerService.detailSearchPlayers(condition, pageable);
 
         // then
-        Assertions.assertThat(actual.getPlayers()).extracting("name")
+        assertThat(actual.getPlayers()).extracting("name")
                 .containsExactly(player1.getName(), player2.getName(), player3.getName());
 
     }
@@ -228,7 +182,7 @@ public class PlayerServiceTest {
         List<NationDto> actual = playerService.getNationsFromPlayers();
 
         // then
-        Assertions.assertThat(actual).extracting("nationName")
+        assertThat(actual).extracting("nationName")
                 .containsOnly("n1", "n2", "n3");
     }
 
@@ -239,7 +193,7 @@ public class PlayerServiceTest {
         LocalDate birth = LocalDate.now();
         Player player = createPlayer("p1", "p1", birth, "n1",  MappingStatus.MATCHED);
         // top3 능력치 = dribble, pace, vision
-        FmPlayer fmPlayer = createFmFiledPlayer("p1", "p1", birth, "n1");
+        FmPlayer fmPlayer = createFmFieldPlayer(1, FmVersion.FM24, "p1", "p1", birth, "n1", 180, 200);
         player.updateFmPlayer(fmPlayer);
         SearchPlayerCondition condition = new SearchPlayerCondition();
         // when
@@ -249,8 +203,35 @@ public class PlayerServiceTest {
         DetailSearchPlayerResultDto actual = playerService
                 .detailSearchPlayers(condition, pageable);
         // then
-        Assertions.assertThat(actual.getPlayers().getFirst().getTopAttributes())
+        assertThat(actual.getPlayers().getFirst().getTopAttributes())
                 .containsExactlyInAnyOrder("dribbling", "pace", "vision");
+    }
+
+    @Test
+    @DisplayName("연결된 fmplayer가 여러개일때 다가져와야함")
+    void getAllFmPlayers(){
+        // given
+        Long playerId = 1L;
+        ReflectionTestUtils.setField(ronaldo24, "id", playerId);
+        FmPlayer ronaldoFM26Player = createFmGKPlayer(
+                2,
+                FmVersion.FM26,
+                "Cristiano",
+                "Ronaldo",
+                LocalDate.of(1985, 2, 5),
+                "PORTUGAL", 170, 200);
+        ronaldo24.updateFmPlayer(ronaldoFM26Player);
+        // when
+        when(playerRepository.findById(playerId)).thenReturn(Optional.of(ronaldo24));
+        Optional<List<FmPlayerDetailsDto>> result = playerService.findFmPlayerDetails(playerId);
+
+        // then
+        assertThat(ronaldoFM26Player.getPlayer()).isEqualTo(ronaldo24);
+        assertThat(ronaldo24.getLatestFmPlayer()).isEqualTo(ronaldoFM26Player);
+        assertThat(result).isPresent();
+        assertThat(result.get())
+                .extracting(FmPlayerDetailsDto::getCurrentAbility)
+                .containsExactlyInAnyOrder(180, 170);
     }
 
     private Player createPlayer(String firstName, String lastName, LocalDate birth, String nation, MappingStatus mappingStatus) {
@@ -264,8 +245,10 @@ public class PlayerServiceTest {
                 .build();
     }
 
-    private FmPlayer createFmFiledPlayer(String firstName, String lastName, LocalDate birth, String nation) {
+    private FmPlayer createFmFieldPlayer(Integer fmUid, FmVersion fmVersion, String firstName, String lastName, LocalDate birth, String nation, Integer currentAbility, Integer potentialAbility) {
         return FmPlayer.builder()
+                .fmUid(1)
+                .fmVersion(fmVersion)
                 .firstName(firstName)
                 .lastName(lastName)
                 .birth(birth)
@@ -358,13 +341,15 @@ public class PlayerServiceTest {
                         .injuryProneness(8)
                         .versatility(15)
                         .build())
-                .currentAbility(190)
-                .potentialAbility(195)
+                .currentAbility(currentAbility)
+                .potentialAbility(potentialAbility)
                 .build();
     }
 
-    private FmPlayer createFmGKPlayer(String firstName, String lastName, LocalDate birth, String nation, Integer currentAbility, Integer potentialAbility) {
+    private FmPlayer createFmGKPlayer(Integer fmUid, FmVersion fmVersion, String firstName, String lastName, LocalDate birth, String nation, Integer currentAbility, Integer potentialAbility) {
         return FmPlayer.builder()
+                .fmUid(fmUid)
+                .fmVersion(fmVersion)
                 .firstName(firstName)
                 .lastName(lastName)
                 .birth(birth)

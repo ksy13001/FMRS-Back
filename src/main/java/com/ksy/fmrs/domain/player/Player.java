@@ -14,6 +14,7 @@ import java.time.Instant;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.List;
 
 @Getter
@@ -59,9 +60,8 @@ public class Player {
     @JoinColumn(name = "team_id")
     private Team team;
 
-    @OneToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "fmplayer_id", unique = true)
-    private FmPlayer fmPlayer;
+    @OneToMany(mappedBy = "player")
+    private List<FmPlayer> fmPlayer = new ArrayList<>();
 
     @OneToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "player_stat_id", unique = true)
@@ -117,7 +117,14 @@ public class Player {
     }
 
     public void updateFmPlayer(FmPlayer fmPlayer) {
-        this.fmPlayer = fmPlayer;
+        if (fmPlayer == null) {
+            return;
+        }
+        if (this.fmPlayer == null) {
+            this.fmPlayer = new ArrayList<>();
+        }
+        this.fmPlayer.add(fmPlayer);
+        fmPlayer.updatePlayer(this);
     }
 
     public void updateMappingStatus(MappingStatus status) {
@@ -164,15 +171,33 @@ public class Player {
         return this.team.getLogoUrl();
     }
 
-    public Integer getFmPlayerCurrentAbility(){
-        if(this.fmPlayer == null){
+    public FmPlayer getLatestFmPlayer(){
+        if (this.fmPlayer == null || this.fmPlayer.isEmpty()) {
             return null;
         }
-        return this.fmPlayer.getCurrentAbility();
+        return this.fmPlayer.stream()
+                .filter(fmPlayer -> fmPlayer != null)
+                .max(Comparator.comparingInt(fmPlayer -> {
+                    if (fmPlayer.getFmVersion() == null) {
+                        return Integer.MIN_VALUE;
+                    }
+                    return fmPlayer.getFmVersion().getYear();
+                }))
+                .orElse(null);
+    }
+
+    public Integer getFmPlayerCurrentAbility(){
+        FmPlayer latestFmPlayer = getLatestFmPlayer();
+        if (latestFmPlayer == null) {
+            return null;
+        }
+        return latestFmPlayer.getCurrentAbility();
     }
 
     public boolean isMatched(){
-        return this.fmPlayer != null && this.mappingStatus == MappingStatus.MATCHED;
+        return MappingStatus.MATCHED.equals(this.mappingStatus)
+                && this.fmPlayer != null
+                && !this.fmPlayer.isEmpty();
     }
 
     public boolean isFA(){

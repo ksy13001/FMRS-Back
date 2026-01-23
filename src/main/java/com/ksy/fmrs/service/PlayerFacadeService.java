@@ -8,6 +8,8 @@ import com.ksy.fmrs.dto.player.PlayerStatDto;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
+import java.util.List;
+
 @RequiredArgsConstructor
 @Service
 public class PlayerFacadeService {
@@ -19,7 +21,7 @@ public class PlayerFacadeService {
         PlayerDetailsDto playerDetailsDto = playerService.getPlayerDetails(playerId);
         PlayerStatDto playerStatDto = playerStatService.saveAndGetPlayerStat(playerId)
                 .orElse(null);
-        FmPlayerDetailsDto fmPlayerDetailsDto = playerService.getFmPlayerDetails(playerId)
+        List<FmPlayerDetailsDto> fmPlayerDetailsDto = playerService.findFmPlayerDetails(playerId)
                 .orElse(null);
         CommentCountResponseDto  commentCountResponseDto = commentService.getCommentCountByPlayerId(playerId);
 

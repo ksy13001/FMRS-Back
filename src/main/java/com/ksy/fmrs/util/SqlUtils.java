@@ -5,7 +5,15 @@ import java.util.List;
 public class SqlUtils {
 
     public static String buildInsertSql(String tableName, List<String> columnNames) {
-        StringBuilder sql = new StringBuilder("INSERT INTO ");
+        return buildInsertSql("INSERT INTO ", tableName, columnNames);
+    }
+
+    public static String buildInsertIgnoreSql(String tableName, List<String> columnNames) {
+        return buildInsertSql("INSERT IGNORE INTO ", tableName, columnNames);
+    }
+
+    private static String buildInsertSql(String insertPrefix, String tableName, List<String> columnNames) {
+        StringBuilder sql = new StringBuilder(insertPrefix);
         sql.append(tableName).append(" (");
 
         // 컬럼 이름 나열

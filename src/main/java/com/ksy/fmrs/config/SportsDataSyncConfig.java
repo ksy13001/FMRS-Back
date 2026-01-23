@@ -93,7 +93,7 @@ public class SportsDataSyncConfig {
 //    }
 
     @Bean
-    @ConditionalOnProperty(name = "INITIAL_DATA_INSERT", havingValue = "fmplayer")
+    @ConditionalOnProperty(name = "initial.data.insert", havingValue = "fmplayer")
     public ApplicationRunner initializeFMPlayer(FmPlayerImportService fmPlayerImportService,
                                                 @Value("${init.fmplayer_dir_path}") String dirPath,
                                                 @Value("${fm.version}") String fmVersion) {

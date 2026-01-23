@@ -15,10 +15,14 @@ import java.util.*;
 @Getter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 @Entity(name = "fmplayer")
-@Table(name = "fmplayer", indexes = @Index(name = "idx_first_name_and_last_name_and_birth_and_nation_name",
-        columnList = "first_name, last_name, birth, nation_name"),
-        uniqueConstraints = @UniqueConstraint(name = "ux_fmplayer_uid_version",
-        columnNames = {"fm_uid", "fm_version"})
+@Table(
+        name = "fmplayer",
+        indexes = @Index(name = "idx_first_name_and_last_name_and_birth_and_nation_name",
+                columnList = "first_name, last_name, birth, nation_name"),
+        uniqueConstraints = {
+                @UniqueConstraint(name = "ux_fmplayer_uid_version",
+                        columnNames = {"fm_uid", "fm_version"})
+        }
 )
 public class FmPlayer {
 
@@ -49,6 +53,10 @@ public class FmPlayer {
     @Enumerated(EnumType.STRING)
     private MappingStatus mappingStatus;
 
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "player_id")
+    private Player player;
+
     @Embedded
     private Position position;
 
@@ -58,32 +66,26 @@ public class FmPlayer {
     @Column(name = "potential_ability")
     private Integer potentialAbility;
 
-    // 인성
     @Column(name = "personality_attributes")
     @Embedded
     private PersonalityAttributes personalityAttributes;
 
-    // 기술(Technical) 능력치
     @Column(name = "technical_attributes")
     @Embedded
     private TechnicalAttributes technicalAttributes;
 
-    // 정신(Mental) 능력치
     @Column(name = "mental_attributes")
     @Embedded
     private MentalAttributes mentalAttributes;
 
-    // 신체(Physical) 능력치
     @Column(name = "physical_attributes")
     @Embedded
     private PhysicalAttributes physicalAttributes;
 
-    // 골키퍼 능력치
     @Column(name = "goalKeeper_attributes")
     @Embedded
     private GoalKeeperAttributes goalKeeperAttributes;
 
-    // 히든 능력치
     @Column(name = "hidden_attributes")
     @Embedded
     private HiddenAttributes hiddenAttributes;
@@ -147,5 +149,9 @@ public class FmPlayer {
 
     public void updateName(String name) {
         this.name = name;
+    }
+
+    public void updatePlayer(Player player) {
+        this.player = player;
     }
 }
