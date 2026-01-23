@@ -50,7 +50,7 @@ public class FmPlayerBulkRepository {
                 "attacking_mid_central", "attacking_mid_left", "attacking_mid_right", "striker",
                 "first_name", "last_name", "birth", "nation_name", "fm_uid", "fm_version"
         );
-        String sql = SqlUtils.buildInsertSql("fmplayer", columns);
+        String sql = SqlUtils.buildInsertIgnoreSql("fmplayer", columns);
         jdbcTemplate.batchUpdate(sql, new BatchPreparedStatementSetter() {
 
             @Override
@@ -146,5 +146,4 @@ public class FmPlayerBulkRepository {
             }
         });
     }
-
 }
