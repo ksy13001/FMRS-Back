@@ -81,7 +81,7 @@ public class PlayerServiceTest {
         // given
         Long playerId = 1L;
         ReflectionTestUtils.setField(ronaldo24, "id", playerId);
-        given(playerRepository.findById(playerId)).willReturn(Optional.of(ronaldo24));
+        given(playerRepository.findWithTeamLeagueById(playerId)).willReturn(Optional.of(ronaldo24));
         // when
         PlayerDetailsDto result = playerService.getPlayerDetails(playerId);
         // then
@@ -100,7 +100,7 @@ public class PlayerServiceTest {
     public void testGetPlayerDetailsNotFound() {
         // given
         Long playerId = 1L;
-        when(playerRepository.findById(playerId)).thenReturn(Optional.empty());
+        when(playerRepository.findWithTeamLeagueById(playerId)).thenReturn(Optional.empty());
 
         // when & then
         Exception exception = assertThrows(IllegalArgumentException.class, () -> {
