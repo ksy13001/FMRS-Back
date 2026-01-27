@@ -21,10 +21,7 @@ public class PlayerFacadeService {
     private final CommentService commentService;
 
     public PlayerOverviewDto getPlayerOverview(Long playerId) {
-        long start = System.currentTimeMillis();
         PlayerDetailsDto playerDetailsDto = playerService.getPlayerDetails(playerId);
-        long end = System.currentTimeMillis();
-        log.info("getPlayerOverview time : {}", end - start);
         PlayerStatDto playerStatDto = playerStatService.saveAndGetPlayerStat(playerId)
                 .orElse(null);
         List<FmPlayerDetailsDto> fmPlayerDetailsDto = playerService.findFmPlayerDetails(playerId)
