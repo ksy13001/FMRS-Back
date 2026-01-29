@@ -232,6 +232,9 @@ public class PlayerServiceTest {
         assertThat(result.get())
                 .extracting(FmPlayerDetailsDto::getCurrentAbility)
                 .containsExactlyInAnyOrder(180, 170);
+        assertThat(result.get())
+                .extracting(FmPlayerDetailsDto::getVersion)
+                .containsExactlyInAnyOrder(FmVersion.FM24, FmVersion.FM26);
     }
 
     private Player createPlayer(String firstName, String lastName, LocalDate birth, String nation, MappingStatus mappingStatus) {
