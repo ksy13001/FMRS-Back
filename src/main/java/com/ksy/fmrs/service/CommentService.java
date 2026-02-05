@@ -7,6 +7,7 @@ import com.ksy.fmrs.dto.PaginationDto;
 import com.ksy.fmrs.dto.comment.CommentCountResponseDto;
 import com.ksy.fmrs.dto.comment.CommentListResponseDto;
 import com.ksy.fmrs.dto.comment.CommentResponseDto;
+import com.ksy.fmrs.exception.NotCommentOwnerException;
 import com.ksy.fmrs.repository.CommentRepository;
 import com.ksy.fmrs.repository.Player.PlayerRepository;
 import com.ksy.fmrs.repository.UserRepository;
@@ -51,9 +52,16 @@ public class CommentService {
     }
 
     @Transactional
-    public void delete(Long commentId){
+    public void delete(Long commentId, Long userId){
         Comment comment = commentRepository.findById(commentId)
                 .orElseThrow(() -> new EntityNotFoundException("comment not found"));
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new EntityNotFoundException("user not found"));
+
+        if (!comment.getUser().equals(user)) {
+            throw new NotCommentOwnerException("this user is not comment owner");
+        }
+
         if (comment.isDeleted()) {
             throw new IllegalArgumentException("comment is already deleted");
         }

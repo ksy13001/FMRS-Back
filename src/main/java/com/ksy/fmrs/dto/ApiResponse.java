@@ -22,8 +22,17 @@ public class ApiResponse<T> {
         return ResponseEntity.ok(new ApiResponse<>(true, data, message, Instant.now()));
     }
 
+    public static <T> ResponseEntity<ApiResponse<T>> created(T data, String message) {
+        return ResponseEntity.status(HttpStatus.CREATED)
+                .body(new ApiResponse<>(true, data, message, Instant.now()));
+    }
+
+    public static <T> ResponseEntity<ApiResponse<T>> noContent() {
+        return ResponseEntity.status(HttpStatus.NO_CONTENT).build();
+    }
+
     public static <T> ResponseEntity<ApiResponse<T>> error(HttpStatus status, T data, String message) {
         return ResponseEntity.status(status)
-                .body(new ApiResponse<>(false, null, message, Instant.now()));
+                .body(new ApiResponse<>(false, data, message, Instant.now()));
     }
 }

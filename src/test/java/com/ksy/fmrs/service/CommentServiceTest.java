@@ -5,6 +5,7 @@ import com.ksy.fmrs.domain.User;
 import com.ksy.fmrs.domain.player.Player;
 import com.ksy.fmrs.dto.PaginationDto;
 import com.ksy.fmrs.dto.comment.CommentListResponseDto;
+import com.ksy.fmrs.exception.NotCommentOwnerException;
 import com.ksy.fmrs.repository.CommentRepository;
 import com.ksy.fmrs.repository.Player.PlayerRepository;
 import com.ksy.fmrs.repository.UserRepository;
@@ -208,6 +209,8 @@ class CommentServiceTest {
         // given
         Long commentId = 123L;
         Comment comment = Comment.of(user, player, "hello");
+        given(userRepository.findById(user.getId()))
+                .willReturn(Optional.of(user));
         given(commentRepository.findById(commentId))
                 .willReturn(Optional.of(comment));
 
@@ -215,11 +218,28 @@ class CommentServiceTest {
         Assertions.assertThat(comment.isDeleted())
                 .isEqualTo(false);
 
-        commentService.delete(commentId);
+        commentService.delete(commentId, user.getId());
 
         // then
         Assertions.assertThat(comment.isDeleted())
                 .isEqualTo(true);
+    }
+
+    @Test
+    @DisplayName("댓글 작성자와 삭제 요청자가 다르면 예외 발생")
+    void  delete_comment_fail_not_owner(){
+        // given
+        User badUser = createUser("badUser", "badPw");
+        Long badUserId = 36L;
+        Long commentId = 123L;
+        Comment comment = Comment.of(user, player, "hello");
+        given(userRepository.findById(badUserId))
+                .willReturn(Optional.of(badUser));
+        given(commentRepository.findById(commentId))
+                .willReturn(Optional.of(comment));
+        // when && then
+        Assertions.assertThatThrownBy(()->commentService.delete(commentId, badUserId))
+                .isInstanceOf(NotCommentOwnerException.class);
     }
 
     public Player createPlayer() {
