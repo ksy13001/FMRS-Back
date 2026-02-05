@@ -7,6 +7,7 @@ import com.ksy.fmrs.dto.comment.CommentResponseDto;
 import com.ksy.fmrs.security.CustomUserDetails;
 import com.ksy.fmrs.service.CommentService;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.web.PageableDefault;
 import org.springframework.http.HttpStatus;
@@ -15,6 +16,7 @@ import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 
 
+@Slf4j
 @RequiredArgsConstructor
 @RestController
 public class CommentController {
@@ -41,15 +43,14 @@ public class CommentController {
                 "comment save success");
     }
 
-    @PatchMapping("/api/players/{playerId}/comments/{commentId}")
+    @DeleteMapping("/api/comments/{commentId}")
     public ResponseEntity<ApiResponse<Void>> delete(
-            @PathVariable Long commentId
+            @PathVariable Long commentId,
+            @AuthenticationPrincipal CustomUserDetails userDetails
     ){
+        log.info("user {} delete comment {}", userDetails.getId(), commentId);
         commentService.delete(commentId);
-        return ApiResponse.ok(
-                null,
-                "comment delete success"
-        );
+        return ApiResponse.noContent();
     }
 
 }
