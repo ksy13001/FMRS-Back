@@ -1,6 +1,6 @@
 package com.ksy.fmrs.repository;
 
-import com.ksy.fmrs.domain.player.Transfer;
+import com.ksy.fmrs.domain.Transfer;
 import lombok.RequiredArgsConstructor;
 import org.springframework.jdbc.core.BatchPreparedStatementSetter;
 import org.springframework.jdbc.core.JdbcTemplate;

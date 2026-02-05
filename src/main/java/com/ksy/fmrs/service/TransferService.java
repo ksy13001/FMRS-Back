@@ -2,7 +2,7 @@ package com.ksy.fmrs.service;
 
 import com.ksy.fmrs.domain.Team;
 import com.ksy.fmrs.domain.player.Player;
-import com.ksy.fmrs.domain.player.Transfer;
+import com.ksy.fmrs.domain.Transfer;
 import com.ksy.fmrs.dto.transfer.TransferRequestDto;
 import com.ksy.fmrs.exception.RetiredPlayerException;
 import com.ksy.fmrs.repository.Player.PlayerRepository;

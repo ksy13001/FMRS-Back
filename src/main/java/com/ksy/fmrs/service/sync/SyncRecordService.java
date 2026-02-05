@@ -2,7 +2,7 @@ package com.ksy.fmrs.service.sync;
 
 import com.ksy.fmrs.domain.SyncJob;
 import com.ksy.fmrs.domain.enums.SyncType;
-import com.ksy.fmrs.domain.player.SyncFailedItem;
+import com.ksy.fmrs.domain.SyncFailedItem;
 import com.ksy.fmrs.repository.SyncFailedItemRepository;
 import com.ksy.fmrs.repository.SyncJobRepository;
 import com.ksy.fmrs.util.time.TimeProvider;
@@ -10,8 +10,6 @@ import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-
-import java.time.LocalDateTime;
 
 @RequiredArgsConstructor
 @Service

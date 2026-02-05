@@ -1,12 +1,10 @@
-package com.ksy.fmrs.domain.player;
+package com.ksy.fmrs.domain;
 
 
-import com.ksy.fmrs.domain.BaseTime;
-import com.ksy.fmrs.domain.Team;
 import com.ksy.fmrs.domain.enums.TransferType;
+import com.ksy.fmrs.domain.player.Player;
 import jakarta.persistence.*;
 import lombok.Getter;
-import org.antlr.v4.runtime.misc.NotNull;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
@@ -53,7 +51,7 @@ public class Transfer extends BaseTime {
     @Column(name = "updated_at")
     private LocalDateTime updatedAt;
 
-    protected Transfer(Player player, Team fromTeam, Team toTeam, TransferType type, Double fee, String currency, LocalDate date, LocalDateTime updatedAt) {
+    public Transfer(Player player, Team fromTeam, Team toTeam, TransferType type, Double fee, String currency, LocalDate date, LocalDateTime updatedAt) {
         this.player = player;
         this.toTeam = toTeam;
         this.fromTeam = fromTeam;
