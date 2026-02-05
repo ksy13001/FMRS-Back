@@ -48,8 +48,7 @@ public class CommentController {
             @PathVariable Long commentId,
             @AuthenticationPrincipal CustomUserDetails userDetails
     ){
-        log.info("user {} delete comment {}", userDetails.getId(), commentId);
-        commentService.delete(commentId);
+        commentService.delete(commentId, userDetails.getId());
         return ApiResponse.noContent();
     }
 
