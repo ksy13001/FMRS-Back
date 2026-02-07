@@ -13,26 +13,11 @@ public class SignupResponseDto {
     private String message;
     private Long userId;
 
-    public static ResponseEntity<SignupResponseDto> success(Long userId) {
+    public static SignupResponseDto success(Long userId) {
         SignupResponseDto dto = new SignupResponseDto();
         dto.setSuccess(Boolean.TRUE);
         dto.setMessage("user created successfully");
         dto.setUserId(userId);
-        return ResponseEntity.status(HttpStatus.OK).body(dto);
+        return dto;
     }
-
-    public static ResponseEntity<SignupResponseDto> validationFail() {
-        SignupResponseDto dto = new SignupResponseDto();
-        dto.setSuccess(false);
-        dto.setMessage("validate failed");
-        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(dto);
-    }
-
-    public static ResponseEntity<SignupResponseDto> duplicated() {
-        SignupResponseDto dto = new SignupResponseDto();
-        dto.setSuccess(false);
-        dto.setMessage("Username or email already exists");
-        return ResponseEntity.status(HttpStatus.CONFLICT).body(dto);
-    }
-
 }

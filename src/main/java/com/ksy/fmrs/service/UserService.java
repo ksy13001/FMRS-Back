@@ -4,10 +4,12 @@ import com.ksy.fmrs.domain.User;
 import com.ksy.fmrs.domain.enums.Role;
 import com.ksy.fmrs.dto.user.SignupRequestDto;
 import com.ksy.fmrs.dto.user.SignupResponseDto;
+import com.ksy.fmrs.exception.DuplicateUsernameException;
+import com.ksy.fmrs.exception.InvalidPasswordException;
+import com.ksy.fmrs.exception.InvalidUsernameException;
 import com.ksy.fmrs.repository.UserRepository;
 import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
-import org.springframework.http.ResponseEntity;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -25,13 +27,17 @@ public class UserService {
     }
 
     @Transactional
-    public ResponseEntity<SignupResponseDto> createUser(SignupRequestDto signupRequestDto) {
+    public SignupResponseDto createUser(SignupRequestDto signupRequestDto) {
         if (existsByUsername(signupRequestDto.username())) {
-            return SignupResponseDto.duplicated();
+            throw new DuplicateUsernameException("duplicate username:"+signupRequestDto.username());
         }
 
-        if (!validateUsername(signupRequestDto.username()) || !validatePassword(signupRequestDto.password())){
-            return SignupResponseDto.validationFail();
+        if (!validateUsername(signupRequestDto.username())){
+            throw new InvalidUsernameException("invalid username");
+        }
+
+        if(!validatePassword(signupRequestDto.password())){
+            throw new InvalidPasswordException("invalid password");
         }
 
         User user = userRepository.save(User.builder()
