@@ -44,14 +44,14 @@ public class PlayerService {
     @Transactional(readOnly = true)
     public PlayerDetailsDto getPlayerDetails(Long playerId) {
         Player player = playerRepository.findWithTeamLeagueById(playerId)
-                .orElseThrow(() -> new IllegalArgumentException("Player not found: " + playerId));
+                .orElseThrow(() -> new EntityNotFoundException("Player not found: " + playerId));
         return convertPlayerToPlayerDetailsDto(player);
     }
 
     @Transactional(readOnly = true)
     public Optional<List<FmPlayerDetailsDto>> findFmPlayerDetails(Long playerId) {
         Player player = playerRepository.findById(playerId)
-                .orElseThrow(() -> new IllegalArgumentException("Player not found: " + playerId));
+                .orElseThrow(() -> new EntityNotFoundException("Player not found: " + playerId));
         if (player.getMappingStatus() != MappingStatus.MATCHED) {
             return Optional.empty();
         }
