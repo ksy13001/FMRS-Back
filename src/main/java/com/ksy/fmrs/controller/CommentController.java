@@ -10,7 +10,6 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.web.PageableDefault;
-import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
@@ -24,7 +23,7 @@ public class CommentController {
     private final CommentService commentService;
 
     @GetMapping("/api/players/{playerId}/comments")
-    public ResponseEntity<ApiResponse<CommentListResponseDto>> comment(
+    public ResponseEntity<ApiResponse<CommentListResponseDto>> getCommentByPlayer(
             @PathVariable Long playerId,
             @PageableDefault Pageable pageable) {
         return  ApiResponse.ok(
@@ -33,12 +32,12 @@ public class CommentController {
     }
 
     @PostMapping("/api/players/{playerId}/comments")
-    public ResponseEntity<ApiResponse<CommentResponseDto>> comment(
+    public ResponseEntity<ApiResponse<CommentResponseDto>> createCommentToPlayer(
             @PathVariable Long playerId,
             @RequestBody CommentRequestDto commentRequestDto,
             @AuthenticationPrincipal CustomUserDetails userDetails
     ) {
-        return ApiResponse.ok(
+        return ApiResponse.created(
                 commentService.save(userDetails.getId(), playerId, commentRequestDto.content()),
                 "comment save success");
     }
