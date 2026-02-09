@@ -18,7 +18,7 @@ import org.springframework.transaction.annotation.Transactional;
 @Service
 public class UserService {
     private final UserRepository userRepository;
-    private final PasswordEncoder bCryptPasswordEncoder;
+    private final PasswordEncoder passwordEncoder;
 
     @Transactional(readOnly = true)
     public User findByUsername(String username) {
@@ -42,24 +42,24 @@ public class UserService {
 
         User user = userRepository.save(User.builder()
                         .username(signupRequestDto.username())
-                        .password(bCryptPasswordEncoder.encode(signupRequestDto.password()))
+                        .password(passwordEncoder.encode(signupRequestDto.password()))
                         .role(Role.ROLE_USER)
                         .build()
         );
         return SignupResponseDto.success(user.getId());
     }
 
-    private Boolean existsByUsername(String username) {
+    private boolean existsByUsername(String username) {
         return userRepository.existsByUsername(username);
     }
 
     // 2~20 글자,  소문자(a-z), 대문자(A-Z), 숫자(0-9), 대시(-), 밑줄(_), 아포스트로피('), 마침표(.)를 포함
-    private Boolean validateUsername(String username) {
+    private boolean validateUsername(String username) {
         return username.matches("^[a-zA-Z0-9\\-_'\\.]{2,20}$");
     }
 
     // 8~64 글자
-    private Boolean validatePassword(String password) {
+    private boolean validatePassword(String password) {
         return password.matches("^(?=.*[A-Za-z])(?=.*\\d)(?=.*[\\x21-\\x2F\\x3A-\\x40\\x5B-\\x60\\x7B-\\x7E])" +
                 "[A-Za-z\\d\\x21-\\x2F\\x3A-\\x40\\x5B-\\x60\\x7B-\\x7E]{8,64}$");
     }

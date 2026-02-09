@@ -4,6 +4,9 @@ import com.ksy.fmrs.domain.User;
 import com.ksy.fmrs.domain.enums.Role;
 import com.ksy.fmrs.dto.user.SignupRequestDto;
 import com.ksy.fmrs.dto.user.SignupResponseDto;
+import com.ksy.fmrs.exception.DuplicateUsernameException;
+import com.ksy.fmrs.exception.InvalidPasswordException;
+import com.ksy.fmrs.exception.InvalidUsernameException;
 import com.ksy.fmrs.repository.UserRepository;
 import jakarta.persistence.EntityNotFoundException;
 import org.assertj.core.api.Assertions;
@@ -14,8 +17,6 @@ import org.mockito.ArgumentCaptor;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
-import org.springframework.http.HttpStatus;
-import org.springframework.http.ResponseEntity;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.test.util.ReflectionTestUtils;
 
@@ -63,43 +64,49 @@ class UserServiceTest {
     }
 
     @Test
-    @DisplayName("이미 존재하는 사용자명으로 가입 요청 시 409 반환")
+    @DisplayName("이미 존재하는 사용자명으로 가입 요청 시 DuplicateUsernameException 발생")
     void createUser_duplicatedUsername() {
         // given
         SignupRequestDto request = new SignupRequestDto("duplicate", "Valid@1234");
         when(userRepository.existsByUsername(request.username())).thenReturn(true);
 
-        // when
-        ResponseEntity<SignupResponseDto> response = userService.createUser(request);
-
-        // then
-        Assertions.assertThat(response.getStatusCode()).isEqualTo(HttpStatus.CONFLICT);
-        Assertions.assertThat(response.getBody()).isNotNull();
-        Assertions.assertThat(response.getBody().isSuccess()).isFalse();
+        // when & then
+        Assertions.assertThatThrownBy(() -> userService.createUser(request))
+                .isInstanceOf(DuplicateUsernameException.class);
         verify(userRepository, never()).save(any(User.class));
         verify(passwordEncoder, never()).encode(any());
     }
 
     @Test
-    @DisplayName("검증에 실패하면 400 반환 및 저장하지 않음")
-    void createUser_validationFail() {
+    @DisplayName("사용자명 검증에 실패하면 InvalidUsernameException 발생")
+    void createUser_invalidUsername() {
         // given
-        SignupRequestDto request = new SignupRequestDto("a", "short");
+        SignupRequestDto request = new SignupRequestDto("a", "Valid@1234");
         when(userRepository.existsByUsername(request.username())).thenReturn(false);
 
-        // when
-        ResponseEntity<SignupResponseDto> response = userService.createUser(request);
-
-        // then
-        Assertions.assertThat(response.getStatusCode()).isEqualTo(HttpStatus.BAD_REQUEST);
-        Assertions.assertThat(response.getBody()).isNotNull();
-        Assertions.assertThat(response.getBody().isSuccess()).isFalse();
+        // when & then
+        Assertions.assertThatThrownBy(() -> userService.createUser(request))
+                .isInstanceOf(InvalidUsernameException.class);
         verify(userRepository, never()).save(any(User.class));
         verify(passwordEncoder, never()).encode(any());
     }
 
     @Test
-    @DisplayName("검증 통과 시 비밀번호를 인코딩하여 저장하고 200 반환")
+    @DisplayName("비밀번호 검증에 실패하면 InvalidPasswordException 발생")
+    void createUser_invalidPassword() {
+        // given
+        SignupRequestDto request = new SignupRequestDto("Valid_User1", "Password1");
+        when(userRepository.existsByUsername(request.username())).thenReturn(false);
+
+        // when & then
+        Assertions.assertThatThrownBy(() -> userService.createUser(request))
+                .isInstanceOf(InvalidPasswordException.class);
+        verify(userRepository, never()).save(any(User.class));
+        verify(passwordEncoder, never()).encode(any());
+    }
+
+    @Test
+    @DisplayName("검증 통과 시 비밀번호를 인코딩하여 저장하고 응답 DTO 반환")
     void createUser_success() {
         // given
         SignupRequestDto request = new SignupRequestDto("Valid_User1", "Valid@1234");
@@ -113,14 +120,13 @@ class UserServiceTest {
         });
 
         // when
-        ResponseEntity<SignupResponseDto> response = userService.createUser(request);
+        SignupResponseDto response = userService.createUser(request);
 
         // then
-        SignupResponseDto body = response.getBody();
-        Assertions.assertThat(response.getStatusCode()).isEqualTo(HttpStatus.OK);
-        Assertions.assertThat(body).isNotNull();
-        Assertions.assertThat(body.isSuccess()).isTrue();
-        Assertions.assertThat(body.getUserId()).isEqualTo(1L);
+        Assertions.assertThat(response).isNotNull();
+        Assertions.assertThat(response.isSuccess()).isTrue();
+        Assertions.assertThat(response.getMessage()).isEqualTo("user created successfully");
+        Assertions.assertThat(response.getUserId()).isEqualTo(1L);
         verify(passwordEncoder, times(1)).encode(request.password());
 
         ArgumentCaptor<User> userCaptor = ArgumentCaptor.forClass(User.class);
