@@ -30,10 +30,6 @@ public class CommentService {
 
     @Transactional
     public CommentResponseDto save(Long userId, Long playerId, String content) {
-        if (content == null || content.length() > 500) {
-            throw new IllegalArgumentException("content length must be less than 500");
-        }
-
         User user = userRepository.findById(userId).orElseThrow(() -> new EntityNotFoundException("user not found"));
         Player player = playerRepository.findById(playerId).orElseThrow(() -> new EntityNotFoundException("player not found"));
 
