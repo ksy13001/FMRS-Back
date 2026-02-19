@@ -1,6 +1,7 @@
 package com.ksy.fmrs.controller;
 
 import com.ksy.fmrs.domain.enums.MappingStatus;
+import com.ksy.fmrs.dto.ApiResponse;
 import com.ksy.fmrs.dto.nation.NationDto;
 import com.ksy.fmrs.dto.player.PlayerOverviewDto;
 import com.ksy.fmrs.dto.search.DetailSearchPlayerResultDto;
@@ -12,6 +13,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.web.PageableDefault;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -25,31 +27,35 @@ public class PlayerController {
     private final PlayerService playerService;
 
     @GetMapping("/api/players/{playerId}")
-    public PlayerOverviewDto getPlayerDetail(@PathVariable Long playerId) {
-        return playerFacadeService.getPlayerOverview(playerId);
+    public ResponseEntity<ApiResponse<PlayerOverviewDto>> getPlayerDetail(@PathVariable Long playerId) {
+        return ApiResponse.ok(playerFacadeService.getPlayerOverview(playerId), "player details success");
     }
 
     @GetMapping("/api/search/simple-player/{name}")
-    public SimpleSearchPlayerResultDto searchPlayerByName(
+    public ResponseEntity<ApiResponse<SimpleSearchPlayerResultDto>> searchPlayerByName(
             @PathVariable String name,
             @PageableDefault Pageable pageable,
             @RequestParam(required = false) Long lastPlayerId,
             @RequestParam(required = false) Integer lastCurrentAbility,
             @RequestParam(required = false) MappingStatus lastMappingStatus
     ) {
-        return playerService.simpleSearchPlayers(name, pageable, lastPlayerId, lastCurrentAbility, lastMappingStatus);
+        return ApiResponse.ok(
+                playerService.simpleSearchPlayers(name, pageable, lastPlayerId, lastCurrentAbility, lastMappingStatus),
+                "simple player details success");
     }
 
     @GetMapping("/api/search/detail-player")
-    public DetailSearchPlayerResultDto searchPlayerByDetailConditionResult(
+    public ResponseEntity<ApiResponse<DetailSearchPlayerResultDto>> searchPlayerByDetailConditionResult(
             @ModelAttribute SearchPlayerCondition searchPlayerCondition,
             @PageableDefault Pageable pageable
     ) {
-        return playerService.detailSearchPlayers(searchPlayerCondition, pageable);
+        return ApiResponse.ok(playerService.detailSearchPlayers(searchPlayerCondition, pageable),
+                "detail player details success");
     }
 
     @GetMapping("/api/nations")
-    public List<NationDto> getNationsFromPlayers() {
-        return playerService.getNationsFromPlayers();
+    public ResponseEntity<ApiResponse<List<NationDto>>> getNationsFromPlayers() {
+        return ApiResponse.ok(playerService.getNationsFromPlayers(),
+                "nations from players success");
     }
 }

@@ -25,8 +25,6 @@ import org.mockito.ArgumentCaptor;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
-import org.springframework.http.HttpStatusCode;
-import org.springframework.http.ResponseEntity;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
@@ -145,7 +143,7 @@ class AuthServiceTest {
         // when
         when(jwtTokenProvider.parseAndValidateToken(oldRefreshToken))
                 .thenReturn(claims);
-        ResponseEntity<Void> actual = authService.logout(oldRefreshToken);
+        authService.logout(oldRefreshToken);
 
         // then
         ArgumentCaptor<BlackList> blackListCaptor = ArgumentCaptor.forClass(BlackList.class);
@@ -155,8 +153,6 @@ class AuthServiceTest {
                 .save(blackListCaptor.capture());
         verifyValidateToken(claims);
 
-        Assertions.assertThat(actual.getStatusCode())
-                .isEqualTo(HttpStatusCode.valueOf(200));
         Assertions.assertThat(blackListCaptor.getValue().getRefreshJti())
                 .isEqualTo(jti);
     }

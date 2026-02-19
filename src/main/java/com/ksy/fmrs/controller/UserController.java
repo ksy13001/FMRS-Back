@@ -1,5 +1,6 @@
 package com.ksy.fmrs.controller;
 
+import com.ksy.fmrs.dto.ApiResponse;
 import com.ksy.fmrs.dto.user.SignupRequestDto;
 import com.ksy.fmrs.dto.user.SignupResponseDto;
 import com.ksy.fmrs.service.UserService;
@@ -16,7 +17,7 @@ public class UserController {
     private final UserService userService;
 
     @PostMapping("/api/auth/signup")
-    public ResponseEntity<SignupResponseDto> signUp(@RequestBody SignupRequestDto dto) {
-        return userService.createUser(dto);
+    public ResponseEntity<ApiResponse<SignupResponseDto>> signUp(@RequestBody SignupRequestDto dto) {
+        return ApiResponse.ok(userService.createUser(dto), "user sign up success");
     }
 }

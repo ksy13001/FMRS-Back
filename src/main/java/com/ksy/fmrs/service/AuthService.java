@@ -15,7 +15,6 @@ import io.jsonwebtoken.Claims;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.http.ResponseEntity;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
@@ -59,7 +58,7 @@ public class AuthService {
     }
 
     @Transactional
-    public ResponseEntity<Void> logout(String oldRefresh) {
+    public void logout(String oldRefresh) {
         Claims claims = jwtTokenProvider.parseAndValidateToken(
                 oldRefresh);
         Long userId = Long.parseLong(claims.getSubject());
@@ -70,8 +69,6 @@ public class AuthService {
 
         saveBlackListToken(userId, jti, expiryDate.toInstant());
         refreshTokenRepository.deleteByToken(oldRefresh);
-
-        return ResponseEntity.ok().build();
     }
 
     @Transactional

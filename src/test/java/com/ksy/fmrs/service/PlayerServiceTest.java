@@ -18,6 +18,7 @@ import com.ksy.fmrs.dto.search.DetailSearchPlayerResultDto;
 import com.ksy.fmrs.dto.search.SearchPlayerCondition;
 import com.ksy.fmrs.dto.team.TeamPlayersResponseDto;
 import com.ksy.fmrs.repository.Player.PlayerRepository;
+import jakarta.persistence.EntityNotFoundException;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -103,7 +104,7 @@ public class PlayerServiceTest {
         when(playerRepository.findWithTeamLeagueById(playerId)).thenReturn(Optional.empty());
 
         // when & then
-        Exception exception = assertThrows(IllegalArgumentException.class, () -> {
+        Exception exception = assertThrows(EntityNotFoundException.class, () -> {
             playerService.getPlayerDetails(playerId);
         });
         assertTrue(exception.getMessage().contains("Player not found: " + playerId));

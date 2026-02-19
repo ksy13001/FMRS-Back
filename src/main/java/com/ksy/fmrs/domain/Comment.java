@@ -16,6 +16,9 @@ import java.security.Timestamp;
 @EntityListeners(AuditingEntityListener.class)
 @Entity
 public class Comment extends BaseTime{
+
+    private final static int COMMENT_MAX_LENGTH = 500;
+
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
@@ -35,6 +38,10 @@ public class Comment extends BaseTime{
 
 
     public static Comment of(User user, Player player, String content){
+        if (content == null || content.length() > COMMENT_MAX_LENGTH) {
+            throw new IllegalArgumentException("content length must be less than 500");
+        }
+
         Comment comment = new Comment();
         comment.content = content;
         comment.user = user;

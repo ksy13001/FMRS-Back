@@ -75,7 +75,7 @@ class JwtFilterTest {
     }
 
     @Test
-    @DisplayName("토큰이 만료된 경우, 인증정보 세팅하지 않고 다음 필터로 전달하지 않고 애러 메시지 반환")
+    @DisplayName("토큰이 만료된 경우, 인증정보 세팅하지 않고 익명으로 다음 필터로 전달")
     void DoFilterInternal_with_expired_token() throws ServletException, IOException {
         // given
         String token = "token";
@@ -89,12 +89,12 @@ class JwtFilterTest {
         // then
         Assertions.assertThat(SecurityContextHolder.getContext().getAuthentication())
                 .isNull();
-        verify(filterChain, never())
+        verify(filterChain, times(1))
                 .doFilter(request, response);
     }
 
     @Test
-    @DisplayName("토큰이 유효하지 않은 경우, 인증정보 세팅하지 않고 다음 필터로 전달하지 않고 애러 메시지 반환")
+    @DisplayName("토큰이 유효하지 않은 경우, 인증정보 세팅하지 않고 익명으로 다음 필터로 전달")
     void DoFilterInternal_with_invalid_token() throws ServletException, IOException {
         // given
         String token = "token";
@@ -108,7 +108,7 @@ class JwtFilterTest {
         // then
         Assertions.assertThat(SecurityContextHolder.getContext().getAuthentication())
                 .isNull();
-        verify(filterChain, never())
+        verify(filterChain, times(1))
                 .doFilter(request, response);
     }
 
