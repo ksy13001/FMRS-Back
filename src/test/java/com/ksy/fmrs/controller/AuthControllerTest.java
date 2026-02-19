@@ -20,9 +20,9 @@ import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 
 import org.springframework.data.jpa.mapping.JpaMetamodelMappingContext;
 import org.springframework.http.MediaType;
-import org.springframework.http.ResponseEntity;
 import org.springframework.mock.web.MockHttpServletResponse;
 import org.springframework.security.authentication.BadCredentialsException;
+import org.springframework.security.test.context.support.WithAnonymousUser;
 import org.springframework.security.test.context.support.WithMockUser;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
@@ -34,6 +34,8 @@ import java.util.Optional;
 import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
 import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.BDDMockito.given;
+import static org.mockito.BDDMockito.willDoNothing;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.csrf;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
@@ -86,8 +88,8 @@ class AuthControllerTest {
                         .content(objectMapper.writeValueAsString(loginRequestDto))
                         .with(csrf()))
                 .andExpect(jsonPath("$.success").value(true))
-                .andExpect(jsonPath("$.userId").value(userId))
-                .andExpect(jsonPath("$.username").value(username))
+                .andExpect(jsonPath("$.data.userId").value(userId))
+                .andExpect(jsonPath("$.data.username").value(username))
                 .andReturn()
                 .getResponse();
 
@@ -125,8 +127,7 @@ class AuthControllerTest {
         String oldRefresh = "old_refresh";
         given(tokenResolver.extractTokenFromCookie(any(HttpServletRequest.class), anyString()))
                 .willReturn(Optional.of(oldRefresh));
-        given(authService.logout(oldRefresh))
-                .willReturn(ResponseEntity.ok().build());
+        willDoNothing().given(authService).logout(oldRefresh);
 
         // when
         ResultActions actions = mvc.perform(post("/api/auth/logout")
@@ -134,7 +135,9 @@ class AuthControllerTest {
                 .with(csrf()));
 
         // then
-        actions.andExpect(status().isOk());
+        actions.andExpect(status().isOk())
+                .andExpect(jsonPath("$.success").value(true))
+                .andExpect(jsonPath("$.message").value("Logout successful"));
         Cookie[] cookies = actions.andReturn()
                 .getResponse().getCookies();
         tokenTest(cookies, TokenType.ACCESS_TOKEN.getType(), "", 0);
@@ -161,10 +164,22 @@ class AuthControllerTest {
                         .with(csrf()));
         // then
         actions.andExpect(status().isOk())
-                .andExpect(jsonPath("$.success").value(true));
+                .andExpect(jsonPath("$.success").value(true))
+                .andExpect(jsonPath("$.data.reissued").value(true));
         Cookie[] cookies = actions.andReturn().getResponse().getCookies();
         tokenTest(cookies, TokenType.ACCESS_TOKEN.getType(), newAccess, TokenType.ACCESS_TOKEN.getExp());
         tokenTest(cookies, TokenType.REFRESH_TOKEN.getType(), newRefresh, TokenType.REFRESH_TOKEN.getExp());
+    }
+
+    @Test
+    @WithAnonymousUser
+    @DisplayName("비로그인 상태에서 상태 조회시 200과 비인증 응답을 반환")
+    void status_unauthenticated() throws Exception {
+        mvc.perform(get("/api/auth/status"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.success").value(true))
+                .andExpect(jsonPath("$.message").value("Unauthenticated"))
+                .andExpect(jsonPath("$.data.authenticated").value(false));
     }
 
     void tokenTest(Cookie[] cookies, String tokenType, String tokenValue, int maxAge) {
