@@ -65,7 +65,9 @@ dependencies {
 }
 
 tasks.named('test') {
-	useJUnitPlatform()
+	useJUnitPlatform{
+        excludeTags 'performance'
+    }
 //	finalizedBy jacocoTestReport
 
 }

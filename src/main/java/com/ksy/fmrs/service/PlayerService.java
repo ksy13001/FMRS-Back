@@ -4,7 +4,6 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.ksy.fmrs.domain.enums.MappingStatus;
 import com.ksy.fmrs.domain.player.*;
-import com.ksy.fmrs.domain.Team;
 import com.ksy.fmrs.dto.apiFootball.ApiFootballPlayersStatistics;
 import com.ksy.fmrs.dto.nation.NationDto;
 import com.ksy.fmrs.dto.player.FmPlayerDetailsDto;
@@ -14,8 +13,6 @@ import com.ksy.fmrs.dto.team.TeamPlayersResponseDto;
 import com.ksy.fmrs.mapper.PlayerMapper;
 import com.ksy.fmrs.repository.BulkRepository;
 import com.ksy.fmrs.repository.Player.PlayerRepository;
-import com.ksy.fmrs.repository.Team.TeamRepository;
-import com.ksy.fmrs.util.StringUtils;
 import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -32,12 +29,11 @@ import java.util.stream.Collectors;
 @Slf4j
 @RequiredArgsConstructor
 @Service
-public class  PlayerService {
+public class PlayerService {
 
     private static final Integer TOP_N = 3;
 
     private final PlayerRepository playerRepository;
-    private final TeamRepository teamRepository;
     private final BulkRepository bulkRepository;
     private final ObjectMapper objectMapper;
     private final PlayerMapper playerMapper;
@@ -47,19 +43,19 @@ public class  PlayerService {
      */
     @Transactional(readOnly = true)
     public PlayerDetailsDto getPlayerDetails(Long playerId) {
-        Player player = playerRepository.findById(playerId)
+        Player player = playerRepository.findWithTeamLeagueById(playerId)
                 .orElseThrow(() -> new IllegalArgumentException("Player not found: " + playerId));
         return convertPlayerToPlayerDetailsDto(player);
     }
 
     @Transactional(readOnly = true)
-    public Optional<FmPlayerDetailsDto> getFmPlayerDetails(Long playerId) {
+    public Optional<List<FmPlayerDetailsDto>> findFmPlayerDetails(Long playerId) {
         Player player = playerRepository.findById(playerId)
                 .orElseThrow(() -> new IllegalArgumentException("Player not found: " + playerId));
         if (player.getMappingStatus() != MappingStatus.MATCHED) {
             return Optional.empty();
         }
-        return Optional.of(new FmPlayerDetailsDto(player.getFmPlayer()));
+        return Optional.of(player.getFmPlayer().stream().map(FmPlayerDetailsDto::new).toList());
     }
 
     @Transactional
@@ -69,8 +65,9 @@ public class  PlayerService {
     }
 
     /**
-     *  squad 내 선수들 team update
-     * */
+     * squad 내 선수들 team update
+     *
+     */
     @Transactional
     public void updateSquadPlayers(List<Integer> playerApiIds, Long teamId) {
         bulkRepository.updatePlayersTeam(playerApiIds, teamId);
@@ -132,7 +129,7 @@ public class  PlayerService {
             MappingStatus lastMappingStatus
     ) {
         Slice<Player> result = playerRepository.searchPlayerByName(
-                name, pageable,lastPlayerId, lastCurrentAbility, lastMappingStatus);
+                name, pageable, lastPlayerId, lastCurrentAbility, lastMappingStatus);
         return new SimpleSearchPlayerResultDto(
                 result.getContent().stream().map(this::convertPlayerToSimpleSearchPlayerResponseDto).toList(),
                 result.hasNext()
@@ -156,8 +153,8 @@ public class  PlayerService {
     }
 
     private DetailSearchPlayerResponseDto convertPlayerToDetailSearchPlayerResponseDto(Player player) {
-        if(player.isMatched()){
-            FmPlayer fmPlayer = player.getFmPlayer();
+        FmPlayer fmPlayer = player.getLatestFmPlayer();
+        if (player.isMatched() && fmPlayer != null) {
             return new DetailSearchPlayerResponseDto(
                     player,
                     player.getTeamName(),
@@ -170,12 +167,12 @@ public class  PlayerService {
                 player.getTeamLogoUrl(),
                 null,
                 Collections.emptyList()
-                );
+        );
     }
 
     private SimpleSearchPlayerResponseDto convertPlayerToSimpleSearchPlayerResponseDto(Player player) {
-        if(player.isMatched()){
-            FmPlayer fmPlayer = player.getFmPlayer();
+        FmPlayer fmPlayer = player.getLatestFmPlayer();
+        if (player.isMatched() && fmPlayer != null) {
             return new SimpleSearchPlayerResponseDto(player,
                     fmPlayer.getCurrentAbility());
         }
@@ -184,38 +181,32 @@ public class  PlayerService {
                 null
         );
     }
+
     /**
-     *  TOP N 개 능력치 반환
-     * */
+     * TOP N 개 능력치 반환
+     *
+     */
     @Transactional(readOnly = true)
     public List<String> getTopNAttributes(Long playerId, int n) {
-        Player player =  playerRepository.findById(playerId)
+        Player player = playerRepository.findById(playerId)
                 .orElseThrow(() -> new EntityNotFoundException("Player not found: " + playerId));
 
-        if(!player.isMatched()){
+        if (!player.isMatched()) {
             return Collections.emptyList();
         }
 
-        FmPlayer fmPlayer = player.getFmPlayer();
+        FmPlayer fmPlayer = player.getLatestFmPlayer();
+        if (fmPlayer == null) {
+            return Collections.emptyList();
+        }
         Map<String, Integer> allAttributes = fmPlayer.getAllAttributes();
 
-        if(n<=0 || n > allAttributes.size()){
+        if (n <= 0 || n > allAttributes.size()) {
             return Collections.emptyList();
         }
         return fmPlayer.getTopNAttributes(n, allAttributes);
     }
 
-
-    /**
-     * 하나의 player 에 대응되는 fmPlayer 가 여러개인 경우 Failed 처리
-     */
-    @Transactional
-    public void updatePlayersMappingStatusToFailed(List<Player> players) {
-        players.forEach(player -> {
-            log.info("id:" + player.getId());
-            player.updateMappingStatus(MappingStatus.FAILED);
-        });
-    }
 
     @Transactional(readOnly = true)
     public List<Player> getPlayersWithMultipleFmPlayers() {

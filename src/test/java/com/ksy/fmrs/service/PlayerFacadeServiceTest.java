@@ -1,5 +1,6 @@
 package com.ksy.fmrs.service;
 
+import com.ksy.fmrs.domain.enums.FmVersion;
 import com.ksy.fmrs.domain.enums.MappingStatus;
 import com.ksy.fmrs.domain.player.*;
 import com.ksy.fmrs.dto.comment.CommentCountResponseDto;
@@ -18,6 +19,7 @@ import org.springframework.test.context.junit.jupiter.SpringExtension;
 import org.springframework.test.util.ReflectionTestUtils;
 
 import java.time.LocalDate;
+import java.util.List;
 import java.util.Optional;
 
 import static org.mockito.Mockito.when;
@@ -36,10 +38,11 @@ class PlayerFacadeServiceTest {
 
     private PlayerDetailsDto playerDetailsDto;
     private PlayerStatDto playerStatDto;
-    private FmPlayerDetailsDto fmPlayerDetailsDto;
+    private List<FmPlayerDetailsDto> fmPlayerDetailsDtos;
     private CommentCountResponseDto commentCountResponseDto;
 
     private static final int COMMENT_CNT = 10;
+    private static final Long PLAYER_ID = 1L;
 
     @BeforeEach
     void setUp() {
@@ -56,15 +59,13 @@ class PlayerFacadeServiceTest {
                 .nationLogoUrl("nationLogoUrl")
                 .mappingStatus(MappingStatus.MATCHED)
                 .build();
-        ReflectionTestUtils.setField(player, "id", 1L);
+        ReflectionTestUtils.setField(player, "id", PLAYER_ID);
         FmPlayer fmPlayer = createFmPlayer(date);
         PlayerStat playerStat = PlayerStat.builder()
                 .build();
-        player.updateFmPlayer(fmPlayer);
-
 
         this.playerDetailsDto = new PlayerDetailsDto(player, "team1", "teamLogoUrl", 2025,200);
-        this.fmPlayerDetailsDto = new FmPlayerDetailsDto(fmPlayer);
+        this.fmPlayerDetailsDtos = List.of(new FmPlayerDetailsDto(fmPlayer));
         this.playerStatDto = new PlayerStatDto(playerStat);
         this.commentCountResponseDto = new CommentCountResponseDto(COMMENT_CNT);
     }
@@ -73,15 +74,13 @@ class PlayerFacadeServiceTest {
     @DisplayName("playerDetailsDto, playerStatDto, fmPlayerDetailsDto 를 각 서비스에서 받아 dto 통합")
     void getPlayerOverView_valid(){
         // given
-        Long playerId = 1L;
+        Long playerId = PLAYER_ID;
         // when
-        when(playerService.getPlayerDetails(playerId)).thenReturn(playerDetailsDto);
-        when(playerService.getFmPlayerDetails(playerId)).thenReturn(Optional.of(fmPlayerDetailsDto));
-        when(playerStatService.saveAndGetPlayerStat(playerId)).thenReturn(Optional.of(playerStatDto));
-        when(commentService.getCommentCountByPlayerId(playerId)).thenReturn(commentCountResponseDto);
+        stubCommonServices(playerId);
+        when(playerService.findFmPlayerDetails(playerId)).thenReturn(Optional.of(fmPlayerDetailsDtos));
         PlayerOverviewDto result = playerFacadeService.getPlayerOverview(playerId);
         // then
-        Assertions.assertThat(result.fmPlayerDetailsDto()).isEqualTo(fmPlayerDetailsDto);
+        Assertions.assertThat(result.fmPlayerDetailsDto()).isEqualTo(fmPlayerDetailsDtos);
         Assertions.assertThat(result.playerDetailsDto()).isEqualTo(playerDetailsDto);
         Assertions.assertThat(result.playerStatDto()).isEqualTo(playerStatDto);
         Assertions.assertThat(result.commentCountResponseDto()).isEqualTo(commentCountResponseDto);
@@ -91,12 +90,10 @@ class PlayerFacadeServiceTest {
     @DisplayName("fm 매핑 정보 없을때 PlayerOverviewDto에 fmPlayerDetailsDto = null")
     void getPlayerOverView_fmPlayerDetailsDto_null(){
         // given
-        Long playerId = 1L;
+        Long playerId = PLAYER_ID;
         // when
-        when(playerService.getPlayerDetails(playerId)).thenReturn(playerDetailsDto);
-        when(playerService.getFmPlayerDetails(playerId)).thenReturn(Optional.empty());
-        when(playerStatService.saveAndGetPlayerStat(playerId)).thenReturn(Optional.of(playerStatDto));
-        when(commentService.getCommentCountByPlayerId(playerId)).thenReturn(commentCountResponseDto);
+        stubCommonServices(playerId);
+        when(playerService.findFmPlayerDetails(playerId)).thenReturn(Optional.empty());
         PlayerOverviewDto result = playerFacadeService.getPlayerOverview(playerId);
         // then
         Assertions.assertThat(result.fmPlayerDetailsDto()).isNull();
@@ -105,8 +102,16 @@ class PlayerFacadeServiceTest {
         Assertions.assertThat(result.commentCountResponseDto()).isEqualTo(commentCountResponseDto);
     }
 
+    private void stubCommonServices(Long playerId) {
+        when(playerService.getPlayerDetails(playerId)).thenReturn(playerDetailsDto);
+        when(playerStatService.saveAndGetPlayerStat(playerId)).thenReturn(Optional.of(playerStatDto));
+        when(commentService.getCommentCountByPlayerId(playerId)).thenReturn(commentCountResponseDto);
+    }
+
     private FmPlayer createFmPlayer(LocalDate date) {
         return FmPlayer.builder()
+                .fmUid(1)
+                .fmVersion(FmVersion.FM24)
                 .firstName("firstName")
                 .lastName("lastName")
                 .birth(date)

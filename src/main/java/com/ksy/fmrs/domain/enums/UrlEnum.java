@@ -9,6 +9,7 @@ public enum UrlEnum {
     TOPASSISTS_URL("https://v3.football.api-sports.io/players/topassists?"),
     SQUAD_URL("https://v3.football.api-sports.io/players/squads?"),
     TEAM_STATISTICS_URL("https://v3.football.api-sports.io/teams/statistics?"),
+    TRANSFERS_URL("https://v3.football.api-sports.io/transfers?"),
     PARAM_NAME("name="),
     PARAM_SEARCH("search="),
     PARAM_TEAM("team="),
@@ -31,7 +32,7 @@ public enum UrlEnum {
     }
 
     // 선수 통계 API URL을 생성 (playerName, teamApiId, 시즌)
-    public static String buildPlayerStatUrl(Integer playerApiId, Integer teamApiId, Integer leagueApiId, int currentSeason) {
+    public static String buildPlayerStatUrl(Integer leagueApiId,  Integer teamApiId, Integer playerApiId, int currentSeason) {
         return PLAYER_STATISTICS_URL.getValue() +
                 PARAM_ID.getValue() + playerApiId +
                 AND.getValue() +
@@ -124,6 +125,11 @@ public enum UrlEnum {
                 PARAM_LEAGUE.getValue() + leagueApiId +
                 AND.getValue() +
                 PARAM_SEASON.getValue() + currentSeason;
+    }
+
+    public static String buildTransfersUrl(Integer teamApiId){
+        return TRANSFERS_URL.getValue() +
+                PARAM_TEAM.getValue() + teamApiId;
     }
 }
 //GET /players/topscorers?league=39&season=2019

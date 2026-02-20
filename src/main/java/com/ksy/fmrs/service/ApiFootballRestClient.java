@@ -7,6 +7,7 @@ import com.ksy.fmrs.dto.apiFootball.ApiFootballPlayersStatistics;
 import com.ksy.fmrs.dto.apiFootball.ApiFootballSquad;
 import com.ksy.fmrs.dto.apiFootball.ApiFootballTeamsByLeague;
 import io.github.resilience4j.ratelimiter.RateLimiter;
+import com.ksy.fmrs.dto.apiFootball.*;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
@@ -58,4 +59,21 @@ public class ApiFootballRestClient implements ApiFootballClient {
         return rateLimiter.executeSupplier(supplier);
     }
 }
+    @Override
+    public ApiFootballPlayersStatistics requestPlayerStatistics(Integer leagueApiId, Integer teamApiId, Integer playerApiId, int currentSeason) {
+        return restClientService.getApiResponse(
+                UrlEnum.buildPlayerStatUrl(leagueApiId, teamApiId, playerApiId, currentSeason),
+                ApiFootballPlayersStatistics.class
+        );
+    }
 
+    @Override
+    public ApiFootballTransfers requestTransfers(Integer teamApiId) {
+        return restClientService.getApiResponse(
+                UrlEnum.buildTransfersUrl(teamApiId),
+                ApiFootballTransfers.class
+        );
+    }
+
+
+}

@@ -4,6 +4,7 @@ package com.ksy.fmrs.domain.player;
 import com.ksy.fmrs.domain.Comment;
 import com.ksy.fmrs.domain.Team;
 import com.ksy.fmrs.domain.enums.MappingStatus;
+import com.ksy.fmrs.domain.enums.TransferType;
 import com.ksy.fmrs.domain.enums.StatFreshness;
 import com.ksy.fmrs.util.time.TimeUtils;
 import jakarta.persistence.*;
@@ -12,8 +13,11 @@ import lombok.*;
 import java.time.Duration;
 import java.time.Instant;
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.List;
+import java.util.Optional;
 
 @Getter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
@@ -58,16 +62,19 @@ public class Player {
     @JoinColumn(name = "team_id")
     private Team team;
 
-    @OneToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "fmplayer_id", unique = true)
-    private FmPlayer fmPlayer;
+    @OneToMany(mappedBy = "player")
+    private List<FmPlayer> fmPlayer = new ArrayList<>();
 
     @OneToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "player_stat_id", unique = true)
     private PlayerStat playerStat;
 
-    @OneToMany(fetch = FetchType.LAZY, mappedBy = "player", cascade = CascadeType.ALL)
+    @OneToMany(mappedBy = "player", cascade = CascadeType.ALL)
     private List<Comment> comments = new ArrayList<>();
+
+    @Getter(AccessLevel.PRIVATE)
+    @OneToMany(mappedBy = "player")
+    private List<Transfer> transfers = new ArrayList<>();
 
     @Column(name = "is_gk")
     private Boolean isGK;
@@ -112,7 +119,14 @@ public class Player {
     }
 
     public void updateFmPlayer(FmPlayer fmPlayer) {
-        this.fmPlayer = fmPlayer;
+        if (fmPlayer == null) {
+            return;
+        }
+        if (this.fmPlayer == null) {
+            this.fmPlayer = new ArrayList<>();
+        }
+        this.fmPlayer.add(fmPlayer);
+        fmPlayer.updatePlayer(this);
     }
 
     public void updateMappingStatus(MappingStatus status) {
@@ -159,15 +173,33 @@ public class Player {
         return this.team.getLogoUrl();
     }
 
-    public Integer getFmPlayerCurrentAbility(){
-        if(this.fmPlayer == null){
+    public FmPlayer getLatestFmPlayer(){
+        if (this.fmPlayer == null || this.fmPlayer.isEmpty()) {
             return null;
         }
-        return this.fmPlayer.getCurrentAbility();
+        return this.fmPlayer.stream()
+                .filter(fmPlayer -> fmPlayer != null)
+                .max(Comparator.comparingInt(fmPlayer -> {
+                    if (fmPlayer.getFmVersion() == null) {
+                        return Integer.MIN_VALUE;
+                    }
+                    return fmPlayer.getFmVersion().getYear();
+                }))
+                .orElse(null);
+    }
+
+    public Integer getFmPlayerCurrentAbility(){
+        FmPlayer latestFmPlayer = getLatestFmPlayer();
+        if (latestFmPlayer == null) {
+            return null;
+        }
+        return latestFmPlayer.getCurrentAbility();
     }
 
     public boolean isMatched(){
-        return this.fmPlayer != null && this.mappingStatus == MappingStatus.MATCHED;
+        return MappingStatus.MATCHED.equals(this.mappingStatus)
+                && this.fmPlayer != null
+                && !this.fmPlayer.isEmpty();
     }
 
     public boolean isFA(){
@@ -182,5 +214,17 @@ public class Player {
             return StatFreshness.EXPIRED;
         }
         return StatFreshness.FRESH;
+    }
+
+    public boolean needsStatRefresh(Instant now, Duration ttl){
+        return playerStat == null || playerStat.isExpired(now, ttl);
+    }
+
+    public Transfer recordTransfer(Team fromTeam, Team toTeam, TransferType type, Double fee, String currency, LocalDate date, LocalDateTime update) {
+        Transfer transfer = new Transfer(
+            this, fromTeam, toTeam, type, fee, currency, date, update
+        );
+        this.transfers.add(transfer);
+        return transfer;
     }
 }

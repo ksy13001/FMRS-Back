@@ -5,7 +5,7 @@ import com.ksy.fmrs.domain.Team;
 import com.ksy.fmrs.domain.enums.SyncType;
 import com.ksy.fmrs.domain.player.Player;
 import com.ksy.fmrs.domain.player.PlayerStat;
-import com.ksy.fmrs.dto.apiFootball.PlayerStatisticApiDto;
+import com.ksy.fmrs.dto.apiFootball.ApiFootballPlayersStatistics;
 import com.ksy.fmrs.dto.player.PlayerStatDto;
 import com.ksy.fmrs.mapper.PlayerStatMapper;
 import com.ksy.fmrs.repository.Player.PlayerRepository;
@@ -34,7 +34,6 @@ import java.util.Optional;
 
 import static org.mockito.ArgumentMatchers.anyInt;
 import static org.mockito.ArgumentMatchers.anyLong;
-import static org.mockito.BDDMockito.given;
 import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
@@ -46,7 +45,7 @@ class PlayerStatServiceTest {
     @Mock
     private PlayerStatRepository playerStatRepository;
     @Mock
-    private FootballApiService footballApiService;
+    private ApiFootballClient apiFootballClient;
     @Mock
     private PlayerStatMapper playerStatMapper;
     @Mock
@@ -77,7 +76,7 @@ class PlayerStatServiceTest {
                 .currentSeason(2024)
                 .leagueApiId(1)
                 .build();
-        PlayerStatisticApiDto playerStatisticApiDto = createPlayerStatisticApiDto();
+        ApiFootballPlayersStatistics playerStatisticApiDto = createPlayerStatisticApiDto();
         team.updateLeague(league);
         player.updateTeam(team);
         ReflectionTestUtils.setField(player, "id", 1L);
@@ -90,16 +89,18 @@ class PlayerStatServiceTest {
                 .build();
         // when
         when(playerRepository.findById(anyLong())).thenReturn(Optional.of(player));
-        when(footballApiService.getPlayerStatByPlayerApiIdAndTeamApiIdAndLeagueApiId(anyInt(), anyInt(), anyInt(), anyInt()))
+        when(apiFootballClient.requestPlayerStatistics(anyInt(), anyInt(), anyInt(), anyInt()))
                 .thenReturn(playerStatisticApiDto);
         when(playerStatMapper.toEntity(any())).thenReturn(playerStat);
 
         Optional<PlayerStatDto> actual = playerStatService.saveAndGetPlayerStat(player.getId());
         // then
         verify(playerStatRepository, times(1)).save(playerStat);
-        verify(footballApiService).getPlayerStatByPlayerApiIdAndTeamApiIdAndLeagueApiId(
-                player.getPlayerApiId(), team.getTeamApiId(),
-                league.getLeagueApiId(), league.getCurrentSeason()
+        verify(apiFootballClient).requestPlayerStatistics(
+                league.getLeagueApiId(),
+                team.getTeamApiId(),
+                player.getPlayerApiId(),
+                league.getCurrentSeason()
         );
         verify(playerStatMapper).toEntity(playerStatisticApiDto);
         Assertions.assertThat(actual.get().getGamesPlayed()).isEqualTo(10);
@@ -123,7 +124,7 @@ class PlayerStatServiceTest {
                 .leagueApiId(1)
                 .build();
         Long playerId = 1L;
-        PlayerStatisticApiDto playerStatisticApiDto = createPlayerStatisticApiDto();
+        ApiFootballPlayersStatistics playerStatisticApiDto = createPlayerStatisticApiDto();
 
         PlayerStat existingStat = PlayerStat.builder()
                 .gamesPlayed(10)
@@ -142,16 +143,18 @@ class PlayerStatServiceTest {
 
         // when
         when(playerRepository.findById(anyLong())).thenReturn(Optional.of(player));
-        when(footballApiService.getPlayerStatByPlayerApiIdAndTeamApiIdAndLeagueApiId(anyInt(), anyInt(), anyInt(), anyInt()))
+        when(apiFootballClient.requestPlayerStatistics(anyInt(), anyInt(), anyInt(), anyInt()))
                 .thenReturn(playerStatisticApiDto);
         when(playerStatMapper.toEntity(any())).thenReturn(refreshStat);
         Optional<PlayerStatDto> actual = playerStatService.saveAndGetPlayerStat(playerId);
         // then
         verify(playerRepository, times(1)).findById(playerId);
         verify(playerStatRepository, times(1)).save(refreshStat);
-        verify(footballApiService).getPlayerStatByPlayerApiIdAndTeamApiIdAndLeagueApiId(
-                player.getPlayerApiId(), team.getTeamApiId(),
-                league.getLeagueApiId(), league.getCurrentSeason()
+        verify(apiFootballClient).requestPlayerStatistics(
+                league.getLeagueApiId(),
+                team.getTeamApiId(),
+                player.getPlayerApiId(),
+                league.getCurrentSeason()
         );
 
         Assertions.assertThat(actual.get().getGamesPlayed()).isEqualTo(12);
@@ -203,18 +206,19 @@ class PlayerStatServiceTest {
     @DisplayName("player에 팀이 존재하고 stat 존재하지 않아 playerStat값 요청했는데 null 값이 반환된 경우, Empty 반환")
     void save_player_stat_with_empty_response(){
         // given
+        int currentSeason = 2025;
         Long playerId = 1L;
         Player player = Player.builder().name("p1").build();
         Team team = Team.builder().build();
         player.updateTeam(team);
-        League league = League.builder().build();
+        League league = League.builder().currentSeason(currentSeason).build();
         team.updateLeague(league);
         PlayerStat playerStat = PlayerStat.builder().build();
 
         // when
         when(playerRepository.findById(playerId))
                 .thenReturn(Optional.of(player));
-        when(footballApiService.getPlayerStatByPlayerApiIdAndTeamApiIdAndLeagueApiId(null, null, null, null))
+        when(apiFootballClient.requestPlayerStatistics(null, null, null, currentSeason))
                 .thenReturn(null);
         when(playerStatMapper.toEntity(any())).thenReturn(null);
 
@@ -224,95 +228,75 @@ class PlayerStatServiceTest {
         Assertions.assertThat(actual.isPresent()).isFalse();
     }
 
-    @Test
-    @DisplayName("FA 인 player 는 stat 요청 시, Optional.Empty() 반환")
-    void FA_PlayerStat_is_empty(){
-        // given
-        Long playerId = 10L;
-        Player faPlayer = Player.builder()
-                .name("cross").build();
-        given(playerRepository.findById(playerId))
-                .willReturn(Optional.of(faPlayer));
-
-        // when
-        Optional<PlayerStatDto> actual =
-                playerStatService.saveAndGetPlayerStat(playerId);
-
-        // then
-        verify(playerStatMapper,never())
-                .toEntity(any());
-    }
-
-    public void givenExpiredTime(){
-        given(ttlProvider.getTtl()).willReturn(Duration.ZERO);
-    }
-
-    private PlayerStatisticApiDto createPlayerStatisticApiDto() {
-        return new PlayerStatisticApiDto(
-                /* get */    "players",
-                /* results */1,
-                /* paging */ new PlayerStatisticApiDto.Paging(1, 1),
-                /* response */ List.of(
-                new PlayerStatisticApiDto.PlayerResponse(
-                        new PlayerStatisticApiDto.Player(
-                                /* id */            247,
-                                /* name */          "C. Gakpo",
-                                /* firstname */     "Cody Mathès",
-                                /* lastname */      "Gakpo",
-                                /* age */           26,
-                                /* birth */         new PlayerStatisticApiDto.Birth(
-                                "1999-05-07",
-                                "Eindhoven",
-                                "Netherlands"
-                        ),
-                                /* nationality */   "Netherlands",
-                                /* height */        "193 cm",
-                                /* weight */        "76 kg",
-                                /* injured */       false,
-                                /* photo */         "https://media.api-sports.io/football/players/247.png"
-                        ),
-                        List.of(
-                                new PlayerStatisticApiDto.Statistic(
-                                        new PlayerStatisticApiDto.Team(
-                                                /* id */   40,
-                                                /* name */ "Liverpool",
-                                                /* logo */ "https://media.api-sports.io/football/teams/40.png"
+    private ApiFootballPlayersStatistics createPlayerStatisticApiDto() {
+        return new ApiFootballPlayersStatistics(
+                "players",
+                new ApiFootballPlayersStatistics.ParametersDto("247", "2024"),
+                List.of(),
+                1,
+                new ApiFootballPlayersStatistics.PagingDto(1, 1),
+                List.of(
+                        new ApiFootballPlayersStatistics.PlayerWrapperDto(
+                                new ApiFootballPlayersStatistics.PlayerDto(
+                                        247,
+                                        "C. Gakpo",
+                                        "Cody Mathès",
+                                        "Gakpo",
+                                        26,
+                                        new ApiFootballPlayersStatistics.BirthDto(
+                                                java.time.LocalDate.of(1999, 5, 7),
+                                                "Eindhoven",
+                                                "Netherlands"
                                         ),
-                                        new PlayerStatisticApiDto.League(
-                                                /* id */      39,
-                                                /* name */    "Premier League",
-                                                /* country */ "England",
-                                                /* logo */    "https://media.api-sports.io/football/leagues/39.png",
-                                                /* flag */    "https://media.api-sports.io/flags/gb-eng.svg",
-                                                /* season */  2024
-                                        ),
-                                        new PlayerStatisticApiDto.Games(
-                                                /* appearences */ 31,
-                                                /* lineups */     19,
-                                                /* minutes */     1629,
-                                                /* number */      null,
-                                                /* position */    "Attacker",
-                                                /* rating */      "7.206451",
-                                                /* captain */     false
-                                        ),
-                                        new PlayerStatisticApiDto.Substitutes(12, 15, 12),
-                                        new PlayerStatisticApiDto.Shots(41, 21),
-                                        new PlayerStatisticApiDto.Goals(9, 0, 3, null),
-                                        new PlayerStatisticApiDto.Passes(469, 33, null),
-                                        new PlayerStatisticApiDto.Tackles(26, 2, 11),
-                                        new PlayerStatisticApiDto.Duels(176, 91),
-                                        new PlayerStatisticApiDto.Dribbles(42, 27, null),
-                                        new PlayerStatisticApiDto.Fouls(23, 17),
-                                        new PlayerStatisticApiDto.Cards(5, 0, 0),
-                                        new PlayerStatisticApiDto.Penalty(null, null, 0, 0, null)
+                                        "Netherlands",
+                                        "193 cm",
+                                        "76 kg",
+                                        false,
+                                        "https://media.api-sports.io/football/players/247.png"
+                                ),
+                                List.of(
+                                        new ApiFootballPlayersStatistics.StatisticDto(
+                                                new ApiFootballPlayersStatistics.StatisticDto.TeamDto(
+                                                        40,
+                                                        "Liverpool",
+                                                        "https://media.api-sports.io/football/teams/40.png"
+                                                ),
+                                                new ApiFootballPlayersStatistics.StatisticDto.LeagueDto(
+                                                        39,
+                                                        "Premier League",
+                                                        "England",
+                                                        "https://media.api-sports.io/football/leagues/39.png",
+                                                        "https://media.api-sports.io/flags/gb-eng.svg",
+                                                        "2024"
+                                                ),
+                                                new ApiFootballPlayersStatistics.StatisticDto.GamesDto(
+                                                        31,
+                                                        19,
+                                                        1629,
+                                                        null,
+                                                        "Attacker",
+                                                        "7.206451",
+                                                        false
+                                                ),
+                                                new ApiFootballPlayersStatistics.StatisticDto.SubstitutesDto(12, 15, 12),
+                                                new ApiFootballPlayersStatistics.StatisticDto.ShotsDto(41, 21),
+                                                new ApiFootballPlayersStatistics.StatisticDto.GoalsDto(9, 0, 3, null),
+                                                new ApiFootballPlayersStatistics.StatisticDto.PassesDto(469, 33, null),
+                                                new ApiFootballPlayersStatistics.StatisticDto.TacklesDto(26, 2, 11),
+                                                new ApiFootballPlayersStatistics.StatisticDto.DuelsDto(176, 91),
+                                                new ApiFootballPlayersStatistics.StatisticDto.DribblesDto(42, 27, null),
+                                                new ApiFootballPlayersStatistics.StatisticDto.FoulsDto(23, 17),
+                                                new ApiFootballPlayersStatistics.StatisticDto.CardsDto(5, 0, 0),
+                                                new ApiFootballPlayersStatistics.StatisticDto.PenaltyDto(null, null, 0, 0, null)
+                                        )
                                 )
                         )
                 )
-        ));
+        );
     }
 
-    private PlayerStat dtoToEntity(Long playerId, PlayerStatisticApiDto dto) {
-        PlayerStatisticApiDto.Statistic statistic = dto.response().getFirst().statistics().getFirst();
+    private PlayerStat dtoToEntity(Long playerId, ApiFootballPlayersStatistics dto) {
+        ApiFootballPlayersStatistics.StatisticDto statistic = dto.response().getFirst().statistics().getFirst();
         return PlayerStat.builder()
                 .gamesPlayed(statistic.games().appearences())
                 .substitutes(statistic.substitutes().in())

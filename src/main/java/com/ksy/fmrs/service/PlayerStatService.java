@@ -12,55 +12,54 @@ import com.ksy.fmrs.util.PlayerStatTtlProvider;
 import com.ksy.fmrs.util.time.TimeProvider;
 import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.Optional;
 
+@Slf4j
 @RequiredArgsConstructor
 @Service
 public class PlayerStatService {
 
     private final PlayerRepository playerRepository;
     private final PlayerStatRepository playerStatRepository;
-    private final FootballApiService footballApiService;
+    private final ApiFootballClient apiFootballClient;
     private final PlayerStatMapper playerStatMapper;
     private final TimeProvider timeProvider;
     private final PlayerStatTtlProvider ttlProvider;
 
-    /**
-     * Player 통해서 playerStat 조회
-     * PlayerStat 이 존재 하고 수정 시각이 하루 미만일 경우 조회한 PlayerStat 사용
-     * 하루 이상일 경우 외부 api로 값 가져 오고 PlayerStat 업데이트
-     * PlayerStat이 존재 하지 않을 경우 외부 api로 값 가져 오기
-     * 팀 매핑된 경우에만 스탯 가져올수있음
-     */
-    // fix: 트랜잭션내의 외부 api 호출 분리하기
+    // 트랜잭션내의 외부 api 호출 분리하기
     @Transactional
     public Optional<PlayerStatDto> saveAndGetPlayerStat(Long playerId) {
         Player player = playerRepository.findById(playerId)
-                .orElseThrow(() -> new EntityNotFoundException("Player not found with id: " + playerId));
+                .orElseThrow(()-> new EntityNotFoundException("Player not found with id: " + playerId));
+        PlayerStat playerStat = player.getPlayerStat();
 
-        return switch (player.statFreshness(timeProvider.getCurrentInstant(), ttlProvider.getTtl())) {
-            case FRESH -> Optional.of(new PlayerStatDto(player.getPlayerStat()));
-            case MISSING, EXPIRED -> savePlayerStat(player).map(PlayerStatDto::new);
-        };
+        if (player.needsStatRefresh(timeProvider.getCurrentInstant(), ttlProvider.getTtl())) {
+            return savePlayerStat(player).map(PlayerStatDto::new);
+        }
 
+        return Optional.of(new PlayerStatDto(playerStat));
     }
 
     private Optional<PlayerStat> savePlayerStat(Player player) {
-        if (player.isFA()) {
-            return Optional.empty();
-        }
-        Team team = player.getTeam();
-        League league = team.getLeague();
+
+        Team team = Optional.ofNullable(player.getTeam())
+                .orElseThrow(()-> new EntityNotFoundException("Team not found"));
+        League league = Optional.ofNullable(team.getLeague())
+                .orElseThrow(()-> new EntityNotFoundException("League not found"));
         PlayerStat ps = playerStatMapper.toEntity(
-                footballApiService.getPlayerStatByPlayerApiIdAndTeamApiIdAndLeagueApiId(
-                        player.getPlayerApiId(),
-                        team.getTeamApiId(),
+                apiFootballClient.requestPlayerStatistics(
                         league.getLeagueApiId(),
+                        team.getTeamApiId(),
+                        player.getPlayerApiId(),
                         league.getCurrentSeason()));
-        if (ps == null) {
+
+        log.info("-------------savePlayerStat: league_api_id={}, team_api_id={}, player_api_id={}, currentSeason={}",
+                league.getLeagueApiId(), team.getTeamApiId(), player.getPlayerApiId(), league.getCurrentSeason());
+        if(ps == null) {
             return Optional.empty();
         }
         player.updatePlayerStat(ps);

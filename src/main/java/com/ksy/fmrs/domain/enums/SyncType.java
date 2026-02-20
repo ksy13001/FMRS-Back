@@ -1,5 +1,5 @@
 package com.ksy.fmrs.domain.enums;
 
 public enum SyncType {
-    LEAGUE, TEAM, PLAYER, SQUAD
+    LEAGUE, TEAM, PLAYER, SQUAD, TRANSFER
 }

@@ -1,10 +1,7 @@
 package com.ksy.fmrs.domain.player;
 
+import com.ksy.fmrs.domain.enums.FmVersion;
 import com.ksy.fmrs.domain.enums.MappingStatus;
-import com.ksy.fmrs.dto.player.FmPlayerDto;
-import com.ksy.fmrs.util.FmUtils;
-import com.ksy.fmrs.util.NationNormalizer;
-import com.ksy.fmrs.util.StringUtils;
 import jakarta.persistence.*;
 import lombok.AccessLevel;
 import lombok.Builder;
@@ -18,13 +15,27 @@ import java.util.*;
 @Getter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 @Entity(name = "fmplayer")
-//@Table(name = "fmplayer", indexes = @Index(name = "idx_first_name_and_last_name_and_birth_and_nation_name",
-//        columnList = "first_name, last_name, birth, nation_name"))
+@Table(
+        name = "fmplayer",
+        indexes = @Index(name = "idx_first_name_and_last_name_and_birth_and_nation_name",
+                columnList = "first_name, last_name, birth, nation_name"),
+        uniqueConstraints = {
+                @UniqueConstraint(name = "ux_fmplayer_uid_version",
+                        columnNames = {"fm_uid", "fm_version"})
+        }
+)
 public class FmPlayer {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
+
+    @Column(name = "fm_uid", nullable = false)
+    private Integer fmUid;
+
+    @Column(name = "fm_version", nullable = false)
+    @Enumerated(EnumType.STRING)
+    private FmVersion fmVersion;
 
     private String name;
 
@@ -42,6 +53,10 @@ public class FmPlayer {
     @Enumerated(EnumType.STRING)
     private MappingStatus mappingStatus;
 
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "player_id")
+    private Player player;
+
     @Embedded
     private Position position;
 
@@ -51,39 +66,35 @@ public class FmPlayer {
     @Column(name = "potential_ability")
     private Integer potentialAbility;
 
-    // 인성
     @Column(name = "personality_attributes")
     @Embedded
     private PersonalityAttributes personalityAttributes;
 
-    // 기술(Technical) 능력치
     @Column(name = "technical_attributes")
     @Embedded
     private TechnicalAttributes technicalAttributes;
 
-    // 정신(Mental) 능력치
     @Column(name = "mental_attributes")
     @Embedded
     private MentalAttributes mentalAttributes;
 
-    // 신체(Physical) 능력치
     @Column(name = "physical_attributes")
     @Embedded
     private PhysicalAttributes physicalAttributes;
 
-    // 골키퍼 능력치
     @Column(name = "goalKeeper_attributes")
     @Embedded
     private GoalKeeperAttributes goalKeeperAttributes;
 
-    // 히든 능력치
     @Column(name = "hidden_attributes")
     @Embedded
     private HiddenAttributes hiddenAttributes;
 
     @Builder
     public FmPlayer(
+            Integer fmUid,
             String name,
+            FmVersion fmVersion,
             String firstName,
             String lastName,
             LocalDate birth,
@@ -97,7 +108,9 @@ public class FmPlayer {
             HiddenAttributes hiddenAttributes,
             Integer currentAbility,
             Integer potentialAbility) {
+        this.fmUid = fmUid;
         this.name = name;
+        this.fmVersion = fmVersion;
         this.firstName = firstName;
         this.lastName = lastName;
         this.birth = birth;
@@ -111,26 +124,6 @@ public class FmPlayer {
         this.hiddenAttributes = hiddenAttributes;
         this.currentAbility = currentAbility;
         this.potentialAbility = potentialAbility;
-    }
-
-    public static FmPlayer FmPlayerDtoToEntity(FmPlayerDto fmPlayerDto) {
-        String name = fmPlayerDto.getName();
-        return FmPlayer.builder()
-                .name(name)
-                .firstName(StringUtils.getFirstName(name).toUpperCase())
-                .lastName(StringUtils.getLastName(name).toUpperCase())
-                .birth(fmPlayerDto.getBorn())
-                .nationName(NationNormalizer.normalize(fmPlayerDto.getNation().getName().toUpperCase()))
-                .personalityAttributes(FmUtils.getPersonalityAttributesFromFmPlayer(fmPlayerDto))
-                .hiddenAttributes(FmUtils.getHiddenAttributesFromFmPlayer(fmPlayerDto))
-                .mentalAttributes(FmUtils.getMentalAttributesFromFmPlayer(fmPlayerDto))
-                .physicalAttributes(FmUtils.getPhysicalAttributesFromFmPlayer(fmPlayerDto))
-                .goalKeeperAttributes(FmUtils.getGoalKeeperAttributesFromFmPlayer(fmPlayerDto))
-                .technicalAttributes(FmUtils.getTechnicalAttributesFromFmPlayer(fmPlayerDto))
-                .position(FmUtils.getPositionFromFmPlayer(fmPlayerDto))
-                .currentAbility(fmPlayerDto.getCurrentAbility())
-                .potentialAbility(fmPlayerDto.getPotentialAbility())
-                .build();
     }
 
     public Map<String, Integer> getAllAttributes() {
@@ -156,5 +149,9 @@ public class FmPlayer {
 
     public void updateName(String name) {
         this.name = name;
+    }
+
+    public void updatePlayer(Player player) {
+        this.player = player;
     }
 }
