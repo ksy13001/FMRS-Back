@@ -1,5 +1,6 @@
 package com.ksy.fmrs.controller;
 
+import com.ksy.fmrs.dto.ApiResponse;
 import com.ksy.fmrs.dto.user.*;
 import com.ksy.fmrs.security.CustomUserDetails;
 import com.ksy.fmrs.security.TokenResolver;
@@ -9,6 +10,7 @@ import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpHeaders;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseCookie;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.AuthenticationException;
@@ -30,39 +32,45 @@ public class AuthController {
     private final TokenResolver tokenResolver;
 
     @PostMapping("/api/auth/login")
-    public ResponseEntity<LoginResponseDto> login(@RequestBody LoginRequestDto dto, HttpServletResponse response) {
+    public ResponseEntity<ApiResponse<LoginResponseDto>> login(@RequestBody LoginRequestDto dto, HttpServletResponse response) {
         TokenPairWithId tokenPairWithId;
         try {
             tokenPairWithId = authService.login(dto.username(), dto.password());
         } catch (AuthenticationException e) {
-            return LoginResponseDto.authenticationFailed();
+            return ApiResponse.<LoginResponseDto>error(HttpStatus.UNAUTHORIZED, null, "Invalid email or password. Please try again.");
         }
         addTokensToCookie(response, tokenPairWithId.access(), tokenPairWithId.refresh());
-        return LoginResponseDto.success(tokenPairWithId.userId(), dto.username());
+        return ApiResponse.ok(LoginResponseDto.success(tokenPairWithId.userId(), dto.username()), "Login successful");
     }
 
     @PostMapping("/api/auth/logout")
-    public ResponseEntity<Void> logout(HttpServletRequest request, HttpServletResponse response) {
+    public ResponseEntity<ApiResponse<Void>> logout(HttpServletRequest request, HttpServletResponse response) {
         removeTokensFromCookie(response);
         return tokenResolver.extractTokenFromCookie(request, REFRESH_TOKEN.getType())
-                .map(authService::logout)
-                .orElseGet(ResponseEntity.badRequest()::build);
+                .map(oldRefresh -> {
+                    authService.logout(oldRefresh);
+                    return ApiResponse.<Void>ok(null, "Logout successful");
+                })
+                .orElseGet(() -> ApiResponse.<Void>error(HttpStatus.BAD_REQUEST, null, "not exist refresh token"));
     }
 
     @PostMapping("/api/auth/reissue")
-    public ResponseEntity<ReissueResponseDto> reissue(HttpServletRequest request, HttpServletResponse response) {
+    public ResponseEntity<ApiResponse<ReissueResponseDto>> reissue(HttpServletRequest request, HttpServletResponse response) {
         return tokenResolver.extractTokenFromCookie(request, REFRESH_TOKEN.getType())
                 .map(oldRefresh -> {
                     TokenPair tokenPair = authService.reissueToken(oldRefresh);
                     addTokensToCookie(response, tokenPair.access(), tokenPair.refresh());
-                    return ReissueResponseDto.success();
+                    return ApiResponse.ok(ReissueResponseDto.success(), "Token refreshed successfully!");
                 })
-                .orElse(ReissueResponseDto.badRequest());
+                .orElseGet(() -> ApiResponse.<ReissueResponseDto>error(HttpStatus.BAD_REQUEST, null, "not exist refresh token"));
     }
 
     @GetMapping("/api/auth/status")
-    public ResponseEntity<LoginStatusResponseDto> status(@AuthenticationPrincipal CustomUserDetails userDetails) {
-        return LoginStatusResponseDto.authenticated(userDetails.getId(), userDetails.getUsername());
+    public ResponseEntity<ApiResponse<LoginStatusResponseDto>> status(@AuthenticationPrincipal CustomUserDetails userDetails) {
+        if (userDetails == null) {
+            return ApiResponse.ok(LoginStatusResponseDto.unauthenticated(), "Unauthenticated");
+        }
+        return ApiResponse.ok(LoginStatusResponseDto.authenticated(userDetails.getId(), userDetails.getUsername()), "Authenticated");
     }
 
     private void addTokensToCookie(HttpServletResponse response, String access, String refresh) {

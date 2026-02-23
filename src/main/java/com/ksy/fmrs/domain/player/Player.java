@@ -3,6 +3,7 @@ package com.ksy.fmrs.domain.player;
 
 import com.ksy.fmrs.domain.Comment;
 import com.ksy.fmrs.domain.Team;
+import com.ksy.fmrs.domain.Transfer;
 import com.ksy.fmrs.domain.enums.MappingStatus;
 import com.ksy.fmrs.domain.enums.TransferType;
 import com.ksy.fmrs.domain.enums.StatFreshness;

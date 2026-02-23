@@ -5,6 +5,7 @@ import com.ksy.fmrs.domain.User;
 import com.ksy.fmrs.domain.player.Player;
 import com.ksy.fmrs.dto.PaginationDto;
 import com.ksy.fmrs.dto.comment.CommentListResponseDto;
+import com.ksy.fmrs.exception.NotCommentOwnerException;
 import com.ksy.fmrs.repository.CommentRepository;
 import com.ksy.fmrs.repository.Player.PlayerRepository;
 import com.ksy.fmrs.repository.UserRepository;
@@ -64,17 +65,9 @@ class CommentServiceTest {
     @DisplayName("500자 이하 댓글 등록 유효, Comment는 등록시 Player, User 있어야함")
     void save_success() {
         // given
-        Long userId = 123L;
-        Long playerId = 100L;
         String content = "SIUUUUUUUUUU";
-
-
-        given(userRepository.findById(userId))
-                .willReturn(Optional.of(user));
-        given(playerRepository.findById(playerId))
-                .willReturn(Optional.of(player));
         // when
-        commentService.save(userId, playerId, content);
+        saveComment(content);
         ArgumentCaptor<Comment> savedComment = ArgumentCaptor.forClass(Comment.class);
 
         // then
@@ -84,13 +77,14 @@ class CommentServiceTest {
     }
 
     @Test
-    @DisplayName("500자 이상일 경우 예외 처리")
+    @DisplayName("500자 초과일 경우 예외 처리")
     void save_fail_invalid_input() {
         // given
-        String invalidContent = "100".repeat(500);
+        String invalidContent = "1".repeat(501);
+
 
         // when & then
-        Assertions.assertThatThrownBy(()->commentService.save(123L, 100L, invalidContent))
+        Assertions.assertThatThrownBy(()->saveComment(invalidContent))
                 .isInstanceOf(IllegalArgumentException.class);
     }
 
@@ -208,6 +202,8 @@ class CommentServiceTest {
         // given
         Long commentId = 123L;
         Comment comment = Comment.of(user, player, "hello");
+        given(userRepository.findById(user.getId()))
+                .willReturn(Optional.of(user));
         given(commentRepository.findById(commentId))
                 .willReturn(Optional.of(comment));
 
@@ -215,11 +211,28 @@ class CommentServiceTest {
         Assertions.assertThat(comment.isDeleted())
                 .isEqualTo(false);
 
-        commentService.delete(commentId);
+        commentService.delete(commentId, user.getId());
 
         // then
         Assertions.assertThat(comment.isDeleted())
                 .isEqualTo(true);
+    }
+
+    @Test
+    @DisplayName("댓글 작성자와 삭제 요청자가 다르면 예외 발생")
+    void  delete_comment_fail_not_owner(){
+        // given
+        User badUser = createUser("badUser", "badPw");
+        Long badUserId = 36L;
+        Long commentId = 123L;
+        Comment comment = Comment.of(user, player, "hello");
+        given(userRepository.findById(badUserId))
+                .willReturn(Optional.of(badUser));
+        given(commentRepository.findById(commentId))
+                .willReturn(Optional.of(comment));
+        // when && then
+        Assertions.assertThatThrownBy(()->commentService.delete(commentId, badUserId))
+                .isInstanceOf(NotCommentOwnerException.class);
     }
 
     public Player createPlayer() {
@@ -231,5 +244,18 @@ class CommentServiceTest {
                 .username(username)
                 .password(password)
                 .build();
+    }
+
+    private void saveComment(String content){
+        Long userId = 123L;
+        Long playerId = 100L;
+
+
+        given(userRepository.findById(userId))
+                .willReturn(Optional.of(user));
+        given(playerRepository.findById(playerId))
+                .willReturn(Optional.of(player));
+
+        commentService.save(userId, playerId, content);
     }
 }

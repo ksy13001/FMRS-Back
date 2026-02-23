@@ -2,21 +2,24 @@ package com.ksy.fmrs.dto.user;
 
 import lombok.Getter;
 import lombok.Setter;
-import org.springframework.http.ResponseEntity;
 
 @Getter
 @Setter
 public class LoginStatusResponseDto {
-    private boolean success;
-    private String message;
-    private UserDetailsDto dto;
+    private boolean authenticated;
+    private UserDetailsDto user;
 
-    public static ResponseEntity<LoginStatusResponseDto> authenticated(Long userId, String userName) {
+    public static LoginStatusResponseDto authenticated(Long userId, String userName) {
         LoginStatusResponseDto dto = new LoginStatusResponseDto();
-        dto.success = true;
-        dto.message = "Authenticated";
-        dto.dto = new UserDetailsDto(userId, userName);
-        return ResponseEntity.ok().body(dto);
+        dto.authenticated = true;
+        dto.user = new UserDetailsDto(userId, userName);
+        return dto;
+    }
+
+    public static LoginStatusResponseDto unauthenticated() {
+        LoginStatusResponseDto dto = new LoginStatusResponseDto();
+        dto.authenticated = false;
+        return dto;
     }
 
 }

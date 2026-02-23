@@ -1,6 +1,5 @@
-package com.ksy.fmrs.domain.player;
+package com.ksy.fmrs.domain;
 
-import com.ksy.fmrs.domain.SyncJob;
 import com.ksy.fmrs.domain.enums.SyncType;
 import jakarta.persistence.*;
 import lombok.AccessLevel;

@@ -50,15 +50,14 @@ public class JwtFilter extends OncePerRequestFilter {
 
         try {
             jwtTokenProvider.parseAndValidateToken(accessToken);
+            setAuthenticateContext(accessToken);
         } catch (ExpiredJwtException e) {
-            response.sendError(HttpServletResponse.SC_UNAUTHORIZED, "Token is expired");
-            return;
+            log.debug("Expired access token. Continue request as unauthenticated.");
+            SecurityContextHolder.clearContext();
         } catch (JwtException | IllegalArgumentException e) {
-            response.sendError(HttpServletResponse.SC_UNAUTHORIZED, "Token is invalid");
-            return;
+            log.debug("Invalid access token. Continue request as unauthenticated.");
+            SecurityContextHolder.clearContext();
         }
-
-        setAuthenticateContext(accessToken);
 
         filterChain.doFilter(request, response);
     }
