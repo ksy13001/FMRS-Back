@@ -2,6 +2,7 @@ package com.ksy.fmrs.service;
 
 import com.ksy.fmrs.domain.League;
 import com.ksy.fmrs.domain.Team;
+import com.ksy.fmrs.domain.enums.SyncType;
 import com.ksy.fmrs.domain.player.Player;
 import com.ksy.fmrs.domain.player.PlayerStat;
 import com.ksy.fmrs.dto.apiFootball.ApiFootballPlayersStatistics;
@@ -161,7 +162,7 @@ class PlayerStatServiceTest {
 
     @Test
     @DisplayName("PlayerStat 이 존재 하며 유효기간이 지나지않은 경우" +
-            "저장된 PlayerStat 반환, footballApiService 동작 없어야함")
+            "저장된 PlayerStat 반환, apiFootballClient 동작 없어야함")
     void savePlayerStat_existValidPlayerStat() {
         // given
         Long playerId = 1L;

@@ -1,6 +1,7 @@
 package com.ksy.fmrs.exception;
 
 import com.ksy.fmrs.dto.ApiResponse;
+import io.github.resilience4j.ratelimiter.RequestNotPermitted;
 import jakarta.persistence.EntityNotFoundException;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
@@ -73,6 +74,11 @@ public class GlobalExceptionHandler {
     @ExceptionHandler(MethodArgumentNotValidException.class)
     public ResponseEntity<ApiResponse<Void>> handleValidation(MethodArgumentNotValidException e) {
         return error(HttpStatus.BAD_REQUEST, "validation failed", e);
+    }
+
+    @ExceptionHandler(RequestNotPermitted.class)
+    public ResponseEntity<ApiResponse<Void>> handleRequestNotPermitted(RequestNotPermitted e) {
+        return error(HttpStatus.TOO_MANY_REQUESTS, "too many requests", e);
     }
 
     @ExceptionHandler(Exception.class)

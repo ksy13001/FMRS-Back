@@ -6,6 +6,7 @@ import com.ksy.fmrs.domain.Team;
 import com.ksy.fmrs.domain.Transfer;
 import com.ksy.fmrs.domain.enums.MappingStatus;
 import com.ksy.fmrs.domain.enums.TransferType;
+import com.ksy.fmrs.domain.enums.StatFreshness;
 import com.ksy.fmrs.util.time.TimeUtils;
 import jakarta.persistence.*;
 import lombok.*;
@@ -17,6 +18,7 @@ import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
+import java.util.Optional;
 
 @Getter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
@@ -203,6 +205,16 @@ public class Player {
 
     public boolean isFA(){
         return this.team == null;
+    }
+
+    public StatFreshness statFreshness(Instant now, Duration ttl){
+        if(this.playerStat == null){
+            return StatFreshness.MISSING;
+        }
+        if(this.playerStat.isExpired(now, ttl)){
+            return StatFreshness.EXPIRED;
+        }
+        return StatFreshness.FRESH;
     }
 
     public boolean needsStatRefresh(Instant now, Duration ttl){
