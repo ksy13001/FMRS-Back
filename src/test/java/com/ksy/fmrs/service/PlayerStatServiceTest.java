@@ -162,7 +162,7 @@ class PlayerStatServiceTest {
 
     @Test
     @DisplayName("PlayerStat 이 존재 하며 유효기간이 지나지않은 경우" +
-            "저장된 PlayerStat 반환, footballApiService 동작 없어야함")
+            "저장된 PlayerStat 반환, apiFootballClient 동작 없어야함")
     void savePlayerStat_existValidPlayerStat() {
         // given
         Long playerId = 1L;
@@ -197,7 +197,7 @@ class PlayerStatServiceTest {
         Optional<PlayerStatDto> actual = playerStatService.saveAndGetPlayerStat(playerId);
         // then
         verify(playerRepository, times(1)).findById(playerId);
-        verifyNoInteractions(footballApiService);
+        verifyNoInteractions(apiFootballClient);
 
         Assertions.assertThat(actual.get().getGamesPlayed()).isEqualTo(10);
     }

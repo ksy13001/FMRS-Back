@@ -55,25 +55,24 @@ public class ApiFootballRestClient implements ApiFootballClient {
         ));
     }
 
-    private <T> T executeWithRateLimit(Supplier<T> supplier) {
-        return rateLimiter.executeSupplier(supplier);
-    }
-}
     @Override
     public ApiFootballPlayersStatistics requestPlayerStatistics(Integer leagueApiId, Integer teamApiId, Integer playerApiId, int currentSeason) {
-        return restClientService.getApiResponse(
+        return executeWithRateLimit(() -> restClientService.getApiResponse(
                 UrlEnum.buildPlayerStatUrl(leagueApiId, teamApiId, playerApiId, currentSeason),
                 ApiFootballPlayersStatistics.class
-        );
+        ));
     }
 
     @Override
     public ApiFootballTransfers requestTransfers(Integer teamApiId) {
-        return restClientService.getApiResponse(
+        return executeWithRateLimit(() -> restClientService.getApiResponse(
                 UrlEnum.buildTransfersUrl(teamApiId),
                 ApiFootballTransfers.class
-        );
+        ));
     }
 
 
+    private <T> T executeWithRateLimit(Supplier<T> supplier) {
+        return rateLimiter.executeSupplier(supplier);
+    }
 }

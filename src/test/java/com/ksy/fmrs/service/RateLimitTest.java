@@ -15,6 +15,7 @@ import java.time.Duration;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.BDDMockito.given;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 
 class RateLimitTest {
     private ApiFootballRestClient apiFootballRestClient;
@@ -23,14 +24,16 @@ class RateLimitTest {
     private RateLimiter rateLimiter;
 
     private static final int LIMIT_FOR_PERIOD = 7;
+    private static final Duration REFRESH_PERIOD = Duration.ofSeconds(1);
+    private static final Duration TIMEOUT_DURATION = Duration.ofMillis(500);
 
     @BeforeEach
-    void setUp(){
+    void setUp() {
         RateLimiterConfig config = RateLimiterConfig.custom()
                 .limitForPeriod(LIMIT_FOR_PERIOD)
-                .limitRefreshPeriod(Duration.ofSeconds(1)) // 이 주기마다 새 토큰 보충
-                // 토큰 바닥났을때 0.5 초 대기, 대기 후 토큰 안생기면 실패, 테스트시에는 즉시 실패
-                .timeoutDuration(Duration.ofMillis(0))
+                .limitRefreshPeriod(REFRESH_PERIOD) // 이 주기마다 새 토큰 보충
+                // 토큰이 없으면 최대 500ms 대기 후 permit 획득 실패 시 예외
+                .timeoutDuration(TIMEOUT_DURATION)
                 .build();
         this.restClientService = Mockito.mock(RestClientService.class);
         this.rateLimiter = RateLimiter.of(
@@ -44,42 +47,53 @@ class RateLimitTest {
     }
 
     @Test
-    @DisplayName("apiFootballRestClient 는 현재 사용중인 ApiFootballPlan의 허용 가능한 초당 요청 횟수 초과 시," +
-            "RequestNotPermitted 예외 발생")
-    void rateLimitToApiFootballRestClient(){
+    @DisplayName("요청이 limit를 초과하면 timeoutDuration(500ms) 대기 후 RequestNotPermitted 예외 발생")
+    void shouldThrowRequestNotPermittedAfterWaitingTimeoutDurationWhenExceedingLimit() {
         // given
         Integer leagueId = 1;
-        int notPermittedCall = 3;
         given(restClientService.getApiResponse(anyString(), eq(ApiFootballLeague.class)))
                 .willReturn(createDummyLeague());
-        int failed = 0;
 
-        // when
-        for (int i = 0; i < LIMIT_FOR_PERIOD+notPermittedCall; i++){
-            try {
-                apiFootballRestClient.requestLeagueByApiId(leagueId);
-
-            } catch (RequestNotPermitted e){
-                failed++;
-            }
+        for (int i = 0; i < LIMIT_FOR_PERIOD; i++) {
+            apiFootballRestClient.requestLeagueByApiId(leagueId);
         }
 
-        // then
-        Assertions.assertThat(failed)
-                .isEqualTo(notPermittedCall);
-    }
-
-    @Test
-    @DisplayName("요청횟수가 LIMIT_FOR_PERIOD * 3배일 경우, limitRefreshPeriod 3배")
-    void 메서드명() throws Exception{
-        // given
+        long startedAt = System.nanoTime();
 
         // when
+        assertThrows(RequestNotPermitted.class, () ->
+                apiFootballRestClient.requestLeagueByApiId(leagueId));
+
+        long elapsedMillis = Duration.ofNanos(System.nanoTime() - startedAt).toMillis();
 
         // then
+        Assertions.assertThat(elapsedMillis)
+                .isGreaterThanOrEqualTo(TIMEOUT_DURATION.toMillis() - 50);
     }
 
-    private ApiFootballLeague createDummyLeague(){
+
+    @Test
+    @DisplayName("refresh period 경과 후 요청이 다시 허용된다")
+    void shouldAllowRequestsAgainAfterRefreshPeriod() throws Exception {
+        // given
+        Integer leagueId = 1;
+        given(restClientService.getApiResponse(anyString(), eq(ApiFootballLeague.class)))
+                .willReturn(createDummyLeague());
+
+        for (int i = 0; i < LIMIT_FOR_PERIOD; i++) {
+            apiFootballRestClient.requestLeagueByApiId(leagueId);
+        }
+
+        Thread.sleep(REFRESH_PERIOD.plusMillis(100).toMillis());
+
+        // when
+        ApiFootballLeague response = apiFootballRestClient.requestLeagueByApiId(leagueId);
+
+        // then
+        Assertions.assertThat(response).isNotNull();
+    }
+
+    private ApiFootballLeague createDummyLeague() {
         return new ApiFootballLeague(
                 null,
                 null,
