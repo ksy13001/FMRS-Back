@@ -51,7 +51,7 @@ public class PlayerRepositoryCustomImpl implements PlayerRepositoryCustom {
         int limit = pageable.getPageSize();
         List<Player> players = jpaQueryFactory
                 .selectFrom(player)
-                .leftJoin(player.fmPlayer, fmPlayer).fetchJoin()
+                .leftJoin(player.fmPlayer, fmPlayer)
                 .where(firstNameStartWith(name).or(lastNameStartWith(name))
                         , mappingStatusAndIdCursorPredicate(lastmappingStatus, lastCurrentAbility, lastPlayerId))
                 .orderBy(mappingStatusRankExpr().asc(), fmPlayer.currentAbility.desc(), player.id.asc())
