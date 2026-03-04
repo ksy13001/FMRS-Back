@@ -48,7 +48,8 @@ public class SecurityConfig {
                 // 권한 없는 경우
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers(HttpMethod.POST,
-                                "/api/auth/signup", "/api/auth/login","/api/auth/logout", "/api/auth/reissue").permitAll()
+                                "/api/auth/signup", "/api/auth/login", "/api/auth/logout", "/api/auth/reissue",
+                                "/api/players/*/stats/refresh").permitAll()
                         .requestMatchers(HttpMethod.OPTIONS,
                                 "/**").permitAll()
                         .requestMatchers(HttpMethod.GET,

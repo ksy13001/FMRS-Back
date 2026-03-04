@@ -3,6 +3,7 @@ package com.ksy.fmrs.mapper;
 import com.ksy.fmrs.domain.player.PlayerStat;
 import com.ksy.fmrs.dto.apiFootball.ApiFootballPlayersStatistics;
 import com.ksy.fmrs.dto.apiFootball.PlayerStatisticApiDto;
+import com.ksy.fmrs.exception.EmptyResponseException;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 
@@ -11,11 +12,10 @@ import org.springframework.stereotype.Component;
 public class PlayerStatMapper {
 
     public PlayerStat toEntity(ApiFootballPlayersStatistics dto) {
-        if(dto == null ||
+        if (dto == null ||
                 dto.response() == null ||
                 dto.response().isEmpty()) {
-            log.warn("dto is null or empty");
-            return null;
+            throw new EmptyResponseException("PlayerStat response is empty");
         }
         ApiFootballPlayersStatistics.StatisticDto statistic = dto.response().getFirst().statistics().getFirst();
         return PlayerStat.builder()

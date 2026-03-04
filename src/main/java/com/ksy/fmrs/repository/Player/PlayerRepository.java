@@ -19,8 +19,13 @@ public interface PlayerRepository extends JpaRepository<Player, Long>, PlayerRep
     Optional<Player> findByPlayerApiId(Integer playerApiId);
 
     @Query("SELECT p FROM Player p " +
-            "JOIN FETCH p.team t " +
-            "JOIN FETCH t.league " +
+            "LEFT JOIN FETCH p.playerStat " +
+            "WHERE p.id = :playerId")
+    Optional<Player> findWithPlayerStatById(Long playerId);
+
+    @Query("SELECT p FROM Player p " +
+            "LEFT JOIN FETCH p.team t " +
+            "LEFT JOIN FETCH t.league " +
             "WHERE p.id = :id")
     Optional<Player> findWithTeamLeagueById(Long id);
 

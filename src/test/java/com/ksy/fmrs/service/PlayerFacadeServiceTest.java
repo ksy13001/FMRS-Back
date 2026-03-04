@@ -7,7 +7,7 @@ import com.ksy.fmrs.dto.comment.CommentCountResponseDto;
 import com.ksy.fmrs.dto.player.PlayerOverviewDto;
 import com.ksy.fmrs.dto.player.FmPlayerDetailsDto;
 import com.ksy.fmrs.dto.player.PlayerDetailsDto;
-import com.ksy.fmrs.dto.player.PlayerStatDto;
+import com.ksy.fmrs.dto.player.PlayerStatResponse;
 import org.assertj.core.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -37,7 +37,7 @@ class PlayerFacadeServiceTest {
     private CommentService commentService;
 
     private PlayerDetailsDto playerDetailsDto;
-    private PlayerStatDto playerStatDto;
+    private PlayerStatResponse playerStatResponse;
     private List<FmPlayerDetailsDto> fmPlayerDetailsDtos;
     private CommentCountResponseDto commentCountResponseDto;
 
@@ -66,7 +66,7 @@ class PlayerFacadeServiceTest {
 
         this.playerDetailsDto = new PlayerDetailsDto(player, "team1", "teamLogoUrl", 2025,200);
         this.fmPlayerDetailsDtos = List.of(new FmPlayerDetailsDto(fmPlayer));
-        this.playerStatDto = new PlayerStatDto(playerStat);
+        this.playerStatResponse = PlayerStatResponse.fresh(playerStat);
         this.commentCountResponseDto = new CommentCountResponseDto(COMMENT_CNT);
     }
 
@@ -82,7 +82,7 @@ class PlayerFacadeServiceTest {
         // then
         Assertions.assertThat(result.fmPlayerDetailsDto()).isEqualTo(fmPlayerDetailsDtos);
         Assertions.assertThat(result.playerDetailsDto()).isEqualTo(playerDetailsDto);
-        Assertions.assertThat(result.playerStatDto()).isEqualTo(playerStatDto);
+        Assertions.assertThat(result.playerStatResponse()).isEqualTo(playerStatResponse);
         Assertions.assertThat(result.commentCountResponseDto()).isEqualTo(commentCountResponseDto);
     }
 
@@ -98,13 +98,13 @@ class PlayerFacadeServiceTest {
         // then
         Assertions.assertThat(result.fmPlayerDetailsDto()).isNull();
         Assertions.assertThat(result.playerDetailsDto()).isEqualTo(playerDetailsDto);
-        Assertions.assertThat(result.playerStatDto()).isEqualTo(playerStatDto);
+        Assertions.assertThat(result.playerStatResponse()).isEqualTo(playerStatResponse);
         Assertions.assertThat(result.commentCountResponseDto()).isEqualTo(commentCountResponseDto);
     }
 
     private void stubCommonServices(Long playerId) {
         when(playerService.getPlayerDetails(playerId)).thenReturn(playerDetailsDto);
-        when(playerStatService.saveAndGetPlayerStat(playerId)).thenReturn(Optional.of(playerStatDto));
+        when(playerStatService.getPlayerStatById(playerId)).thenReturn(playerStatResponse);
         when(commentService.getCommentCountByPlayerId(playerId)).thenReturn(commentCountResponseDto);
     }
 
