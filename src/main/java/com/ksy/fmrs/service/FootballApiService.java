@@ -8,7 +8,7 @@ import com.ksy.fmrs.dto.apiFootball.*;
 import com.ksy.fmrs.dto.apiFootball.ApiFootballLeague;
 import com.ksy.fmrs.dto.league.LeagueAPIDetailsResponseDto;
 import com.ksy.fmrs.dto.player.PlayerSimpleDto;
-import com.ksy.fmrs.dto.player.PlayerStatDto;
+import com.ksy.fmrs.dto.player.PlayerStatResponse;
 import com.ksy.fmrs.dto.team.TeamStatisticsDto;
 import com.ksy.fmrs.dto.team.TeamStandingDto;
 import com.ksy.fmrs.repository.LeagueRepository;
@@ -156,13 +156,13 @@ public class FootballApiService {
                 .orElseThrow(() -> new IllegalArgumentException("League not found. leagueApiId: " + leagueApiId));
     }
 
-    private PlayerStat convertPlayerStatDtoToPlayerStat(Long playerId, PlayerStatDto playerStatDto) {
+    private PlayerStat convertPlayerStatDtoToPlayerStat(Long playerId, PlayerStatResponse playerStatResponse) {
         return PlayerStat.builder()
-                .gamesPlayed(playerStatDto.getGamesPlayed())
-                .goal(playerStatDto.getGoal())
-                .assist(playerStatDto.getAssist())
-                .pk(playerStatDto.getPk())
-                .rating(playerStatDto.getRating())
+                .gamesPlayed(playerStatResponse.getGamesPlayed())
+                .goal(playerStatResponse.getGoal())
+                .assist(playerStatResponse.getAssist())
+                .pk(playerStatResponse.getPk())
+                .rating(playerStatResponse.getRating())
                 .build();
     }
 

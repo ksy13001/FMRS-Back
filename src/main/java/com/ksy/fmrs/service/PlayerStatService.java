@@ -4,7 +4,8 @@ import com.ksy.fmrs.domain.League;
 import com.ksy.fmrs.domain.Team;
 import com.ksy.fmrs.domain.player.Player;
 import com.ksy.fmrs.domain.player.PlayerStat;
-import com.ksy.fmrs.dto.player.PlayerStatDto;
+import com.ksy.fmrs.domain.enums.StatFreshness;
+import com.ksy.fmrs.dto.player.PlayerStatResponse;
 import com.ksy.fmrs.mapper.PlayerStatMapper;
 import com.ksy.fmrs.repository.Player.PlayerRepository;
 import com.ksy.fmrs.repository.Player.PlayerStatRepository;
@@ -30,26 +31,29 @@ public class PlayerStatService {
     private final TimeProvider timeProvider;
     private final PlayerStatTtlProvider ttlProvider;
 
-    // 트랜잭션내의 외부 api 호출 분리하기
-    @Transactional
-    public Optional<PlayerStatDto> saveAndGetPlayerStat(Long playerId) {
-        Player player = playerRepository.findById(playerId)
-                .orElseThrow(()-> new EntityNotFoundException("Player not found with id: " + playerId));
+    @Transactional(readOnly = true)
+    public PlayerStatResponse getPlayerStatById(Long playerId) {
+        Player player = playerRepository.findWithPlayerStatById(playerId)
+                .orElseThrow(() -> new EntityNotFoundException("Player not found with id: " + playerId));
+        StatFreshness freshness = player.getPlayerStatFreshness(timeProvider.getCurrentInstant(), ttlProvider.getTtl());
         PlayerStat playerStat = player.getPlayerStat();
 
-        if (player.needsStatRefresh(timeProvider.getCurrentInstant(), ttlProvider.getTtl())) {
-            return savePlayerStat(player).map(PlayerStatDto::new);
-        }
-
-        return Optional.of(new PlayerStatDto(playerStat));
+        return switch (freshness) {
+            case MISSING -> PlayerStatResponse.missing();
+            case EXPIRED -> PlayerStatResponse.expired(playerStat);
+            case FRESH -> PlayerStatResponse.fresh(playerStat);
+        };
     }
 
-    private Optional<PlayerStat> savePlayerStat(Player player) {
-
+    @Transactional
+    public PlayerStatResponse savePlayerStat(Long playerId) {
+        Player player = playerRepository.findById(playerId)
+                .orElseThrow(() -> new EntityNotFoundException("Player not found with id: " + playerId));
         Team team = Optional.ofNullable(player.getTeam())
-                .orElseThrow(()-> new EntityNotFoundException("Team not found"));
+                .orElseThrow(() -> new EntityNotFoundException("Team not found"));
         League league = Optional.ofNullable(team.getLeague())
-                .orElseThrow(()-> new EntityNotFoundException("League not found"));
+                .orElseThrow(() -> new EntityNotFoundException("League not found"));
+
         PlayerStat ps = playerStatMapper.toEntity(
                 apiFootballClient.requestPlayerStatistics(
                         league.getLeagueApiId(),
@@ -57,21 +61,18 @@ public class PlayerStatService {
                         player.getPlayerApiId(),
                         league.getCurrentSeason()));
 
-        log.info("-------------savePlayerStat: league_api_id={}, team_api_id={}, player_api_id={}, currentSeason={}",
-                league.getLeagueApiId(), team.getTeamApiId(), player.getPlayerApiId(), league.getCurrentSeason());
-        if(ps == null) {
-            return Optional.empty();
+        if (ps == null) {
+            return PlayerStatResponse.missing();
         }
         player.updatePlayerStat(ps);
         playerStatRepository.save(ps);
-        return Optional.of(ps);
+        return PlayerStatResponse.fresh(ps);
     }
 
+
     @Transactional(readOnly = true)
-    public PlayerStatDto getPlayerStatByPlayerId(Long playerId) {
-        Player player = playerRepository.findById(playerId)
-                .orElseThrow(() -> new EntityNotFoundException("Player not found. id: " + playerId));
-        return new PlayerStatDto(player.getPlayerStat());
+    public PlayerStatResponse getPlayerStatByPlayerId(Long playerId) {
+        return getPlayerStatById(playerId);
     }
 
 }

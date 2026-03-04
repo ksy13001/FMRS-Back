@@ -8,6 +8,6 @@ import java.util.List;
 public record PlayerOverviewDto(
         PlayerDetailsDto playerDetailsDto,
         List<FmPlayerDetailsDto> fmPlayerDetailsDto,
-        PlayerStatDto playerStatDto,
+        PlayerStatResponse playerStatResponse,
         CommentCountResponseDto commentCountResponseDto) {
 }
