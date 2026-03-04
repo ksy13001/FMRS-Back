@@ -18,7 +18,6 @@ import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
-import java.util.Optional;
 
 @Getter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
@@ -207,7 +206,7 @@ public class Player {
         return this.team == null;
     }
 
-    public StatFreshness statFreshness(Instant now, Duration ttl){
+    public StatFreshness getPlayerStatFreshness(Instant now, Duration ttl){
         if(this.playerStat == null){
             return StatFreshness.MISSING;
         }
@@ -215,10 +214,6 @@ public class Player {
             return StatFreshness.EXPIRED;
         }
         return StatFreshness.FRESH;
-    }
-
-    public boolean needsStatRefresh(Instant now, Duration ttl){
-        return playerStat == null || playerStat.isExpired(now, ttl);
     }
 
     public Transfer recordTransfer(Team fromTeam, Team toTeam, TransferType type, Double fee, String currency, LocalDate date, LocalDateTime update) {
