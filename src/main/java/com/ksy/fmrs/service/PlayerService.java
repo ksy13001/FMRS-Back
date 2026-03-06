@@ -49,9 +49,26 @@ public class PlayerService {
     }
 
     @Transactional(readOnly = true)
+    public Player getPlayerWithAll(Long playerId) {
+        return playerRepository.findWithTeamLeaguePlayerStatById(playerId)
+                .orElseThrow(() -> new EntityNotFoundException("Player not found: " + playerId));
+    }
+
+    @Transactional(readOnly = true)
     public Optional<List<FmPlayerDetailsDto>> findFmPlayerDetails(Long playerId) {
         Player player = playerRepository.findById(playerId)
                 .orElseThrow(() -> new EntityNotFoundException("Player not found: " + playerId));
+        if (player.getMappingStatus() != MappingStatus.MATCHED) {
+            return Optional.empty();
+        }
+        return Optional.of(player.getFmPlayer().stream().map(FmPlayerDetailsDto::new).toList());
+    }
+
+    public PlayerDetailsDto buildPlayerDetailsDto(Player player) {
+        return convertPlayerToPlayerDetailsDto(player);
+    }
+
+    public Optional<List<FmPlayerDetailsDto>> buildFmPlayerDetails(Player player) {
         if (player.getMappingStatus() != MappingStatus.MATCHED) {
             return Optional.empty();
         }

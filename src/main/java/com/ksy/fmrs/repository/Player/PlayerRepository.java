@@ -33,6 +33,13 @@ public interface PlayerRepository extends JpaRepository<Player, Long>, PlayerRep
             "WHERE p.playerApiId IN :playerApiIds")
     List<Player> findByPlayerApiIdIn(Collection<Integer> playerApiIds);
 
+    @Query("SELECT p FROM Player p " +
+            "LEFT JOIN FETCH p.team t " +
+            "LEFT JOIN FETCH t.league l " +
+            "LEFT JOIN FETCH p.playerStat ps " +
+            "WHERE p.id = :playerId")
+    Optional<Player> findWithTeamLeaguePlayerStatById(Long playerId);
+
     List<Player> findByMappingStatus(MappingStatus mappingStatus);
 
 //    @Query("SELECT p FROM Player p " +
