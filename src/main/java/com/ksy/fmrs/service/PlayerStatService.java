@@ -54,9 +54,6 @@ public class PlayerStatService {
                         player.getPlayerApiId(),
                         league.getCurrentSeason()));
 
-        if (ps == null) {
-            return PlayerStatResponse.missing();
-        }
         player.updatePlayerStat(ps);
         playerStatRepository.save(ps);
         return PlayerStatResponse.fresh(ps);
