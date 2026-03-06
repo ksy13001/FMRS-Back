@@ -36,6 +36,7 @@ class PlayerFacadeServiceTest {
     @Mock
     private CommentService commentService;
 
+    private Player player;
     private PlayerDetailsDto playerDetailsDto;
     private PlayerStatResponse playerStatResponse;
     private List<FmPlayerDetailsDto> fmPlayerDetailsDtos;
@@ -47,7 +48,7 @@ class PlayerFacadeServiceTest {
     @BeforeEach
     void setUp() {
         LocalDate date = LocalDate.now();
-        Player player = Player.builder()
+        this.player = Player.builder()
                 .playerApiId(1)
                 .firstName("firstName")
                 .lastName("lastName")
@@ -61,10 +62,9 @@ class PlayerFacadeServiceTest {
                 .build();
         ReflectionTestUtils.setField(player, "id", PLAYER_ID);
         FmPlayer fmPlayer = createFmPlayer(date);
-        PlayerStat playerStat = PlayerStat.builder()
-                .build();
+        PlayerStat playerStat = PlayerStat.builder().build();
 
-        this.playerDetailsDto = new PlayerDetailsDto(player, "team1", "teamLogoUrl", 2025,200);
+        this.playerDetailsDto = new PlayerDetailsDto(player, "team1", "teamLogoUrl", 2025, 200);
         this.fmPlayerDetailsDtos = List.of(new FmPlayerDetailsDto(fmPlayer));
         this.playerStatResponse = PlayerStatResponse.fresh(playerStat);
         this.commentCountResponseDto = new CommentCountResponseDto(COMMENT_CNT);
@@ -72,13 +72,12 @@ class PlayerFacadeServiceTest {
 
     @Test
     @DisplayName("playerDetailsDto, playerStatDto, fmPlayerDetailsDto 를 각 서비스에서 받아 dto 통합")
-    void getPlayerOverView_valid(){
+    void getPlayerOverView_valid() {
         // given
-        Long playerId = PLAYER_ID;
+        stubCommonServices();
+        when(playerService.buildFmPlayerDetails(player)).thenReturn(Optional.of(fmPlayerDetailsDtos));
         // when
-        stubCommonServices(playerId);
-        when(playerService.findFmPlayerDetails(playerId)).thenReturn(Optional.of(fmPlayerDetailsDtos));
-        PlayerOverviewDto result = playerFacadeService.getPlayerOverview(playerId);
+        PlayerOverviewDto result = playerFacadeService.getPlayerOverview(PLAYER_ID);
         // then
         Assertions.assertThat(result.fmPlayerDetailsDto()).isEqualTo(fmPlayerDetailsDtos);
         Assertions.assertThat(result.playerDetailsDto()).isEqualTo(playerDetailsDto);
@@ -88,13 +87,12 @@ class PlayerFacadeServiceTest {
 
     @Test
     @DisplayName("fm 매핑 정보 없을때 PlayerOverviewDto에 fmPlayerDetailsDto = null")
-    void getPlayerOverView_fmPlayerDetailsDto_null(){
+    void getPlayerOverView_fmPlayerDetailsDto_null() {
         // given
-        Long playerId = PLAYER_ID;
+        stubCommonServices();
+        when(playerService.buildFmPlayerDetails(player)).thenReturn(Optional.empty());
         // when
-        stubCommonServices(playerId);
-        when(playerService.findFmPlayerDetails(playerId)).thenReturn(Optional.empty());
-        PlayerOverviewDto result = playerFacadeService.getPlayerOverview(playerId);
+        PlayerOverviewDto result = playerFacadeService.getPlayerOverview(PLAYER_ID);
         // then
         Assertions.assertThat(result.fmPlayerDetailsDto()).isNull();
         Assertions.assertThat(result.playerDetailsDto()).isEqualTo(playerDetailsDto);
@@ -102,10 +100,11 @@ class PlayerFacadeServiceTest {
         Assertions.assertThat(result.commentCountResponseDto()).isEqualTo(commentCountResponseDto);
     }
 
-    private void stubCommonServices(Long playerId) {
-        when(playerService.getPlayerDetails(playerId)).thenReturn(playerDetailsDto);
-        when(playerStatService.getPlayerStatById(playerId)).thenReturn(playerStatResponse);
-        when(commentService.getCommentCountByPlayerId(playerId)).thenReturn(commentCountResponseDto);
+    private void stubCommonServices() {
+        when(playerService.getPlayerWithAll(PLAYER_ID)).thenReturn(player);
+        when(playerService.buildPlayerDetailsDto(player)).thenReturn(playerDetailsDto);
+        when(playerStatService.buildPlayerStatResponse(player)).thenReturn(playerStatResponse);
+        when(commentService.getCommentCountByPlayerId(PLAYER_ID)).thenReturn(commentCountResponseDto);
     }
 
     private FmPlayer createFmPlayer(LocalDate date) {
