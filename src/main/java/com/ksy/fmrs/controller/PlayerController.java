@@ -26,6 +26,7 @@ public class PlayerController {
     private final PlayerFacadeService playerFacadeService;
     private final PlayerService playerService;
 
+
     @GetMapping("/api/players/{playerId}")
     public ResponseEntity<ApiResponse<PlayerOverviewDto>> getPlayerDetail(@PathVariable Long playerId) {
         return ApiResponse.ok(playerFacadeService.getPlayerOverview(playerId), "player details success");

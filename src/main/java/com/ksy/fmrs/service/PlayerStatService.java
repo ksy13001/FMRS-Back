@@ -35,14 +35,7 @@ public class PlayerStatService {
     public PlayerStatResponse getPlayerStatById(Long playerId) {
         Player player = playerRepository.findWithPlayerStatById(playerId)
                 .orElseThrow(() -> new EntityNotFoundException("Player not found with id: " + playerId));
-        StatFreshness freshness = player.getPlayerStatFreshness(timeProvider.getCurrentInstant(), ttlProvider.getTtl());
-        PlayerStat playerStat = player.getPlayerStat();
-
-        return switch (freshness) {
-            case MISSING -> PlayerStatResponse.missing();
-            case EXPIRED -> PlayerStatResponse.expired(playerStat);
-            case FRESH -> PlayerStatResponse.fresh(playerStat);
-        };
+        return getPlayerStatResponse(player);
     }
 
     @Transactional
@@ -61,9 +54,6 @@ public class PlayerStatService {
                         player.getPlayerApiId(),
                         league.getCurrentSeason()));
 
-        if (ps == null) {
-            return PlayerStatResponse.missing();
-        }
         player.updatePlayerStat(ps);
         playerStatRepository.save(ps);
         return PlayerStatResponse.fresh(ps);
@@ -73,6 +63,20 @@ public class PlayerStatService {
     @Transactional(readOnly = true)
     public PlayerStatResponse getPlayerStatByPlayerId(Long playerId) {
         return getPlayerStatById(playerId);
+    }
+
+    public PlayerStatResponse buildPlayerStatResponse(Player player) {
+        return getPlayerStatResponse(player);
+    }
+
+    private PlayerStatResponse getPlayerStatResponse(Player player) {
+        StatFreshness freshness = player.getPlayerStatFreshness(timeProvider.getCurrentInstant(), ttlProvider.getTtl());
+        PlayerStat playerStat = player.getPlayerStat();
+        return switch (freshness) {
+            case MISSING -> PlayerStatResponse.missing();
+            case EXPIRED -> PlayerStatResponse.expired(playerStat);
+            case FRESH -> PlayerStatResponse.fresh(playerStat);
+        };
     }
 
 }
