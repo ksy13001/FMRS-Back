@@ -60,6 +60,9 @@ dependencies {
 	implementation 'io.jsonwebtoken:jjwt-impl:0.12.3'
 	implementation 'io.jsonwebtoken:jjwt-jackson:0.12.3'
 
+    //Flyway
+    implementation 'org.flywaydb:flyway-mysql:10.20.1'
+
     //resilience4j
     implementation group: 'io.github.resilience4j', name: 'resilience4j-spring-boot3', version: '2.1.0'
 }
