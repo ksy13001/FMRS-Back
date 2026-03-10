@@ -102,14 +102,14 @@ public class PlayerRepositoryCustomImpl implements PlayerRepositoryCustom {
         if (firstName == null || firstName.isEmpty()) {
             return null;
         }
-        return player.firstName.startsWithIgnoreCase(firstName);
+        return player.firstName.startsWith(firstName);
     }
 
     private BooleanExpression lastNameStartWith(String lastName) {
         if (lastName == null || lastName.isEmpty()) {
             return null;
         }
-        return player.lastName.startsWithIgnoreCase(lastName);
+        return player.lastName.startsWith(lastName);
     }
 
     /**
