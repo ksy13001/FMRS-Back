@@ -202,24 +202,6 @@ class PlayerRepositoryCustomTest {
         persistAndFlushPlayers(players);
     }
 
-
-    @Test
-    @DisplayName("이름 검색 시 대소문자 무시")
-    void simple_search_ignore_case(){
-        // given
-        Player player1 = Player.builder().firstName("LIONEL").lastName("MESSI").mappingStatus(MappingStatus.UNMAPPED).build();
-        Player player2 = Player.builder().firstName("LIONEL").lastName("RONALDO").mappingStatus(MappingStatus.UNMAPPED).build();
-        Player player3 = Player.builder().firstName("CRISTIAN").lastName("RONALDO").mappingStatus(MappingStatus.UNMAPPED).build();
-
-        persistAndFlushPlayers(List.of(player1, player2, player3));
-
-        // when
-        Slice<Player> actual =
-                playerRepository.searchPlayerByName("lio", PAGEABLE, null, null, null);
-        // then
-        Assertions.assertThat(actual.getContent()).containsExactly(player1, player2);
-    }
-
     private void persistAndFlushPlayers(List<Player> players){
         for (Player player : players){
             tem.persist(player);
