@@ -231,26 +231,31 @@ class PlayerRepositoryCustomTest {
     }
 
     /**
-     * Bug-1: FM24+FM26 보유 선수 포함 시 hasNext 오판
+     * Bug-1: FM24+FM26 보유 선수가 LIMIT 슬롯을 2개 차지해 다음 페이지 선수 누락
      *
      * 재현 조건:
-     *   - 정확히 pageSize 명의 MATCHED 선수 (다음 페이지 없어야 함)
-     *   - 그 중 1명이 FM24 + FM26 두 개의 fmPlayer 보유
+     *   - pageSize=3, 실제 선수 4명 (hasNext=true 여야 함)
+     *   - Player A가 FM24+FM26 → SQL에서 2행 차지
      *
-     * 기대 동작: hasNext = false
-     * 버그 동작: SQL LIMIT(pageSize+1) 구간에 중복 행이 포함되면 hasNext = true 오판
+     * 기대 동작: hasNext = true (4번째 선수 존재)
+     * 버그 동작: SQL LIMIT=4 에서 A 2행 + B + C = 4행 → D 잘림
+     *           Hibernate dedup 후 [A,B,C] size=3 → hasNext = false (선수 누락)
+     *
+     * 참고: Hibernate 6은 entity 레벨에서 중복을 자동 제거하므로
+     *       "hasNext=true 오판(Case A)"은 발생하지 않는다.
+     *       실제 버그는 "다음 페이지 선수 누락(Case B)" 형태로 발생한다.
      */
     @Test
-    @DisplayName("Bug-1: FM24+FM26 보유 선수 포함 시 hasNext 오판 — 다음 페이지 없음이어야 함")
-    void bug1_hasNext_must_be_false_when_all_players_fit_in_one_page() {
-        // given — 딱 3명, 다음 페이지 없어야 함
+    @DisplayName("FM24+FM26 보유 선수가 LIMIT 슬롯 2개 차지해 다음 페이지 선수 누락")
+    void bug1_next_page_player_must_not_be_omitted_when_player_has_multiple_fm_versions() {
+        // given — 4명, hasNext=true 여야 함
         int pageSize = 3;
         Pageable pageable = PageRequest.of(0, pageSize);
 
-        // Player A: FM26(ca=200) + FM24(ca=150) — SQL에서 2행 차지
-        Player playerA = persistMatchedPlayerWithTwoFmVersions("messi0", 1, 150, 200);
-        // Player B, C: FM24 1개씩
-        persistMatchedPlayers("messi", 1, 3);
+        // Player A: FM26(ca=200) + FM24(ca=150) — SQL 슬롯 2개 차지
+        persistMatchedPlayerWithTwoFmVersions("messi0", 1, 150, 200);
+        // Player B, C, D: FM24 1개씩 (ca=120, 110, 100)
+        persistMatchedPlayers("messi", 1, 4);
         tem.flush();
         tem.clear();
 
@@ -259,15 +264,14 @@ class PlayerRepositoryCustomTest {
                 "messi", pageable, null, null, null);
 
         // then
-        List<Long> resultIds = result.getContent().stream().map(Player::getId).toList();
-        assertThat(resultIds)
-                .as("중복 없이 3명 반환")
+        assertThat(result.getContent())
                 .hasSize(pageSize)
-                .doesNotHaveDuplicates()
-                .contains(playerA.getId());
+                .extracting(Player::getId)
+                .doesNotHaveDuplicates();
         assertThat(result.hasNext())
-                .as("Bug-1: 다음 페이지가 없어야 하는데 true 반환 시 실패")
-                .isFalse();
+                .as("4번째 선수(D)가 있으므로 hasNext=true 여야 함. " +
+                    "A의 FM24 행이 LIMIT 슬롯을 소비해 D가 잘리면 false 반환 (선수 누락)")
+                .isTrue();
     }
 
     /**
@@ -282,7 +286,7 @@ class PlayerRepositoryCustomTest {
      * 버그 동작: 2페이지에 Player A 재등장 (중복 반환)
      */
     @Test
-    @DisplayName("Bug-2: FM24+FM26 보유 선수가 커서 페이지네이션 2페이지에 중복 반환")
+    @DisplayName("FM24+FM26 보유 선수가 커서 페이지네이션 2페이지에 중복 반환")
     void bug2_cursor_must_not_return_duplicate_player_with_multiple_fm_versions() {
         // given
         int pageSize = 1;
@@ -332,20 +336,16 @@ class PlayerRepositoryCustomTest {
                     .firstName(name + i)
                     .currentAbility(100 + i * 10)
                     .fmUid(i + 1)
+                    .potentialAbility(100 + i * 10)
                     .fmVersion(FmVersion.FM24)
                     .build();
             player.updateFmPlayer(fmPlayer);
+            player.updateLatestFmData(fmPlayer.getCurrentAbility(), fmPlayer.getPotentialAbility(), fmPlayer.getFmVersion());
             tem.persist(fmPlayer);
             tem.persist(player);
         }
     }
 
-    /**
-     * FM24 + FM26 두 개의 fmPlayer를 가진 MATCHED 선수 생성
-     *
-     * @param ca24 FM24 currentAbility
-     * @param ca26 FM26 currentAbility (ca26 > ca24 이어야 getLatestFmPlayer() = FM26 행과 일치)
-     */
     private Player persistMatchedPlayerWithTwoFmVersions(
             String firstName, int fmUid, int ca24, int ca26) {
         Player player = Player.builder()
@@ -354,14 +354,15 @@ class PlayerRepositoryCustomTest {
                 .build();
         FmPlayer fm24 = FmPlayer.builder()
                 .firstName(firstName).fmUid(fmUid)
-                .fmVersion(FmVersion.FM24).currentAbility(ca24)
+                .fmVersion(FmVersion.FM24).currentAbility(ca24).potentialAbility(ca26)
                 .build();
         FmPlayer fm26 = FmPlayer.builder()
                 .firstName(firstName).fmUid(fmUid)
-                .fmVersion(FmVersion.FM26).currentAbility(ca26)
+                .fmVersion(FmVersion.FM26).currentAbility(ca26).potentialAbility(ca26)
                 .build();
         player.updateFmPlayer(fm24);
         player.updateFmPlayer(fm26);
+        player.updateLatestFmData(ca26, ca26, fm26.getFmVersion());
         tem.persist(fm24);
         tem.persist(fm26);
         tem.persist(player);

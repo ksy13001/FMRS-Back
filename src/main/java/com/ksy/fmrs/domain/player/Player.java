@@ -4,6 +4,7 @@ package com.ksy.fmrs.domain.player;
 import com.ksy.fmrs.domain.Comment;
 import com.ksy.fmrs.domain.Team;
 import com.ksy.fmrs.domain.Transfer;
+import com.ksy.fmrs.domain.enums.FmVersion;
 import com.ksy.fmrs.domain.enums.MappingStatus;
 import com.ksy.fmrs.domain.enums.TransferType;
 import com.ksy.fmrs.domain.enums.StatFreshness;
@@ -57,6 +58,16 @@ public class Player {
     @Enumerated(EnumType.STRING)
     @Column(name="mapping_status")
     private MappingStatus mappingStatus;
+
+    @Column(name = "latest_current_ability")
+    private Integer latestCurrentAbility;
+
+    @Column(name = "latest_potential_ability")
+    private Integer latestPotentialAbility;
+
+    @Column(name = "latest_fm_version")
+    @Enumerated(EnumType.STRING)
+    private FmVersion latestFmVersion;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "team_id")
@@ -171,6 +182,14 @@ public class Player {
             return null;
         }
         return this.team.getLogoUrl();
+    }
+
+    public void updateLatestFmData(Integer ca, Integer pa, FmVersion fmVersion) {
+        if (this.latestFmVersion == null || this.latestFmVersion.getYear() <= fmVersion.getYear()) {
+            this.latestCurrentAbility = ca;
+            this.latestPotentialAbility = pa;
+            this.latestFmVersion = fmVersion;
+        }
     }
 
     public FmPlayer getLatestFmPlayer(){

@@ -51,10 +51,14 @@ public class PlayerRepositoryCustomImpl implements PlayerRepositoryCustom {
         int limit = pageable.getPageSize();
         List<Player> players = jpaQueryFactory
                 .selectFrom(player)
-                .leftJoin(player.fmPlayer, fmPlayer)
-                .where(firstNameStartWith(name).or(lastNameStartWith(name))
-                        , mappingStatusAndIdCursorPredicate(lastmappingStatus, lastCurrentAbility, lastPlayerId))
-                .orderBy(mappingStatusRankExpr().asc(), fmPlayer.currentAbility.desc(), player.id.asc())
+                .where(
+                        firstNameStartWith(name).or(lastNameStartWith(name)),
+                        mappingStatusAndIdCursorPredicate(lastmappingStatus, lastCurrentAbility, lastPlayerId))
+                .orderBy(
+                        mappingStatusRankExpr().asc(),
+                        player.latestCurrentAbility.desc(),
+                        player.id.asc()
+                )
                 .limit(limit + 1) // limit + 1만큼 불러 와지면 다음 페이지가 존재함
                 .fetch();
 
@@ -79,7 +83,7 @@ public class PlayerRepositoryCustomImpl implements PlayerRepositoryCustom {
         return new PageImpl<>(players, pageable, getSearchPlayerResultCount(condition));
     }
 
-    private Long getSearchPlayerResultCount(SearchPlayerCondition condition){
+    private Long getSearchPlayerResultCount(SearchPlayerCondition condition) {
         return jpaQueryFactory
                 .select(player.count())
                 .from(player)
@@ -136,8 +140,8 @@ public class PlayerRepositoryCustomImpl implements PlayerRepositoryCustom {
         }
         return mappingStatusRankExpr().gt(lastMappingStatusRank).or(
                 mappingStatusRankExpr().eq(lastMappingStatusRank).and(
-                        fmPlayer.currentAbility.lt(lastCurrentAbility).or(
-                                fmPlayer.currentAbility.eq(lastCurrentAbility).and(player.id.gt(lastPlayerId))
+                        player.latestCurrentAbility.lt(lastCurrentAbility).or(
+                                player.latestCurrentAbility.eq(lastCurrentAbility).and(player.id.gt(lastPlayerId))
                         )
                 )
         );
