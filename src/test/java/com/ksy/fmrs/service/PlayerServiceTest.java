@@ -16,6 +16,7 @@ import com.ksy.fmrs.dto.player.FmPlayerDetailsDto;
 import com.ksy.fmrs.dto.player.PlayerDetailsDto;
 import com.ksy.fmrs.dto.search.DetailSearchPlayerResultDto;
 import com.ksy.fmrs.dto.search.SearchPlayerCondition;
+import com.ksy.fmrs.dto.search.SimpleSearchPlayerResultDto;
 import com.ksy.fmrs.dto.team.TeamPlayersResponseDto;
 import com.ksy.fmrs.repository.Player.PlayerRepository;
 import jakarta.persistence.EntityNotFoundException;
@@ -28,6 +29,7 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.SliceImpl;
 import org.springframework.test.util.ReflectionTestUtils;
 
 import java.time.LocalDate;
@@ -74,6 +76,7 @@ public class PlayerServiceTest {
         team.updateLeague(league);
         ronaldo24.updateTeam(team);
         ronaldo24.updateFmPlayer(fmPlayer);
+        ronaldo24.updateLatestFmData(180, 200, FmVersion.FM24);
     }
 
     @Test
@@ -91,7 +94,7 @@ public class PlayerServiceTest {
         assertThat(result.getBirth()).isEqualTo(ronaldo24.getBirth());
         assertThat(result.getNationName()).isEqualTo(ronaldo24.getNationName());
         assertThat(result.getMappingStatus()).isEqualTo(ronaldo24.getMappingStatus());
-        assertThat(result.getCurrentAbility()).isEqualTo(ronaldo24.getLatestFmPlayer().getCurrentAbility());
+        assertThat(result.getCurrentAbility()).isEqualTo(ronaldo24.getLatestCurrentAbility());
         assertThat(result.getCurrentSeason()).isEqualTo(ronaldo24.getTeam().getLeague().getCurrentSeason());
         assertThat(result.getTeamName()).isEqualTo(ronaldo24.getTeam().getName());
         assertThat(result.getTeamLogoUrl()).isEqualTo(ronaldo24.getTeam().getLogoUrl());
@@ -206,6 +209,27 @@ public class PlayerServiceTest {
         // then
         assertThat(actual.getPlayers().getFirst().getTopAttributes())
                 .containsExactlyInAnyOrder("dribbling", "pace", "vision");
+    }
+
+    @Test
+    @DisplayName("간단 검색 currentAbility는 fmPlayer lazy load 없이 player.latestCurrentAbility에서 조회")
+    void simpleSearch_currentAbility_reads_from_latestCurrentAbility() {
+        // given — fmPlayer 미연결, latestCurrentAbility만 세팅
+        Player player = Player.builder()
+                .firstName("son").mappingStatus(MappingStatus.MATCHED).build();
+        player.updateLatestFmData(155, 180, FmVersion.FM24);
+
+        Pageable pageable = PageRequest.of(0, 10);
+        when(playerRepository.searchPlayerByName("son", pageable, null, null, null))
+                .thenReturn(new SliceImpl<>(List.of(player), pageable, false));
+
+        // when
+        SimpleSearchPlayerResultDto result = playerService.simpleSearchPlayers(
+                "son", pageable, null, null, null);
+
+        // then
+        assertThat(result.getPlayers()).hasSize(1);
+        assertThat(result.getPlayers().getFirst().getCurrentAbility()).isEqualTo(155);
     }
 
     @Test
