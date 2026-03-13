@@ -1,6 +1,7 @@
 ALTER TABLE player
-    ADD COLUMN latest_current_ability INT NULL;
-ADD COLUMN latest_fm_version VARCHAR(10) NULL;
+    ADD COLUMN latest_current_ability INT NULL,
+    ADD COLUMN latest_potential_ability INT NULL,
+    ADD COLUMN latest_fm_version VARCHAR(10) NULL;
 
 UPDATE player p
     JOIN (
