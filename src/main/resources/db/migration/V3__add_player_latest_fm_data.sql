@@ -5,7 +5,7 @@ ALTER TABLE player
 
 UPDATE player p
     JOIN (
-    SELECT fp1.player_id, fp1.current_ability, fp1.fm_version
+    SELECT fp1.player_id, fp1.current_ability, fp1.potential_ability, fp1.fm_version
     FROM fmplayer fp1
     WHERE fp1.fm_version = (
     SELECT fp2.fm_version FROM fmplayer fp2
@@ -16,4 +16,6 @@ UPDATE player p
     AND fp1.player_id IS NOT NULL
     ) latest
 ON latest.player_id = p.id
-    SET p.latest_current_ability = latest.current_ability, p.latest_fm_version = latest.fm_version;
+    SET p.latest_current_ability = latest.current_ability,
+        p.latest_potential_ability = latest.potential_ability,
+        p.latest_fm_version = latest.fm_version;
