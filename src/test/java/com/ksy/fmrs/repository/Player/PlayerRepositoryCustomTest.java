@@ -8,6 +8,7 @@ import com.ksy.fmrs.domain.player.FmPlayer;
 import com.ksy.fmrs.domain.player.Player;
 import com.ksy.fmrs.dto.search.SearchPlayerCondition;
 import org.assertj.core.api.Assertions;
+import static org.assertj.core.api.Assertions.assertThat;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -229,6 +230,102 @@ class PlayerRepositoryCustomTest {
         }
     }
 
+    /**
+     * Bug-1: FM24+FM26 보유 선수가 LIMIT 슬롯을 2개 차지해 다음 페이지 선수 누락
+     *
+     * 재현 조건:
+     *   - pageSize=3, 실제 선수 4명 (hasNext=true 여야 함)
+     *   - Player A가 FM24+FM26 → SQL에서 2행 차지
+     *
+     * 기대 동작: hasNext = true (4번째 선수 존재)
+     * 버그 동작: SQL LIMIT=4 에서 A 2행 + B + C = 4행 → D 잘림
+     *           Hibernate dedup 후 [A,B,C] size=3 → hasNext = false (선수 누락)
+     *
+     * 참고: Hibernate 6은 entity 레벨에서 중복을 자동 제거하므로
+     *       "hasNext=true 오판(Case A)"은 발생하지 않는다.
+     *       실제 버그는 "다음 페이지 선수 누락(Case B)" 형태로 발생한다.
+     */
+    @Test
+    @DisplayName("FM24+FM26 보유 선수가 LIMIT 슬롯 2개 차지해 다음 페이지 선수 누락")
+    void bug1_next_page_player_must_not_be_omitted_when_player_has_multiple_fm_versions() {
+        // given — 4명, hasNext=true 여야 함
+        int pageSize = 3;
+        Pageable pageable = PageRequest.of(0, pageSize);
+
+        // Player A: FM26(ca=200) + FM24(ca=150) — SQL 슬롯 2개 차지
+        persistMatchedPlayerWithTwoFmVersions("messi0", 1, 150, 200);
+        // Player B, C, D: FM24 1개씩 (ca=120, 110, 100)
+        persistMatchedPlayers("messi", 1, 4);
+        tem.flush();
+        tem.clear();
+
+        // when
+        Slice<Player> result = playerRepository.searchPlayerByName(
+                "messi", pageable, null, null, null);
+
+        // then
+        assertThat(result.getContent())
+                .hasSize(pageSize)
+                .extracting(Player::getId)
+                .doesNotHaveDuplicates();
+        assertThat(result.hasNext())
+                .as("4번째 선수(D)가 있으므로 hasNext=true 여야 함. " +
+                    "A의 FM24 행이 LIMIT 슬롯을 소비해 D가 잘리면 false 반환 (선수 누락)")
+                .isTrue();
+    }
+
+    /**
+     * Bug-2: FM24+FM26 보유 MATCHED 선수가 커서 페이지네이션에서 중복 반환
+     *
+     * 재현 조건:
+     *   - pageSize=1 로 커서 페이지네이션
+     *   - 1페이지 마지막 선수(Player A)가 FM24+FM26 두 개의 fmPlayer 보유
+     *   - 커서 조건: ca < lastCA → A의 FM24 행이 조건을 통과해 2페이지에 재등장
+     *
+     * 기대 동작: 2페이지에 Player A 미포함
+     * 버그 동작: 2페이지에 Player A 재등장 (중복 반환)
+     */
+    @Test
+    @DisplayName("FM24+FM26 보유 선수가 커서 페이지네이션 2페이지에 중복 반환")
+    void bug2_cursor_must_not_return_duplicate_player_with_multiple_fm_versions() {
+        // given
+        int pageSize = 1;
+        Pageable pageable = PageRequest.of(0, pageSize);
+
+        // Player A: FM26(ca=200) + FM24(ca=150)
+        // 정렬 시 FM26 행(ca=200)이 1페이지에 등장
+        // 커서 조건 ca < 200 에서 FM24 행(ca=150)이 통과 → 2페이지 재등장 (Bug-2)
+        Player playerA = persistMatchedPlayerWithTwoFmVersions("messi0", 1, 150, 200);
+
+        // Player B: FM24(ca=180) — 2페이지에서 정상 등장해야 함
+        persistMatchedPlayers("messi", 1, 2);
+        tem.flush();
+        tem.clear();
+
+        // when — 1페이지
+        Slice<Player> page1 = playerRepository.searchPlayerByName(
+                "messi", pageable, null, null, null);
+
+        assertThat(page1.getContent()).hasSize(1);
+        Player lastInPage1 = page1.getContent().getFirst();
+        assertThat(lastInPage1.getId())
+                .as("1페이지 첫 선수는 ca=200인 Player A")
+                .isEqualTo(playerA.getId());
+
+        // when — 2페이지 (커서: playerA.id, ca=200)
+        Slice<Player> page2 = playerRepository.searchPlayerByName(
+                "messi", pageable,
+                lastInPage1.getId(),
+                lastInPage1.getFmPlayerCurrentAbility(),
+                lastInPage1.getMappingStatus());
+
+        // then
+        List<Long> page2Ids = page2.getContent().stream().map(Player::getId).toList();
+        assertThat(page2Ids)
+                .as("Bug-2: 2페이지에 Player A가 중복 반환되면 실패")
+                .doesNotContain(playerA.getId());
+    }
+
     private void persistMatchedPlayers(String name, int startInclusive, int endExclusive) {
         for (int i = startInclusive; i < endExclusive; i++) {
             Player player = Player.builder()
@@ -239,11 +336,36 @@ class PlayerRepositoryCustomTest {
                     .firstName(name + i)
                     .currentAbility(100 + i * 10)
                     .fmUid(i + 1)
+                    .potentialAbility(100 + i * 10)
                     .fmVersion(FmVersion.FM24)
                     .build();
             player.updateFmPlayer(fmPlayer);
+            player.updateLatestFmData(fmPlayer.getCurrentAbility(), fmPlayer.getPotentialAbility(), fmPlayer.getFmVersion());
             tem.persist(fmPlayer);
             tem.persist(player);
         }
+    }
+
+    private Player persistMatchedPlayerWithTwoFmVersions(
+            String firstName, int fmUid, int ca24, int ca26) {
+        Player player = Player.builder()
+                .firstName(firstName)
+                .mappingStatus(MappingStatus.MATCHED)
+                .build();
+        FmPlayer fm24 = FmPlayer.builder()
+                .firstName(firstName).fmUid(fmUid)
+                .fmVersion(FmVersion.FM24).currentAbility(ca24).potentialAbility(ca26)
+                .build();
+        FmPlayer fm26 = FmPlayer.builder()
+                .firstName(firstName).fmUid(fmUid)
+                .fmVersion(FmVersion.FM26).currentAbility(ca26).potentialAbility(ca26)
+                .build();
+        player.updateFmPlayer(fm24);
+        player.updateFmPlayer(fm26);
+        player.updateLatestFmData(ca26, ca26, fm26.getFmVersion());
+        tem.persist(fm24);
+        tem.persist(fm26);
+        tem.persist(player);
+        return player;
     }
 }

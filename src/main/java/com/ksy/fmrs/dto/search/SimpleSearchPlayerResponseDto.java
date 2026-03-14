@@ -18,14 +18,14 @@ public class SimpleSearchPlayerResponseDto {
     private MappingStatus  mappingStatus;
     private String imageUrl;
 
-    public SimpleSearchPlayerResponseDto(Player player, Integer currentAbility) {
+    public SimpleSearchPlayerResponseDto(Player player) {
         this.id = player.getId();
         this.name = player.getName();
         this.teamName = player.getTeamName();
         this.teamLogoUrl = player.getTeamLogoUrl();
         this.nationName = player.getNationName();
         this.age = player.getAge();
-        this.currentAbility = currentAbility;
+        this.currentAbility = player.getLatestCurrentAbility();
         this.mappingStatus = player.getMappingStatus();
         this.imageUrl = player.getImageUrl();
     }

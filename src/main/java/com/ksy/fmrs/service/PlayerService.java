@@ -148,7 +148,7 @@ public class PlayerService {
         Slice<Player> result = playerRepository.searchPlayerByName(
                 name, pageable, lastPlayerId, lastCurrentAbility, lastMappingStatus);
         return new SimpleSearchPlayerResultDto(
-                result.getContent().stream().map(this::convertPlayerToSimpleSearchPlayerResponseDto).toList(),
+                result.getContent().stream().map(SimpleSearchPlayerResponseDto::new).toList(),
                 result.hasNext()
         );
     }
@@ -184,18 +184,6 @@ public class PlayerService {
                 player.getTeamLogoUrl(),
                 null,
                 Collections.emptyList()
-        );
-    }
-
-    private SimpleSearchPlayerResponseDto convertPlayerToSimpleSearchPlayerResponseDto(Player player) {
-        FmPlayer fmPlayer = player.getLatestFmPlayer();
-        if (player.isMatched() && fmPlayer != null) {
-            return new SimpleSearchPlayerResponseDto(player,
-                    fmPlayer.getCurrentAbility());
-        }
-        return new SimpleSearchPlayerResponseDto(
-                player,
-                null
         );
     }
 
