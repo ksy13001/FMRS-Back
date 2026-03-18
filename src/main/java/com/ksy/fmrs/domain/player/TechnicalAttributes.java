@@ -1,5 +1,6 @@
 package com.ksy.fmrs.domain.player;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.Column;
 import jakarta.persistence.Embeddable;
 import lombok.*;
@@ -34,6 +35,7 @@ public class TechnicalAttributes {
     private int tackling;
     private int technique;
 
+    @JsonIgnore
     public Map<String, Integer> getAllTechnicalAttributes() {
         Map<String, Integer> allPhysicalAttributes = new HashMap<>();
         allPhysicalAttributes.put("corners", corners);

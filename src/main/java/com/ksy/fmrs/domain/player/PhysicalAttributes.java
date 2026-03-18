@@ -1,5 +1,6 @@
 package com.ksy.fmrs.domain.player;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.Column;
 import jakarta.persistence.Embeddable;
 import lombok.*;
@@ -27,6 +28,7 @@ public class PhysicalAttributes {
     private int stamina;
     private int strength;
 
+    @JsonIgnore
     public Map<String, Integer> getAllPhysicalAttributes(){
         Map<String, Integer> allAttributes = new HashMap<>();
         allAttributes.put("acceleration", acceleration);
