@@ -1,5 +1,6 @@
 package com.ksy.fmrs.domain.player;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.Column;
 import jakarta.persistence.Embeddable;
 import lombok.*;
@@ -34,6 +35,7 @@ public class MentalAttributes {
     @Column(name = "work_rate")
     private int workRate;
 
+    @JsonIgnore
     public Map<String, Integer> getAllMentalAttributes() {
         Map<String, Integer> allMentalAttributes = new HashMap<>();
         allMentalAttributes.put("aggression", aggression);
