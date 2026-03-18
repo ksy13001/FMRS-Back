@@ -21,7 +21,6 @@ import java.time.LocalDate;
 import java.util.Collections;
 import java.util.List;
 
-import static com.ksy.fmrs.domain.QLeague.league;
 import static com.ksy.fmrs.domain.QTeam.team;
 import static com.ksy.fmrs.domain.player.QFmPlayer.fmPlayer;
 import static com.ksy.fmrs.domain.player.QPlayer.player;
@@ -69,29 +68,43 @@ public class PlayerRepositoryCustomImpl implements PlayerRepositoryCustom {
 
     @Override
     public Page<Player> searchPlayerByDetailCondition(SearchPlayerCondition condition, Pageable pageable) {
-        List<Player> players = jpaQueryFactory
-                .selectFrom(player)
-                .leftJoin(player.team, team) // 무소속인 선수들까지 가져오기 위해 leftJoin
-                .leftJoin(player.team.league, league)
-                .leftJoin(player.fmPlayer, fmPlayer)
+
+        var query = jpaQueryFactory.selectFrom(player);
+
+        if (condition.getTeamId() != null) {
+            query.leftJoin(player.team, team);
+        }
+
+        List<Player> players = query
                 .offset(pageable.getOffset())
                 .limit(pageable.getPageSize())
                 .where(playerDetailSearchCondition(condition))
-                .orderBy(fmPlayer.currentAbility.desc(), player.id.asc())
+                .orderBy(player.latestCurrentAbility.desc(), player.id.asc())
                 .fetch();
 
         return new PageImpl<>(players, pageable, getSearchPlayerResultCount(condition));
     }
 
-    private Long getSearchPlayerResultCount(SearchPlayerCondition condition) {
-        return jpaQueryFactory
-                .select(player.count())
-                .from(player)
-                .leftJoin(player.team, team)
-                .leftJoin(player.team.league, league)
-                .leftJoin(player.fmPlayer, fmPlayer)
-                .where(playerDetailSearchCondition(condition))
-                .fetchOne();
+    private BooleanExpression fmPlayerStatCondition(SearchPlayerCondition c) {
+        if (!c.hasAnyStatCondition()) {
+            return null;
+        }
+        return JPAExpressions.selectOne()
+                .from(fmPlayer)
+                .where(
+                        fmPlayer.player.eq(player),
+                        fmPlayer.fmVersion.eq(player.latestFmVersion),
+                        statConditions(c)
+                )
+                .exists();
+    }
+
+    private Long getSearchPlayerResultCount(SearchPlayerCondition c) {
+        var countQuery = jpaQueryFactory.select(player.count()).from(player);
+        if(c.getTeamId() != null) {
+            countQuery.leftJoin(player.team, team);
+        }
+        return countQuery.where(playerDetailSearchCondition(c)).fetchOne();
     }
 
     //     검색 조건
@@ -262,10 +275,13 @@ public class PlayerRepositoryCustomImpl implements PlayerRepositoryCustom {
         return Expressions.allOf(
                 ageBetween(c.getAgeMin(), c.getAgeMax()),
                 teamIdEq(c.getTeamId()),
-                leagueIdEq(c.getLeagueId()),
                 nationNameEq(c.getNationName()),
+                fmPlayerStatCondition(c));
+    }
 
-                // Technical
+    private BooleanExpression statConditions(SearchPlayerCondition c) {
+        // Technical
+        return Expressions.allOf(
                 goeStat(c.getCorners(), fmPlayer.technicalAttributes.corners),
                 goeStat(c.getCrossing(), fmPlayer.technicalAttributes.crossing),
                 goeStat(c.getDribbling(), fmPlayer.technicalAttributes.dribbling),
@@ -321,8 +337,7 @@ public class PlayerRepositoryCustomImpl implements PlayerRepositoryCustom {
                 goeStat(c.getLAM(), fmPlayer.position.attackingMidLeft),
                 goeStat(c.getCAM(), fmPlayer.position.attackingMidCentral),
                 goeStat(c.getRAM(), fmPlayer.position.attackingMidRight),
-                goeStat(c.getST(), fmPlayer.position.striker)
-        );
+                goeStat(c.getST(), fmPlayer.position.striker));
     }
 
     // 18 50 -> 2007, 1975

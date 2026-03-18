@@ -73,4 +73,20 @@ public class SearchPlayerCondition {
     private Integer CAM;
     private Integer RAM;
     private Integer ST;
+
+    public boolean hasAnyStatCondition() {
+        return corners != null || crossing != null || dribbling != null || finishing != null
+                || firstTouch != null || freeKickTaking != null || heading != null || longShots != null
+                || longThrows != null || marking != null || passing != null || penaltyTaking != null
+                || tackling != null || technique != null
+                || aggression != null || anticipation != null || bravery != null || composure != null
+                || concentration != null || decisions != null || determination != null || flair != null
+                || leadership != null || offTheBall != null || positioning != null || teamwork != null
+                || vision != null || workRate != null
+                || acceleration != null || agility != null || balance != null || jumpingReach != null
+                || naturalFitness != null || pace != null || stamina != null || strength != null
+                || GK != null || LB != null || CB != null || RB != null || LWB != null || RWB != null
+                || DM != null || LM != null || CM != null || RM != null || LAM != null || CAM != null
+                || RAM != null || ST != null;
+    }
 }
