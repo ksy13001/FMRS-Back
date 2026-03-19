@@ -1,0 +1,1 @@
+ALTER TABLE player ADD INDEX idx_player_nation_name (nation_name);
