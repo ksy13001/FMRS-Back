@@ -365,12 +365,6 @@ public class PlayerRepositoryCustomImpl implements PlayerRepositoryCustom {
         return player.team.id.eq(teamId);
     }
 
-    private BooleanExpression leagueIdEq(Long leagueId) {
-        if (leagueId == null) {
-            return null;
-        }
-        return player.team.league.id.eq(leagueId);
-    }
 }
 
 
