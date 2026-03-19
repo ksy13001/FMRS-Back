@@ -13,7 +13,6 @@ public class SearchPlayerCondition {
     private Integer ageMin;
     private Integer ageMax;
     private Long teamId;
-    private Long leagueId;
     private String nationName;
 
     // 기술(Technical) 능력치 (Min, Max)
