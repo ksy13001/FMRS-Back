@@ -28,13 +28,13 @@ public class FmPlayerMapper {
     }
 
     public FmPlayer toEntity(FmPlayerDto fmPlayerDto, FmVersion fmVersion) {
-        String name = fmPlayerDto.getName();
+        String name = StringUtils.normalizeName(fmPlayerDto.getName());
         return FmPlayer.builder()
                 .name(name)
                 .fmVersion(fmVersion)
                 .fmUid(fmPlayerDto.getFmPlayerId())
-                .firstName(StringUtils.getFirstName(name).toUpperCase())
-                .lastName(StringUtils.getLastName(name).toUpperCase())
+                .firstName(StringUtils.getFirstName(name))
+                .lastName(StringUtils.getLastName(name))
                 .birth(fmPlayerDto.getBorn())
                 .nationName(NationNormalizer.normalize(fmPlayerDto.getNation().getName().toUpperCase()))
                 .personalityAttributes(toPersonalityAttributes(fmPlayerDto))

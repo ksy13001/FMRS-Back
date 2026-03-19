@@ -3,6 +3,7 @@ package com.ksy.fmrs.mapper;
 import com.ksy.fmrs.domain.enums.MappingStatus;
 import com.ksy.fmrs.domain.player.Player;
 import com.ksy.fmrs.dto.apiFootball.ApiFootballPlayersStatistics;
+import com.ksy.fmrs.util.NationNormalizer;
 import com.ksy.fmrs.util.StringUtils;
 import org.springframework.stereotype.Component;
 
@@ -35,7 +36,7 @@ public class PlayerMapper {
      */
     private Player createPlayer(ApiFootballPlayersStatistics.PlayerDto dto) {
         String rawNation = dto.nationality();
-        String nation    = upperOrNull(rawNation);
+        String nation    = NationNormalizer.normalize(rawNation);
 
         boolean eastAsianFormat = NATION_CHINA_PR.equalsIgnoreCase(nation) ||
                 NATION_KOREA_REPUBLIC.equalsIgnoreCase(nation);
@@ -44,8 +45,8 @@ public class PlayerMapper {
         String firstRaw = dto.firstname();
         String lastRaw  = eastAsianFormat ? dto.lastname() : dto.name();
 
-        String first = upperOrNull(StringUtils.getFirstName(firstRaw));
-        String last  = upperOrNull(StringUtils.getLastName(lastRaw));
+        String first = StringUtils.normalizeName(StringUtils.getFirstName(firstRaw));
+        String last  = StringUtils.normalizeName(StringUtils.getLastName(lastRaw));
 
         LocalDate birth = dto.birth() != null ? dto.birth().date() : null;
 
@@ -66,10 +67,5 @@ public class PlayerMapper {
                 .mappingStatus(status)
                 .isGK(null)
                 .build();
-    }
-
-    /** 대문자 변환 + null 안전 래퍼 */
-    private String upperOrNull(String value) {
-        return value == null ? null : value.toUpperCase();
     }
 }

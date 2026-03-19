@@ -18,6 +18,6 @@ public class NationNormalizer{
         if (raw == null) {
             return null;
         }
-        return NATIONS.getOrDefault(raw.toUpperCase(), raw);
+        return NATIONS.getOrDefault(raw.toUpperCase(), raw.toUpperCase());
     }
 }

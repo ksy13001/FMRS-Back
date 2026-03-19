@@ -2,8 +2,10 @@ package com.ksy.fmrs.util;
 
 import lombok.extern.slf4j.Slf4j;
 
+import java.text.Normalizer;
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
+import java.util.Locale;
 import java.util.Optional;
 
 @Slf4j
@@ -85,5 +87,15 @@ public class StringUtils {
         }
 
         return Optional.of(header.substring(7));
+    }
+
+    public static String normalizeName(String name) {
+        if (name == null) return null;
+
+        String nfd = Normalizer.normalize(name, Normalizer.Form.NFD);
+        return nfd.replaceAll("\\p{InCombiningDiacriticalMarks}+", "")
+                .replaceAll("\\s+", " ")
+                .toUpperCase(Locale.ROOT)
+                .trim();
     }
 }
