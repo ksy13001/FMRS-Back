@@ -61,6 +61,11 @@ public class PlayerRepositoryCustomImpl implements PlayerRepositoryCustom {
                 .limit(limit + 1) // limit + 1만큼 불러 와지면 다음 페이지가 존재함
                 .fetch();
 
+        return playerListToSlice(players, pageable);
+    }
+
+    private Slice<Player> playerListToSlice(List<Player> players, Pageable pageable) {
+        int limit = pageable.getPageSize();
         boolean hasNext = players.size() > limit;
         List<Player> content = hasNext ? players.subList(0, limit) : players;
         return new SliceImpl<>(content, pageable, hasNext);
@@ -131,7 +136,7 @@ public class PlayerRepositoryCustomImpl implements PlayerRepositoryCustom {
 
     /**
      * ORDER BY
-     * 1. mappingStatus - MATCHED, UNMAPPED, FAILED
+     * 1. mappingStatus - MATCHED > (UNMAPPED, NO_MATCH, DUPLICATE) / FAILED-검색 제외
      * 2. if mappingStatus == MATCHED, currentAbility desc
      * 3. id asc
      */
@@ -140,11 +145,7 @@ public class PlayerRepositoryCustomImpl implements PlayerRepositoryCustom {
         if (lastPlayerId == null || lastMappingStatus == null) {
             return null;
         }
-        int lastMappingStatusRank = switch (lastMappingStatus) {
-            case MATCHED -> 0;
-            case UNMAPPED -> 1;
-            default -> 2;
-        };
+        int lastMappingStatusRank = mappingStatusRank(lastMappingStatus);
 
         if (lastMappingStatus != MappingStatus.MATCHED || lastCurrentAbility == null) {
             return mappingStatusRankExpr().gt(lastMappingStatusRank).or(
@@ -160,13 +161,22 @@ public class PlayerRepositoryCustomImpl implements PlayerRepositoryCustom {
         );
     }
 
-    // MATCHED -> UNMAPPED -> FAILED 순으로 정렬
+    // MATCHED(0) > UNMAPPED·NO_MATCH·DUPLICATE(1) > FAILED(2)
     private NumberExpression<Integer> mappingStatusRankExpr() {
         return new CaseBuilder()
                 .when(player.mappingStatus.eq(MappingStatus.MATCHED)).then(0)
-                .when(player.mappingStatus.eq(MappingStatus.UNMAPPED)).then(1)
-                .otherwise(2);
+                .when(player.mappingStatus.eq(MappingStatus.FAILED)).then(2)
+                .otherwise(1);
     }
+
+    private int mappingStatusRank(MappingStatus mappingStatus) {
+        return switch (mappingStatus) {
+            case MATCHED -> 0;
+            case UNMAPPED, NO_MATCH, DUPLICATE -> 1;
+            default -> 2;
+        };
+    }
+
 
     private BooleanExpression eqFirstName(String first) {
         if (first == null || first.isEmpty()) {
