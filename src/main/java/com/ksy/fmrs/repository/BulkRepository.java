@@ -25,6 +25,7 @@ import java.util.List;
 public class BulkRepository {
     private final JdbcTemplate jdbcTemplate;
 
+    //  외부 api로 가져온 player 는 mapping_status = UNMAPPED OR FAILED 라서 매핑 된 경우 기존 매핑 상태 유지
     public void bulkUpsertPlayers(List<Player> players) {
         String sql = "INSERT INTO player " +
                 "(player_api_id, name, first_name, last_name, nation_name, nation_logo_url, birth, height, weight, image_url, mapping_status) " +
@@ -39,7 +40,11 @@ public class BulkRepository {
                 "height = COALESCE(new.height, player.height), " +
                 "weight = COALESCE(new.weight, player.weight), " +
                 "image_url = new.image_url, " +
-                "mapping_status = new.mapping_status";
+                "mapping_status = CASE" +
+                " WHEN player.mapping_status IN ('MATCHED', 'NO_MATCH', 'DUPLICATE') " +
+                " THEN player.mapping_status " +
+                " ELSE new.mapping_status " +
+                " END;  ";
 
         jdbcTemplate.batchUpdate(sql, new BatchPreparedStatementSetter() {
 
