@@ -90,6 +90,25 @@ public class PlayerRepositoryCustomImpl implements PlayerRepositoryCustom {
         return new PageImpl<>(players, pageable, getSearchPlayerResultCount(condition));
     }
 
+    private Long getSearchPlayerResultCount(SearchPlayerCondition c) {
+        var countQuery = jpaQueryFactory.select(player.count()).from(player);
+        if(c.getTeamId() != null) {
+            countQuery.leftJoin(player.team, team);
+        }
+        return countQuery.where(playerDetailSearchCondition(c)).fetchOne();
+    }
+
+    private BooleanExpression playerDetailSearchCondition(SearchPlayerCondition c) {
+        if (c == null) {
+            return null;
+        }
+        return Expressions.allOf(
+                ageBetween(c.getAgeMin(), c.getAgeMax()),
+                teamIdEq(c.getTeamId()),
+                nationNameEq(c.getNationName()),
+                fmPlayerStatCondition(c));
+    }
+
     private BooleanExpression fmPlayerStatCondition(SearchPlayerCondition c) {
         if (!c.hasAnyStatCondition()) {
             return null;
@@ -102,14 +121,6 @@ public class PlayerRepositoryCustomImpl implements PlayerRepositoryCustom {
                         statConditions(c)
                 )
                 .exists();
-    }
-
-    private Long getSearchPlayerResultCount(SearchPlayerCondition c) {
-        var countQuery = jpaQueryFactory.select(player.count()).from(player);
-        if(c.getTeamId() != null) {
-            countQuery.leftJoin(player.team, team);
-        }
-        return countQuery.where(playerDetailSearchCondition(c)).fetchOne();
     }
 
     //     검색 조건
@@ -276,17 +287,6 @@ public class PlayerRepositoryCustomImpl implements PlayerRepositoryCustom {
                 .where(p.mappingStatus.eq(MappingStatus.UNMAPPED)
                         .and(cond))
                 .fetch();
-    }
-
-    private BooleanExpression playerDetailSearchCondition(SearchPlayerCondition c) {
-        if (c == null) {
-            return null;
-        }
-        return Expressions.allOf(
-                ageBetween(c.getAgeMin(), c.getAgeMax()),
-                teamIdEq(c.getTeamId()),
-                nationNameEq(c.getNationName()),
-                fmPlayerStatCondition(c));
     }
 
     private BooleanExpression statConditions(SearchPlayerCondition c) {
