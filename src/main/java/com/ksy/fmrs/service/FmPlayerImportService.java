@@ -10,6 +10,9 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
+import java.io.File;
+import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 
 @Slf4j
@@ -24,8 +27,21 @@ public class FmPlayerImportService {
     private int batchSize;
 
     public void saveFmPlayers(String dirPath, FmVersion fmVersion) {
-        List<FmPlayerDto> fmPlayerDtos = fmPlayerJsonDirectoryReader.getPlayersFromFmPlayers(dirPath);
-        List<FmPlayer> fmPlayers = fmPlayerMapper.toEntity(fmPlayerDtos, fmVersion);
-        fmPlayerBulkRepository.bulkInsertFmPlayersInBatches(fmPlayers, batchSize);
+        File[] files = fmPlayerJsonDirectoryReader.listJsonFiles(dirPath);
+        if (files == null || files.length == 0) {
+            log.warn("JSON 파일 없음: {}", dirPath);
+            return;
+        }
+        int total = files.length;
+        log.info("{} files found", total);
+        for (int i = 0; i < total; i += batchSize) {
+            int end = Math.min(total, i + batchSize);
+            List<FmPlayerDto> fmPlayerDtos = fmPlayerJsonDirectoryReader.readFiles(Arrays.copyOfRange(files, i, end));
+            List<FmPlayer> fmPlayers = fmPlayerMapper.toEntity(fmPlayerDtos,  fmVersion);
+            fmPlayerBulkRepository.bulkInsertFmPlayer(fmPlayers);
+
+            log.info("처리 완료: {}/{}", end, total);
+        }
+
     }
 }
