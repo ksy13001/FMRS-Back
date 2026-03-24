@@ -219,46 +219,6 @@ public class PlayerRepositoryCustomImpl implements PlayerRepositoryCustom {
     }
 
 
-    // fmPlayer 에 대응되는 Player 가 하나 이상인 경우 mapping_state = FAILED 처리
-    // 서브쿼리는 JPAExpressions 로 구현, 괄호랑 같은 역할
-    public Long updateDuplicatedUnmappedPlayersToFailed() {
-        return jpaQueryFactory
-                .update(player)
-                .set(player.mappingStatus, MappingStatus.FAILED)
-                .where(
-                        player.mappingStatus.eq(MappingStatus.UNMAPPED),
-                        JPAExpressions
-                                .select(fmPlayer.count())
-                                .from(fmPlayer)
-                                .where(
-                                        fmPlayer.firstName.eq(player.firstName),
-                                        fmPlayer.lastName.eq(player.lastName),
-                                        fmPlayer.birth.eq(player.birth),
-                                        fmPlayer.nationName.eq(player.nationName)
-                                ).gt(1L)
-                )
-                .execute();
-    }
-
-    public Long updateDuplicatedUnmappedFMPlayersToFailed() {
-        return jpaQueryFactory
-                .update(player)
-                .set(player.mappingStatus, MappingStatus.FAILED)
-                .where(
-                        player.mappingStatus.eq(MappingStatus.UNMAPPED),
-                        JPAExpressions
-                                .select(player.count())
-                                .from(player)
-                                .where(
-                                        player.firstName.eq(fmPlayer.firstName),
-                                        player.lastName.eq(fmPlayer.lastName),
-                                        player.birth.eq(fmPlayer.birth),
-                                        player.nationName.eq(fmPlayer.nationName)
-                                ).gt(1L)
-                )
-                .execute();
-    }
-
     public List<Player> findDuplicatedPlayers() {
         QPlayer p = QPlayer.player;
 
