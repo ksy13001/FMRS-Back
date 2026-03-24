@@ -4,6 +4,7 @@ import com.ksy.fmrs.domain.enums.MappingStatus;
 import com.ksy.fmrs.domain.player.Player;
 import com.ksy.fmrs.domain.player.QPlayer;
 import com.ksy.fmrs.dto.search.SearchPlayerCondition;
+import com.ksy.fmrs.exception.InvalidSearchConditionException;
 import com.ksy.fmrs.util.time.TimeProvider;
 import com.querydsl.core.BooleanBuilder;
 import com.querydsl.core.Tuple;
@@ -312,13 +313,23 @@ public class PlayerRepositoryCustomImpl implements PlayerRepositoryCustom {
 
     // 18 50 -> 2007, 1975
     private BooleanExpression ageBetween(Integer ageMin, Integer ageMax) {
-        if (ageMin == null || ageMax == null) {
+        LocalDate today = timeProvider.getCurrentLocalDate();
+
+        if (ageMin == null && ageMax == null) {
             return null;
         }
-        LocalDate today = timeProvider.getCurrentLocalDate();
-        LocalDate toBirth = today.minusYears(ageMin);
-        LocalDate fromBirth = today.minusYears(ageMax);
-        return player.birth.between(fromBirth, toBirth);
+        if (ageMin != null && ageMax != null && ageMin > ageMax) {
+            throw new InvalidSearchConditionException("ageMin must be <= ageMax");
+        }
+        if (ageMin != null && ageMax != null) {
+            LocalDate newestBirth = today.minusYears(ageMin);
+            LocalDate oldestBirth = today.minusYears(ageMax + 1L).plusDays(1);
+            return player.birth.between(oldestBirth, newestBirth);
+        }
+        if (ageMin != null) {
+            return player.birth.loe(today.minusYears(ageMin));
+        }
+        return player.birth.goe(today.minusYears(ageMax + 1L).plusDays(1));
     }
 
     private BooleanExpression goeStat(Integer stat, NumberExpression<Integer> expr) {

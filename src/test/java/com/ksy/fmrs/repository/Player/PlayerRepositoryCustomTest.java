@@ -7,6 +7,7 @@ import com.ksy.fmrs.domain.enums.MappingStatus;
 import com.ksy.fmrs.domain.player.FmPlayer;
 import com.ksy.fmrs.domain.player.Player;
 import com.ksy.fmrs.dto.search.SearchPlayerCondition;
+import com.ksy.fmrs.exception.InvalidSearchConditionException;
 import org.assertj.core.api.Assertions;
 import static org.assertj.core.api.Assertions.assertThat;
 import org.junit.jupiter.api.BeforeEach;
@@ -33,6 +34,7 @@ class PlayerRepositoryCustomTest {
 
     private static final int LIMIT = 6;
     private static final Pageable PAGEABLE = PageRequest.of(0, 6);
+    private static final LocalDate TEST_TODAY = LocalDate.of(2000, 8, 14);
 
     @Autowired
     private TestEntityManager tem;
@@ -171,29 +173,77 @@ class PlayerRepositoryCustomTest {
 
 
     @Test
-    @DisplayName("상세 검색 시, 최소 나이와 최대 나이의 선수들 검색")
+    @DisplayName("상세 검색 시 최소/최대 나이 경계를 포함해 조회한다")
     void detail_search_between_age(){
         // given
-        // now - 2000.8.14
         int minAge = 20;
         int maxAge = 30;
-        Player ob = Player.builder().firstName("ob").birth(LocalDate.of(1000, 8, 14)).build();
-        Player p = Player.builder().firstName("p").birth(LocalDate.of(1980, 8, 14)).build();
-        Player yb = Player.builder().firstName("yb").birth(LocalDate.of(3000, 8, 14)).build();
+        Player oldestIncluded = buildPlayer("oldestIncluded", LocalDate.of(1969, 8, 15));
+        Player tooOld = buildPlayer("tooOld", LocalDate.of(1969, 8, 14));
+        Player youngestIncluded = buildPlayer("youngestIncluded", LocalDate.of(1980, 8, 14));
+        Player tooYoung = buildPlayer("tooYoung", LocalDate.of(1980, 8, 15));
 
-        persistAndFlushPlayers(List.of(ob, p, yb));
+        persistAndFlushPlayers(List.of(oldestIncluded, tooOld, youngestIncluded, tooYoung));
 
-        SearchPlayerCondition searchPlayerCondition = new SearchPlayerCondition();
-        searchPlayerCondition.setAgeMin(minAge);
-        searchPlayerCondition.setAgeMax(maxAge);
-
-        // when
-        Page<Player> actual = playerRepository.searchPlayerByDetailCondition(searchPlayerCondition, PAGEABLE);
+        Page<Player> actual = searchPlayerByAge(minAge, maxAge);
 
         // then
-        Assertions.assertThat(actual.getContent()).hasSize(1);
-        Assertions.assertThat(actual.getContent().getFirst().getFirstName())
-                .isEqualTo(p.getFirstName());
+        assertThat(actual.getContent())
+                .extracting(Player::getFirstName)
+                .containsExactlyInAnyOrder("oldestIncluded", "youngestIncluded");
+    }
+
+    @Test
+    @DisplayName("상세 검색 시 ageMin 만 주어지면 해당 나이 이상만 조회한다")
+    void detail_search_with_only_age_min() {
+        // given
+        Player exactMinAge = buildPlayer("exactMinAge", TEST_TODAY.minusYears(20));
+        Player olderThanMin = buildPlayer("olderThanMin", LocalDate.of(1970, 1, 1));
+        Player tooYoung = buildPlayer("tooYoung", TEST_TODAY.minusYears(20).plusDays(1));
+
+        persistAndFlushPlayers(List.of(exactMinAge, olderThanMin, tooYoung));
+
+        // when
+        Page<Player> actual = searchPlayerByAge(20, null);
+
+        // then
+        assertThat(actual.getContent())
+                .extracting(Player::getFirstName)
+                .containsExactlyInAnyOrder("exactMinAge", "olderThanMin");
+    }
+
+    @Test
+    @DisplayName("상세 검색 시 ageMax 만 주어지면 해당 나이 이하만 조회한다")
+    void detail_search_with_only_age_max() {
+        // given
+        Player exactMaxAge = buildPlayer("exactMaxAge", LocalDate.of(1969, 8, 15));
+        Player youngerThanMax = buildPlayer("youngerThanMax", LocalDate.of(1985, 1, 1));
+        Player tooOld = buildPlayer("tooOld", LocalDate.of(1969, 8, 14));
+
+        persistAndFlushPlayers(List.of(exactMaxAge, youngerThanMax, tooOld));
+
+        // when
+        Page<Player> actual = searchPlayerByAge(null, 30);
+
+        // then
+        assertThat(actual.getContent())
+                .extracting(Player::getFirstName)
+                .containsExactlyInAnyOrder("exactMaxAge", "youngerThanMax");
+    }
+
+    @Test
+    @DisplayName("상세 검색 시 ageMin 이 ageMax 보다 크면 예외가 발생한다")
+    void detail_search_invalid_age_range() {
+        // given
+        SearchPlayerCondition searchPlayerCondition = new SearchPlayerCondition();
+        searchPlayerCondition.setAgeMin(31);
+        searchPlayerCondition.setAgeMax(30);
+
+        // when // then
+        Assertions.assertThatThrownBy(() ->
+                playerRepository.searchPlayerByDetailCondition(searchPlayerCondition, PAGEABLE))
+                .isInstanceOf(InvalidSearchConditionException.class)
+                .hasMessage("ageMin must be <= ageMax");
     }
 
     private void createPlayers(String name){
@@ -228,6 +278,20 @@ class PlayerRepositoryCustomTest {
                     .mappingStatus(status)
                     .build());
         }
+    }
+
+    private Player buildPlayer(String firstName, LocalDate birth) {
+        return Player.builder()
+                .firstName(firstName)
+                .birth(birth)
+                .build();
+    }
+
+    private Page<Player> searchPlayerByAge(Integer ageMin, Integer ageMax) {
+        SearchPlayerCondition searchPlayerCondition = new SearchPlayerCondition();
+        searchPlayerCondition.setAgeMin(ageMin);
+        searchPlayerCondition.setAgeMax(ageMax);
+        return playerRepository.searchPlayerByDetailCondition(searchPlayerCondition, PAGEABLE);
     }
 
     /**
