@@ -1,3 +1,4 @@
+-- case1. player1명에 fm_uid 후보가 2개 이상
 UPDATE player p
 SET p.mapping_status = 'DUPLICATE'
 WHERE p.mapping_status = 'UNMAPPED'
