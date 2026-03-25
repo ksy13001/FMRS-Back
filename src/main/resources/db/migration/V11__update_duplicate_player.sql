@@ -9,4 +9,4 @@ WHERE p.mapping_status = 'UNMAPPED'
                AND fm.birth       = p.birth
                AND fm.nation_name = p.nation_name
                AND fm.player_id IS NULL
-          ) > 1;ㅏ
+          ) > 1;
