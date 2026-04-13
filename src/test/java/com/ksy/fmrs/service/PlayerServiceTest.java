@@ -76,7 +76,7 @@ public class PlayerServiceTest {
         team.updateLeague(league);
         ronaldo24.updateTeam(team);
         ronaldo24.updateFmPlayer(fmPlayer);
-        ronaldo24.updateLatestFmData(180, 200, FmVersion.FM24);
+        ronaldo24.updateLatestFmData(180, 200, FmVersion.FM24, false);
     }
 
     @Test
@@ -217,7 +217,7 @@ public class PlayerServiceTest {
         // given — fmPlayer 미연결, latestCurrentAbility만 세팅
         Player player = Player.builder()
                 .firstName("son").mappingStatus(MappingStatus.MATCHED).build();
-        player.updateLatestFmData(155, 180, FmVersion.FM24);
+        player.updateLatestFmData(155, 180, FmVersion.FM24, false);
 
         Pageable pageable = PageRequest.of(0, 10);
         when(playerRepository.searchPlayerByName("son", pageable, null, null, null))

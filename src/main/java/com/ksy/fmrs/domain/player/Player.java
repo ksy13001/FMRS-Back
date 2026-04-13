@@ -185,11 +185,12 @@ public class Player {
         return this.team.getLogoUrl();
     }
 
-    public void updateLatestFmData(Integer ca, Integer pa, FmVersion fmVersion) {
+    public void updateLatestFmData(Integer ca, Integer pa, FmVersion fmVersion, Boolean isGK) {
         if (this.latestFmVersion == null || this.latestFmVersion.getYear() <= fmVersion.getYear()) {
             this.latestCurrentAbility = ca;
             this.latestPotentialAbility = pa;
             this.latestFmVersion = fmVersion;
+            this.isGK = isGK;
         }
     }
 

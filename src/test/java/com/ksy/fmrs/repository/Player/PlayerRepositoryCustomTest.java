@@ -404,7 +404,7 @@ class PlayerRepositoryCustomTest {
                     .fmVersion(FmVersion.FM24)
                     .build();
             player.updateFmPlayer(fmPlayer);
-            player.updateLatestFmData(fmPlayer.getCurrentAbility(), fmPlayer.getPotentialAbility(), fmPlayer.getFmVersion());
+            player.updateLatestFmData(fmPlayer.getCurrentAbility(), fmPlayer.getPotentialAbility(), fmPlayer.getFmVersion(), false);
             tem.persist(fmPlayer);
             tem.persist(player);
         }
@@ -426,7 +426,7 @@ class PlayerRepositoryCustomTest {
                 .build();
         player.updateFmPlayer(fm24);
         player.updateFmPlayer(fm26);
-        player.updateLatestFmData(ca26, ca26, fm26.getFmVersion());
+        player.updateLatestFmData(ca26, ca26, fm26.getFmVersion(), false);
         tem.persist(fm24);
         tem.persist(fm26);
         tem.persist(player);
