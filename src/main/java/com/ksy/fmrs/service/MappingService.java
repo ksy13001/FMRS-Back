@@ -22,8 +22,8 @@ public class MappingService {
 
     @Transactional
     public int matchExact(){
-        int linkedRows = mappingRepository.linkFmPlayersByExactMatch();
-        int matchedPlayers = mappingRepository.markMatchedByLinkedFmPlayer();
+        int linkedRows = mappingRepository.assignPlayerIdToExactMatchedFmPlayers();
+        int matchedPlayers = mappingRepository.markPlayersWithLinkedFmPlayersAsMatched();
         mappingRepository.markRemainingAsNoMatch();
         return linkedRows + matchedPlayers;
     }

@@ -24,7 +24,7 @@ public class MappingRepository {
         return jdbcTemplate.update(query);
     }
 
-    public int linkFmPlayersByExactMatch() {
+    public int assignPlayerIdToExactMatchedFmPlayers() {
         String query = sqlLoader.load(SQL_DIR + "link_fmplayer_by_exact_match.sql");
         return jdbcTemplate.update(query);
     }
@@ -34,7 +34,7 @@ public class MappingRepository {
         return jdbcTemplate.update(query);
     }
 
-    public int markMatchedByLinkedFmPlayer() {
+    public int markPlayersWithLinkedFmPlayersAsMatched() {
         String query = sqlLoader.load(SQL_DIR + "update_matched_players.sql");
         return jdbcTemplate.update(query);
     }
