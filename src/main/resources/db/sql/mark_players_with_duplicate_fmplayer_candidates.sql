@@ -1,5 +1,6 @@
 UPDATE player p
-SET p.mapping_status = 'DUPLICATE'
+SET p.mapping_status = 'DUPLICATE',
+    p.mapping_method = NULL
 WHERE p.mapping_status = 'UNMAPPED'
   AND (
       SELECT COUNT(DISTINCT fm.fm_uid)
