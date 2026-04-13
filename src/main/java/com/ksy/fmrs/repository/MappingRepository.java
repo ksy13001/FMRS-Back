@@ -42,4 +42,9 @@ public class MappingRepository {
         String query = sqlLoader.load(SQL_DIR + "mark_players_with_linked_fmplayers_as_matched_and_EXACT_4KEY.sql");
         return jdbcTemplate.update(query);
     }
+
+    public int refreshPlayersLastFmData(){
+        String query = sqlLoader.load(SQL_DIR + "update_players_last_fm_data.sql");
+        return jdbcTemplate.update(query);
+    }
 }

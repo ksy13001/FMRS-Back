@@ -1,9 +1,13 @@
 package com.ksy.fmrs.service;
 
+import com.ksy.fmrs.domain.player.Player;
 import com.ksy.fmrs.repository.MappingRepository;
+import com.ksy.fmrs.repository.Player.PlayerRepository;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
+
+import java.util.List;
 
 @RequiredArgsConstructor
 @Service
@@ -37,7 +41,8 @@ public class MappingService {
         return 0;
     }
 
+    @Transactional
     public int refreshLatestFmData(){
-        return 0;
+        return mappingRepository.refreshPlayersLastFmData();
     }
 }
