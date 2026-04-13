@@ -11,25 +11,26 @@ public class MappingService {
     private final MappingRepository mappingRepository;
 
     @Transactional
+    public int markPlayersWithMissingMappingKeysAsFailed() {
+        return mappingRepository.markPlayersWithMissingMappingKeysAsFailed();
+    }
+
+    @Transactional
     public int propagatePlayerIdByFmUid(){
-        return mappingRepository.linkExistingPlayerIdByFmUid();
+        return mappingRepository.propagatePlayerIdByFmUid();
     }
 
     @Transactional
     public int markDuplicates(){
-        return mappingRepository.updateDuplicate();
+        return mappingRepository.markPlayersWithDuplicateFmPlayerCandidates();
     }
 
     @Transactional
     public int matchExact(){
         int linkedRows = mappingRepository.assignPlayerIdToExactMatchedFmPlayers();
         int matchedPlayers = mappingRepository.markPlayersWithLinkedFmPlayersAsMatched();
-        mappingRepository.markRemainingAsNoMatch();
+        mappingRepository.markRemainingPlayersAsNoMatch();
         return linkedRows + matchedPlayers;
-    }
-
-    public int matchNoMatch(){
-        return 0;
     }
 
     public int matchFuzzy(){

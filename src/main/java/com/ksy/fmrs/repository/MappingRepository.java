@@ -13,29 +13,33 @@ public class MappingRepository {
     private final JdbcTemplate jdbcTemplate;
     private final SqlLoader sqlLoader;
 
-    //todo 현재 트랜잭션 내에 sql load 작업 들어간 상태 - 분리예정
-    public int updateDuplicate() {
-        String query = sqlLoader.load(SQL_DIR + "update_duplicate_player_with_fmplayer.sql");
+    public int markPlayersWithMissingMappingKeysAsFailed() {
+        String query = sqlLoader.load(SQL_DIR + "mark_players_with_missing_mapping_keys_as_failed.sql");
         return jdbcTemplate.update(query);
     }
 
-    public int linkExistingPlayerIdByFmUid() {
-        String query = sqlLoader.load(SQL_DIR + "update_fmplayer_existing_playerId_by_fmUid.sql");
+    public int markPlayersWithDuplicateFmPlayerCandidates() {
+        String query = sqlLoader.load(SQL_DIR + "mark_players_with_duplicate_fmplayer_candidates.sql");
+        return jdbcTemplate.update(query);
+    }
+
+    public int propagatePlayerIdByFmUid() {
+        String query = sqlLoader.load(SQL_DIR + "propagate_player_id_by_fm_uid.sql");
         return jdbcTemplate.update(query);
     }
 
     public int assignPlayerIdToExactMatchedFmPlayers() {
-        String query = sqlLoader.load(SQL_DIR + "link_fmplayer_by_exact_match.sql");
+        String query = sqlLoader.load(SQL_DIR + "link_exact_matched_fmplayers_to_players.sql");
         return jdbcTemplate.update(query);
     }
 
-    public int markRemainingAsNoMatch() {
-        String query = sqlLoader.load(SQL_DIR + "mark_remaining_as_no_match.sql");
+    public int markRemainingPlayersAsNoMatch() {
+        String query = sqlLoader.load(SQL_DIR + "mark_remaining_players_as_no_match.sql");
         return jdbcTemplate.update(query);
     }
 
     public int markPlayersWithLinkedFmPlayersAsMatched() {
-        String query = sqlLoader.load(SQL_DIR + "update_matched_players.sql");
+        String query = sqlLoader.load(SQL_DIR + "mark_players_with_linked_fmplayers_as_matched.sql");
         return jdbcTemplate.update(query);
     }
 }
