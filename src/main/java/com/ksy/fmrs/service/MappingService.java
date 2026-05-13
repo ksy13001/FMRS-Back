@@ -10,9 +10,11 @@ import com.ksy.fmrs.repository.MappingRepository;
 import com.ksy.fmrs.repository.Player.FmPlayerRepository;
 import com.ksy.fmrs.repository.Player.PlayerRepository;
 import com.ksy.fmrs.service.mapping.FuzzyPlayerMatcher;
+import jakarta.persistence.EntityManager;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
@@ -27,11 +29,13 @@ public class MappingService {
     private static final int FUZZY_CANDIDATE_KEY_BATCH_SIZE = 500;
     private static final int FUZZY_SCORING_LOG_INTERVAL = 5_000;
     private static final int FUZZY_DIAGNOSTIC_SAMPLE_SIZE = 10;
+    private static final int FUZZY_PLAYER_CHUNK_SIZE = 1_000;
 
     private final MappingRepository mappingRepository;
     private final PlayerRepository playerRepository;
     private final FmPlayerRepository  fmPlayerRepository;
     private final FuzzyPlayerMatcher fuzzyPlayerMatcher;
+    private final EntityManager entityManager;
 
     @Transactional
     public int markPlayersWithMissingMappingKeysAsFailed() {
@@ -63,24 +67,101 @@ public class MappingService {
 
     @Transactional
     public FuzzyMappingResponseDto matchFuzzy(String jobId){
-        log.info("[mapping-job:{}] fuzzy mapping loading NO_MATCH players", jobId);
-        List<Player> noMatchPlayers = playerRepository.findPlayersByMappingStatus(MappingStatus.NO_MATCH);
-        log.info("[mapping-job:{}] fuzzy mapping loaded NO_MATCH players: {}", jobId, noMatchPlayers.size());
+        long lastPlayerId = 0L;
+        long totalProcessedPlayers = 0;
+        long totalCandidateKeyCount = 0;
+        long totalCandidateQueryCount = 0;
+        long totalCandidateFmPlayerCount = 0;
+        long totalMatchedCandidates = 0;
+        long totalDuplicateCandidates = 0;
+        long totalNoMatchCandidates = 0;
+        long totalLinkedFmPlayerRows = 0;
+        long totalMatchedPlayersUpdated = 0;
+        long totalDuplicatePlayersUpdated = 0;
+        long totalRefreshedPlayers = 0;
+
+        log.info("[mapping-job:{}] fuzzy mapping started with player chunk size: {}", jobId, FUZZY_PLAYER_CHUNK_SIZE);
+
+        while (true) {
+            List<Player> noMatchPlayers = playerRepository.findPlayersByMappingStatusAfterId(
+                    MappingStatus.NO_MATCH,
+                    lastPlayerId,
+                    PageRequest.of(0, FUZZY_PLAYER_CHUNK_SIZE)
+            );
+
+            if (noMatchPlayers.isEmpty()) {
+                break;
+            }
+
+            FuzzyMappingResponseDto chunkResult = matchFuzzyChunk(jobId, noMatchPlayers);
+
+            totalProcessedPlayers += chunkResult.processedPlayers();
+            totalCandidateKeyCount += chunkResult.candidateKeyCount();
+            totalCandidateQueryCount += chunkResult.candidateQueryCount();
+            totalCandidateFmPlayerCount += chunkResult.candidateFmPlayerCount();
+            totalMatchedCandidates += chunkResult.matchedCandidates();
+            totalDuplicateCandidates += chunkResult.duplicateCandidates();
+            totalNoMatchCandidates += chunkResult.noMatchCandidates();
+            totalLinkedFmPlayerRows += chunkResult.linkedFmPlayerRows();
+            totalMatchedPlayersUpdated += chunkResult.matchedPlayersUpdated();
+            totalDuplicatePlayersUpdated += chunkResult.duplicatePlayersUpdated();
+            totalRefreshedPlayers += chunkResult.refreshedPlayers();
+
+            lastPlayerId = noMatchPlayers.get(noMatchPlayers.size() - 1).getId();
+
+            log.info(
+                    "[mapping-job:{}] fuzzy mapping chunk completed: lastPlayerId={}, totalProcessed={}, totalMatched={}, totalDuplicate={}, totalNoMatch={}",
+                    jobId,
+                    lastPlayerId,
+                    totalProcessedPlayers,
+                    totalMatchedCandidates,
+                    totalDuplicateCandidates,
+                    totalNoMatchCandidates
+            );
+            entityManager.flush();
+            entityManager.clear();
+        }
+
+        return new FuzzyMappingResponseDto(
+                totalProcessedPlayers,
+                totalCandidateKeyCount,
+                totalCandidateQueryCount,
+                totalCandidateFmPlayerCount,
+                totalMatchedCandidates,
+                totalDuplicateCandidates,
+                totalNoMatchCandidates,
+                totalLinkedFmPlayerRows,
+                totalMatchedPlayersUpdated,
+                totalDuplicatePlayersUpdated,
+                totalRefreshedPlayers
+        );
+    }
+
+    private FuzzyMappingResponseDto matchFuzzyChunk(String jobId, List<Player> noMatchPlayers) {
+        long firstPlayerId = noMatchPlayers.get(0).getId();
+        long lastPlayerId = noMatchPlayers.get(noMatchPlayers.size() - 1).getId();
+        log.info(
+                "[mapping-job:{}] fuzzy mapping processing chunk: size={}, firstPlayerId={}, lastPlayerId={}",
+                jobId,
+                noMatchPlayers.size(),
+                firstPlayerId,
+                lastPlayerId
+        );
 
         List<BirthNationKey> candidateKeys = noMatchPlayers.stream()
                 .map(BirthNationKey::from)
                 .filter(BirthNationKey::isComplete)
                 .distinct()
                 .toList();
-        log.info("[mapping-job:{}] fuzzy mapping candidate keys: {}, query batches: {}",
+        log.info("[mapping-job:{}] fuzzy mapping chunk candidate keys: {}, query batches: {}",
                 jobId, candidateKeys.size(), getCandidateQueryCount(candidateKeys));
 
         List<FmPlayer> candidateFmPlayers = findUnlinkedFmPlayersByBirthNationKeys(jobId, candidateKeys);
-        log.info("[mapping-job:{}] fuzzy mapping loaded candidate fmplayers: {}", jobId, candidateFmPlayers.size());
+        log.info("[mapping-job:{}] fuzzy mapping chunk loaded candidate fmplayers: {}", jobId, candidateFmPlayers.size());
 
         Map<BirthNationKey, List<FmPlayer>> candidatesByKey = candidateFmPlayers.stream()
                 .collect(Collectors.groupingBy(BirthNationKey::from));
-        log.info("[mapping-job:{}] fuzzy mapping grouped candidate keys: {}", jobId, candidatesByKey.size());
+        log.info("[mapping-job:{}] fuzzy mapping chunk grouped candidate keys: {}", jobId, candidatesByKey.size());
 
         List<FuzzyMappingResult> results = new ArrayList<>(noMatchPlayers.size());
 
@@ -91,7 +172,7 @@ public class MappingService {
 
             int processed = i + 1;
             if (processed % FUZZY_SCORING_LOG_INTERVAL == 0 || processed == noMatchPlayers.size()) {
-                log.info("[mapping-job:{}] fuzzy mapping scored players: {}/{}", jobId, processed, noMatchPlayers.size());
+                log.info("[mapping-job:{}] fuzzy mapping chunk scored players: {}/{}", jobId, processed, noMatchPlayers.size());
             }
         }
 
@@ -105,22 +186,22 @@ public class MappingService {
 
         long noMatchCandidates = results.size() - matchedResults.size() - duplicatedResults.size();
         logFuzzyDiagnostics(jobId, results);
-        log.info("[mapping-job:{}] fuzzy mapping scoring result: matched={}, duplicate={}, noMatch={}",
+        log.info("[mapping-job:{}] fuzzy mapping chunk scoring result: matched={}, duplicate={}, noMatch={}",
                 jobId, matchedResults.size(), duplicatedResults.size(), noMatchCandidates);
 
         long linkedFmPlayerRows = sumUpdatedRows(mappingRepository.linkFuzzyMatchedFmPlayersToPlayers(matchedResults));
-        log.info("[mapping-job:{}] fuzzy mapping linked fmplayer rows: {}", jobId, linkedFmPlayerRows);
+        log.info("[mapping-job:{}] fuzzy mapping chunk linked fmplayer rows: {}", jobId, linkedFmPlayerRows);
 
         long matchedPlayersUpdated = sumUpdatedRows(mappingRepository.markPlayersAsFuzzyMatched(matchedResults));
-        log.info("[mapping-job:{}] fuzzy mapping updated matched players: {}", jobId, matchedPlayersUpdated);
+        log.info("[mapping-job:{}] fuzzy mapping chunk updated matched players: {}", jobId, matchedPlayersUpdated);
 
         long duplicatePlayersUpdated = sumUpdatedRows(mappingRepository.markPlayersAsDuplicate(duplicatedResults));
-        log.info("[mapping-job:{}] fuzzy mapping updated duplicate players: {}", jobId, duplicatePlayersUpdated);
+        log.info("[mapping-job:{}] fuzzy mapping chunk updated duplicate players: {}", jobId, duplicatePlayersUpdated);
 
         long refreshedPlayers = matchedPlayersUpdated > 0
                 ? mappingRepository.refreshPlayersLastFmData()
                 : 0;
-        log.info("[mapping-job:{}] fuzzy mapping refreshed players: {}", jobId, refreshedPlayers);
+        log.info("[mapping-job:{}] fuzzy mapping chunk refreshed players: {}", jobId, refreshedPlayers);
 
         return new FuzzyMappingResponseDto(
                 results.size(),

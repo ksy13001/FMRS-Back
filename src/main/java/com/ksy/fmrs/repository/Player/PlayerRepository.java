@@ -2,6 +2,7 @@ package com.ksy.fmrs.repository.Player;
 
 import com.ksy.fmrs.domain.enums.MappingStatus;
 import com.ksy.fmrs.domain.player.Player;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.stereotype.Repository;
@@ -72,4 +73,10 @@ public interface PlayerRepository extends JpaRepository<Player, Long>, PlayerRep
     @Query("SELECT p FROM Player p " +
             "WHERE p.mappingStatus = :mappingStatus")
     List<Player> findPlayersByMappingStatus(MappingStatus mappingStatus);
+
+    @Query("SELECT p FROM Player p " +
+            "WHERE p.mappingStatus = :mappingStatus " +
+            "AND p.id > :lastId " +
+            "ORDER BY p.id ASC")
+    List<Player> findPlayersByMappingStatusAfterId(MappingStatus mappingStatus, Long lastId, Pageable pageable);
 }
