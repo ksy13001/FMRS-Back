@@ -61,6 +61,18 @@ public class MappingService {
     }
 
     @Transactional
+    public int matchTokenName(){
+        int linkedRows = mappingRepository.assignPlayerIdToTokenNameMatchedFmPlayers();
+        int matchedPlayers = mappingRepository.markPlayersWithTokenNameLinkedFmPlayersAsMatched();
+
+        if (matchedPlayers > 0) {
+            mappingRepository.refreshPlayersLastFmData();
+        }
+
+        return linkedRows + matchedPlayers;
+    }
+
+    @Transactional
     public FuzzyMappingResponseDto matchFuzzy(){
         return matchFuzzy("direct");
     }
