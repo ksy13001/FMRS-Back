@@ -30,10 +30,9 @@ public class AdminController {
         return cnt;
     }
 
-
-    @PutMapping("/api/admin/mapping/fuzzy")
-    public FuzzyMappingResponseDto markNoMatchPlayers(){
-        return mappingService.matchFuzzy();
+    @PutMapping("/api/admin/mapping/4key/name-exact")
+    public int matchTokenNamePlayers(){
+        return mappingService.matchTokenName();
     }
 
     @PostMapping("/api/admin/mapping/jobs/fuzzy")

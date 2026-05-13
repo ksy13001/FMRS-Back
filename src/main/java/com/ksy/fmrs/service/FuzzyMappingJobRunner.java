@@ -22,9 +22,13 @@ public class FuzzyMappingJobRunner {
             FuzzyMappingResponseDto result = mappingService.matchFuzzy(jobId);
             mappingJobStore.complete(jobId, result);
             log.info("[mapping-job:{}] fuzzy mapping completed: {}", jobId, result);
-        } catch (Exception e) {
+        } catch (Throwable e) {
             mappingJobStore.fail(jobId, e.getMessage());
             log.error("[mapping-job:{}] fuzzy mapping failed", jobId, e);
+
+            if (e instanceof Error error) {
+                throw error;
+            }
         }
     }
 }
