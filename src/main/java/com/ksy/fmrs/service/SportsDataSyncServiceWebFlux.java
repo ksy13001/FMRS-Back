@@ -255,33 +255,6 @@ public class SportsDataSyncServiceWebFlux{
         });
     }
 
-
-    @Transactional
-    public int updateAllPlayersFmData() {
-//        List<Player> players = new ArrayList<>();
-//        List<FmPlayer> fmPlayers = new ArrayList<>();
-//        playerRepository.findByMappingStatus(PlayerMappingStatus.UNMAPPED).forEach(player -> {
-//            List<FmPlayer> findFmPlayer = fmPlayerRepository.findFmPlayerByFirstNameAndLastNameAndBirthAndNationName(
-//                    player.getFirstName(), player.getLastName(), player.getBirth(), player.getNationName()
-//            );
-//            if(findFmPlayer.size() == 1){
-//                log.info("Add fmPlayer : id{}", findFmPlayer.getFirst().getId());
-//                fmPlayers.add(findFmPlayer.getFirst());
-//            }
-//        });
-//        int total = fmPlayers.size();
-//        for (int i = 0; i < total; i += CHUNK_SIZE) {
-//            int end = Math.min(i + CHUNK_SIZE, total);
-//            bulkRepository.bulkUpdatePlayersFmData(players.subList(i, end), fmPlayers.subList(i, end));
-//        }
-        return bulkRepository.mappingPlayerAndFmPlayer();
-    }
-
-    @Transactional
-    public int updatePlayersAsFailedByDuplicatedFmPlayer() {
-        return bulkRepository.updatePlayersAsFailedByDuplicatedFmPlayer();
-    }
-
     private List<Integer> createAllLeagueApiIds() {
         List<Integer> urls = new ArrayList<>();
         for (int i = FIRST_LEAGUE_ID; i <= LAST_LEAGUE_ID; i++) {

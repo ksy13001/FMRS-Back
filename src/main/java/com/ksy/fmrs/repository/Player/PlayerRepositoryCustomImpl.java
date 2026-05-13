@@ -4,6 +4,7 @@ import com.ksy.fmrs.domain.enums.MappingStatus;
 import com.ksy.fmrs.domain.player.Player;
 import com.ksy.fmrs.domain.player.QPlayer;
 import com.ksy.fmrs.dto.search.SearchPlayerCondition;
+import com.ksy.fmrs.exception.InvalidSearchConditionException;
 import com.ksy.fmrs.util.time.TimeProvider;
 import com.querydsl.core.BooleanBuilder;
 import com.querydsl.core.Tuple;
@@ -61,6 +62,11 @@ public class PlayerRepositoryCustomImpl implements PlayerRepositoryCustom {
                 .limit(limit + 1) // limit + 1만큼 불러 와지면 다음 페이지가 존재함
                 .fetch();
 
+        return playerListToSlice(players, pageable);
+    }
+
+    private Slice<Player> playerListToSlice(List<Player> players, Pageable pageable) {
+        int limit = pageable.getPageSize();
         boolean hasNext = players.size() > limit;
         List<Player> content = hasNext ? players.subList(0, limit) : players;
         return new SliceImpl<>(content, pageable, hasNext);
@@ -85,6 +91,25 @@ public class PlayerRepositoryCustomImpl implements PlayerRepositoryCustom {
         return new PageImpl<>(players, pageable, getSearchPlayerResultCount(condition));
     }
 
+    private Long getSearchPlayerResultCount(SearchPlayerCondition c) {
+        var countQuery = jpaQueryFactory.select(player.count()).from(player);
+        if(c.getTeamId() != null) {
+            countQuery.leftJoin(player.team, team);
+        }
+        return countQuery.where(playerDetailSearchCondition(c)).fetchOne();
+    }
+
+    private BooleanExpression playerDetailSearchCondition(SearchPlayerCondition c) {
+        if (c == null) {
+            return null;
+        }
+        return Expressions.allOf(
+                ageBetween(c.getAgeMin(), c.getAgeMax()),
+                teamIdEq(c.getTeamId()),
+                nationNameEq(c.getNationName()),
+                fmPlayerStatCondition(c));
+    }
+
     private BooleanExpression fmPlayerStatCondition(SearchPlayerCondition c) {
         if (!c.hasAnyStatCondition()) {
             return null;
@@ -97,14 +122,6 @@ public class PlayerRepositoryCustomImpl implements PlayerRepositoryCustom {
                         statConditions(c)
                 )
                 .exists();
-    }
-
-    private Long getSearchPlayerResultCount(SearchPlayerCondition c) {
-        var countQuery = jpaQueryFactory.select(player.count()).from(player);
-        if(c.getTeamId() != null) {
-            countQuery.leftJoin(player.team, team);
-        }
-        return countQuery.where(playerDetailSearchCondition(c)).fetchOne();
     }
 
     //     검색 조건
@@ -131,7 +148,7 @@ public class PlayerRepositoryCustomImpl implements PlayerRepositoryCustom {
 
     /**
      * ORDER BY
-     * 1. mappingStatus - MATCHED, UNMAPPED, FAILED
+     * 1. mappingStatus - MATCHED > (UNMAPPED, NO_MATCH, DUPLICATE) / FAILED-검색 제외
      * 2. if mappingStatus == MATCHED, currentAbility desc
      * 3. id asc
      */
@@ -140,11 +157,7 @@ public class PlayerRepositoryCustomImpl implements PlayerRepositoryCustom {
         if (lastPlayerId == null || lastMappingStatus == null) {
             return null;
         }
-        int lastMappingStatusRank = switch (lastMappingStatus) {
-            case MATCHED -> 0;
-            case UNMAPPED -> 1;
-            default -> 2;
-        };
+        int lastMappingStatusRank = mappingStatusRank(lastMappingStatus);
 
         if (lastMappingStatus != MappingStatus.MATCHED || lastCurrentAbility == null) {
             return mappingStatusRankExpr().gt(lastMappingStatusRank).or(
@@ -160,13 +173,22 @@ public class PlayerRepositoryCustomImpl implements PlayerRepositoryCustom {
         );
     }
 
-    // MATCHED -> UNMAPPED -> FAILED 순으로 정렬
+    // MATCHED(0) > UNMAPPED·NO_MATCH·DUPLICATE(1) > FAILED(2)
     private NumberExpression<Integer> mappingStatusRankExpr() {
         return new CaseBuilder()
                 .when(player.mappingStatus.eq(MappingStatus.MATCHED)).then(0)
-                .when(player.mappingStatus.eq(MappingStatus.UNMAPPED)).then(1)
-                .otherwise(2);
+                .when(player.mappingStatus.eq(MappingStatus.FAILED)).then(2)
+                .otherwise(1);
     }
+
+    private int mappingStatusRank(MappingStatus mappingStatus) {
+        return switch (mappingStatus) {
+            case MATCHED -> 0;
+            case UNMAPPED, NO_MATCH, DUPLICATE -> 1;
+            default -> 2;
+        };
+    }
+
 
     private BooleanExpression eqFirstName(String first) {
         if (first == null || first.isEmpty()) {
@@ -198,46 +220,6 @@ public class PlayerRepositoryCustomImpl implements PlayerRepositoryCustom {
     }
 
 
-    // fmPlayer 에 대응되는 Player 가 하나 이상인 경우 mapping_state = FAILED 처리
-    // 서브쿼리는 JPAExpressions 로 구현, 괄호랑 같은 역할
-    public Long updateDuplicatedUnmappedPlayersToFailed() {
-        return jpaQueryFactory
-                .update(player)
-                .set(player.mappingStatus, MappingStatus.FAILED)
-                .where(
-                        player.mappingStatus.eq(MappingStatus.UNMAPPED),
-                        JPAExpressions
-                                .select(fmPlayer.count())
-                                .from(fmPlayer)
-                                .where(
-                                        fmPlayer.firstName.eq(player.firstName),
-                                        fmPlayer.lastName.eq(player.lastName),
-                                        fmPlayer.birth.eq(player.birth),
-                                        fmPlayer.nationName.eq(player.nationName)
-                                ).gt(1L)
-                )
-                .execute();
-    }
-
-    public Long updateDuplicatedUnmappedFMPlayersToFailed() {
-        return jpaQueryFactory
-                .update(player)
-                .set(player.mappingStatus, MappingStatus.FAILED)
-                .where(
-                        player.mappingStatus.eq(MappingStatus.UNMAPPED),
-                        JPAExpressions
-                                .select(player.count())
-                                .from(player)
-                                .where(
-                                        player.firstName.eq(fmPlayer.firstName),
-                                        player.lastName.eq(fmPlayer.lastName),
-                                        player.birth.eq(fmPlayer.birth),
-                                        player.nationName.eq(fmPlayer.nationName)
-                                ).gt(1L)
-                )
-                .execute();
-    }
-
     public List<Player> findDuplicatedPlayers() {
         QPlayer p = QPlayer.player;
 
@@ -266,17 +248,6 @@ public class PlayerRepositoryCustomImpl implements PlayerRepositoryCustom {
                 .where(p.mappingStatus.eq(MappingStatus.UNMAPPED)
                         .and(cond))
                 .fetch();
-    }
-
-    private BooleanExpression playerDetailSearchCondition(SearchPlayerCondition c) {
-        if (c == null) {
-            return null;
-        }
-        return Expressions.allOf(
-                ageBetween(c.getAgeMin(), c.getAgeMax()),
-                teamIdEq(c.getTeamId()),
-                nationNameEq(c.getNationName()),
-                fmPlayerStatCondition(c));
     }
 
     private BooleanExpression statConditions(SearchPlayerCondition c) {
@@ -342,13 +313,23 @@ public class PlayerRepositoryCustomImpl implements PlayerRepositoryCustom {
 
     // 18 50 -> 2007, 1975
     private BooleanExpression ageBetween(Integer ageMin, Integer ageMax) {
-        if (ageMin == null || ageMax == null) {
+        LocalDate today = timeProvider.getCurrentLocalDate();
+
+        if (ageMin == null && ageMax == null) {
             return null;
         }
-        LocalDate today = timeProvider.getCurrentLocalDate();
-        LocalDate toBirth = today.minusYears(ageMin);
-        LocalDate fromBirth = today.minusYears(ageMax);
-        return player.birth.between(fromBirth, toBirth);
+        if (ageMin != null && ageMax != null && ageMin > ageMax) {
+            throw new InvalidSearchConditionException("ageMin must be <= ageMax");
+        }
+        if (ageMin != null && ageMax != null) {
+            LocalDate newestBirth = today.minusYears(ageMin);
+            LocalDate oldestBirth = today.minusYears(ageMax + 1L).plusDays(1);
+            return player.birth.between(oldestBirth, newestBirth);
+        }
+        if (ageMin != null) {
+            return player.birth.loe(today.minusYears(ageMin));
+        }
+        return player.birth.goe(today.minusYears(ageMax + 1L).plusDays(1));
     }
 
     private BooleanExpression goeStat(Integer stat, NumberExpression<Integer> expr) {

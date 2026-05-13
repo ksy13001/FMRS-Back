@@ -25,6 +25,7 @@ import java.util.List;
 public class BulkRepository {
     private final JdbcTemplate jdbcTemplate;
 
+    //  외부 api로 가져온 player 는 mapping_status = UNMAPPED OR FAILED 라서 매핑 된 경우 기존 매핑 상태 유지
     public void bulkUpsertPlayers(List<Player> players) {
         String sql = "INSERT INTO player " +
                 "(player_api_id, name, first_name, last_name, nation_name, nation_logo_url, birth, height, weight, image_url, mapping_status) " +
@@ -39,7 +40,11 @@ public class BulkRepository {
                 "height = COALESCE(new.height, player.height), " +
                 "weight = COALESCE(new.weight, player.weight), " +
                 "image_url = new.image_url, " +
-                "mapping_status = new.mapping_status";
+                "mapping_status = CASE" +
+                " WHEN player.mapping_status IN ('MATCHED', 'NO_MATCH', 'DUPLICATE') " +
+                " THEN player.mapping_status " +
+                " ELSE new.mapping_status " +
+                " END;  ";
 
         jdbcTemplate.batchUpdate(sql, new BatchPreparedStatementSetter() {
 
@@ -90,89 +95,6 @@ public class BulkRepository {
             @Override
             public int getBatchSize() {
                 return teams.size();
-            }
-        });
-    }
-
-    public int mappingPlayerAndFmPlayer() {
-        String sql = """
-                UPDATE player p
-                JOIN fmplayer f
-                  ON p.first_name   = f.first_name
-                 AND p.last_name    = f.last_name
-                 AND p.birth        = f.birth
-                 AND p.nation_name  = f.nation_name
-                SET p.fmplayer_id    = f.id,
-                    p.mapping_status = 'MATCHED',
-                    p.is_gk = IF(f.goalkeeper=20, TRUE, FALSE)
-                WHERE p.mapping_status = 'UNMAPPED'
-                """;
-        return jdbcTemplate.update(sql);
-    }
-
-
-    public int updatePlayersAsFailedByDuplicatedFmPlayer() {
-        String sql = """
-                UPDATE player p
-                JOIN (SELECT f.first_name, f.last_name, f.birth, f.nation_name, COUNT(*)
-                FROM fmplayer f
-                GROUP BY 1,2,3,4 HAVING COUNT(*) > 1
-                ) AS dup
-                	on p.first_name = dup.first_name
-                	AND p.last_name = dup.last_name
-                	AND p.birth = dup.birth
-                	AND p.nation_name = dup.nation_name
-                SET p.mapping_status="FAILED"
-                WHERE p.mapping_status = 'UNMAPPED'
-                """;
-        return jdbcTemplate.update(sql);
-    }
-
-    public void bulkUpdatePlayersFmData(List<Player> players, List<FmPlayer> fmPlayers) {
-        String sql = "UPDATE player p " +
-//                "JOIN fmplayer f " +
-//                "ON f.first_name = p.first_name " +
-//                "AND f.last_name = p.last_name " +
-//                "AND f.birth = p.birth " +
-//                "AND f.nation_name = p.nation_name " +
-                "SET " +
-                "p.fmplayer_id = ?, p.mapping_status= 'MATCHED' " +
-                "WHERE p.id=? AND p.mapping_status= 'UNMAPPED' ";
-        jdbcTemplate.batchUpdate(sql, new BatchPreparedStatementSetter() {
-
-            @Override
-            public void setValues(PreparedStatement ps, int i) throws SQLException {
-                Player player = players.get(i);
-                FmPlayer fmPlayer = fmPlayers.get(i);
-                ps.setLong(1, fmPlayer.getId());
-                ps.setLong(2, player.getId());
-            }
-
-            @Override
-            public int getBatchSize() {
-                return players.size();
-            }
-        });
-
-    }
-
-    public void bulkInsertPlayerRaws(List<String> jsons) {
-        List<String> columns = Arrays.asList("json_raw", "created_at", "processed");
-        String sql = SqlUtils.buildInsertSql("player_raw", columns);
-
-        jdbcTemplate.batchUpdate(sql, new BatchPreparedStatementSetter() {
-
-            @Override
-            public void setValues(PreparedStatement ps, int i) throws SQLException {
-                String json = jsons.get(i);
-                ps.setString(1, json);
-                ps.setTimestamp(2, Timestamp.valueOf(LocalDateTime.now()));
-                ps.setBoolean(3, false);
-            }
-
-            @Override
-            public int getBatchSize() {
-                return jsons.size();
             }
         });
     }

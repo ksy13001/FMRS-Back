@@ -36,6 +36,11 @@ public class GlobalExceptionHandler {
         return error(HttpStatus.BAD_REQUEST, "invalid request", e);
     }
 
+    @ExceptionHandler(InvalidSearchConditionException.class)
+    public ResponseEntity<ApiResponse<Void>> handleInvalidSearchCondition(InvalidSearchConditionException e) {
+        return error(HttpStatus.BAD_REQUEST, "invalid search condition", e);
+    }
+
     @ExceptionHandler(DuplicateUsernameException.class)
     public ResponseEntity<ApiResponse<Void>> handleDuplicateUsername(DuplicateUsernameException e) {
         return error(HttpStatus.CONFLICT, "username already exists", e);

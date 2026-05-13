@@ -1,0 +1,2 @@
+ALTER TABLE player
+    MODIFY mapping_status ENUM('FAILED', 'MATCHED', 'UNMAPPED', 'DUPLICATE', 'NO_MATCH');

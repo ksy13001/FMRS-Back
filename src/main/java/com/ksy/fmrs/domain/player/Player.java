@@ -4,10 +4,7 @@ package com.ksy.fmrs.domain.player;
 import com.ksy.fmrs.domain.Comment;
 import com.ksy.fmrs.domain.Team;
 import com.ksy.fmrs.domain.Transfer;
-import com.ksy.fmrs.domain.enums.FmVersion;
-import com.ksy.fmrs.domain.enums.MappingStatus;
-import com.ksy.fmrs.domain.enums.TransferType;
-import com.ksy.fmrs.domain.enums.StatFreshness;
+import com.ksy.fmrs.domain.enums.*;
 import com.ksy.fmrs.util.time.TimeUtils;
 import jakarta.persistence.*;
 import lombok.*;
@@ -58,6 +55,10 @@ public class Player {
     @Enumerated(EnumType.STRING)
     @Column(name="mapping_status")
     private MappingStatus mappingStatus;
+
+    @Enumerated(EnumType.STRING)
+    @Column(name="mapping_method")
+    private MappingMethod mappingMethod;
 
     @Column(name = "latest_current_ability")
     private Integer latestCurrentAbility;
@@ -129,7 +130,7 @@ public class Player {
         this.imageUrl = imageUrl;
     }
 
-    public void updateFmPlayer(FmPlayer fmPlayer) {
+    public void updateFmPlayer(FmPlayer fmPlayer, MappingStatus mappingStatus, MappingMethod mappingMethod) {
         if (fmPlayer == null) {
             return;
         }
@@ -138,6 +139,9 @@ public class Player {
         }
         this.fmPlayer.add(fmPlayer);
         fmPlayer.updatePlayer(this);
+
+        updateMappingStatus(mappingStatus);
+        updateMappingMethod(mappingMethod);
     }
 
     public void updateMappingStatus(MappingStatus status) {
@@ -184,11 +188,12 @@ public class Player {
         return this.team.getLogoUrl();
     }
 
-    public void updateLatestFmData(Integer ca, Integer pa, FmVersion fmVersion) {
+    public void updateLatestFmData(Integer ca, Integer pa, FmVersion fmVersion, Boolean isGK) {
         if (this.latestFmVersion == null || this.latestFmVersion.getYear() <= fmVersion.getYear()) {
             this.latestCurrentAbility = ca;
             this.latestPotentialAbility = pa;
             this.latestFmVersion = fmVersion;
+            this.isGK = isGK;
         }
     }
 
@@ -241,5 +246,9 @@ public class Player {
         );
         this.transfers.add(transfer);
         return transfer;
+    }
+
+    public void updateMappingMethod(MappingMethod mappingMethod) {
+        this.mappingMethod = mappingMethod;
     }
 }

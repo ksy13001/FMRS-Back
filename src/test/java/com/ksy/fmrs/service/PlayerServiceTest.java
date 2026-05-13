@@ -8,6 +8,7 @@ import static org.mockito.Mockito.*;
 
 import com.ksy.fmrs.domain.League;
 import com.ksy.fmrs.domain.enums.FmVersion;
+import com.ksy.fmrs.domain.enums.MappingMethod;
 import com.ksy.fmrs.domain.enums.MappingStatus;
 import com.ksy.fmrs.domain.player.*;
 import com.ksy.fmrs.domain.Team;
@@ -75,8 +76,8 @@ public class PlayerServiceTest {
         League league = League.builder().name("saudi").build();
         team.updateLeague(league);
         ronaldo24.updateTeam(team);
-        ronaldo24.updateFmPlayer(fmPlayer);
-        ronaldo24.updateLatestFmData(180, 200, FmVersion.FM24);
+        ronaldo24.updateFmPlayer(fmPlayer, MappingStatus.MATCHED, MappingMethod.EXACT_4KEY);
+        ronaldo24.updateLatestFmData(180, 200, FmVersion.FM24, false);
     }
 
     @Test
@@ -198,7 +199,7 @@ public class PlayerServiceTest {
         Player player = createPlayer("p1", "p1", birth, "n1",  MappingStatus.MATCHED);
         // top3 능력치 = dribble, pace, vision
         FmPlayer fmPlayer = createFmFieldPlayer(1, FmVersion.FM24, "p1", "p1", birth, "n1", 180, 200);
-        player.updateFmPlayer(fmPlayer);
+        player.updateFmPlayer(fmPlayer, MappingStatus.MATCHED, MappingMethod.EXACT_4KEY);
         SearchPlayerCondition condition = new SearchPlayerCondition();
         // when
         Pageable pageable = PageRequest.of(0, 10);
@@ -217,7 +218,7 @@ public class PlayerServiceTest {
         // given — fmPlayer 미연결, latestCurrentAbility만 세팅
         Player player = Player.builder()
                 .firstName("son").mappingStatus(MappingStatus.MATCHED).build();
-        player.updateLatestFmData(155, 180, FmVersion.FM24);
+        player.updateLatestFmData(155, 180, FmVersion.FM24, false);
 
         Pageable pageable = PageRequest.of(0, 10);
         when(playerRepository.searchPlayerByName("son", pageable, null, null, null))
@@ -245,7 +246,7 @@ public class PlayerServiceTest {
                 "Ronaldo",
                 LocalDate.of(1985, 2, 5),
                 "PORTUGAL", 170, 200);
-        ronaldo24.updateFmPlayer(ronaldoFM26Player);
+        ronaldo24.updateFmPlayer(ronaldoFM26Player, MappingStatus.MATCHED, MappingMethod.EXACT_4KEY);
         // when
         when(playerRepository.findById(playerId)).thenReturn(Optional.of(ronaldo24));
         Optional<List<FmPlayerDetailsDto>> result = playerService.findFmPlayerDetails(playerId);

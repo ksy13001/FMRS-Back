@@ -68,4 +68,8 @@ public interface PlayerRepository extends JpaRepository<Player, Long>, PlayerRep
 
     @Query("SELECT p.playerApiId FROM Player p")
     Set<Integer> findAllPlayerApiId();
+
+    @Query("SELECT p FROM Player p " +
+            "WHERE p.mappingStatus = :mappingStatus")
+    List<Player> findPlayersByMappingStatus(MappingStatus mappingStatus);
 }
