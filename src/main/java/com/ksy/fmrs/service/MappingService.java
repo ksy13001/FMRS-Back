@@ -26,6 +26,7 @@ import java.util.stream.Collectors;
 public class MappingService {
     private static final int FUZZY_CANDIDATE_KEY_BATCH_SIZE = 500;
     private static final int FUZZY_SCORING_LOG_INTERVAL = 5_000;
+    private static final int FUZZY_DIAGNOSTIC_SAMPLE_SIZE = 10;
 
     private final MappingRepository mappingRepository;
     private final PlayerRepository playerRepository;
@@ -103,6 +104,7 @@ public class MappingService {
                         .equals(MappingStatus.DUPLICATE)).toList();
 
         long noMatchCandidates = results.size() - matchedResults.size() - duplicatedResults.size();
+        logFuzzyDiagnostics(jobId, results);
         log.info("[mapping-job:{}] fuzzy mapping scoring result: matched={}, duplicate={}, noMatch={}",
                 jobId, matchedResults.size(), duplicatedResults.size(), noMatchCandidates);
 
@@ -159,9 +161,19 @@ public class MappingService {
 
         for (int start = 0; start < keys.size(); start += FUZZY_CANDIDATE_KEY_BATCH_SIZE) {
             int end = Math.min(start + FUZZY_CANDIDATE_KEY_BATCH_SIZE, keys.size());
-            candidates.addAll(fmPlayerRepository.findUnlinkedFmPlayersByBirthNationKeys(keys.subList(start, end)));
-            log.info("[mapping-job:{}] fuzzy mapping loaded candidate key batch: {}/{}",
-                    jobId, end, keys.size());
+            long startedAt = System.currentTimeMillis();
+            List<FmPlayer> batchCandidates = fmPlayerRepository.findUnlinkedFmPlayersByBirthNationKeys(keys.subList(start, end));
+            candidates.addAll(batchCandidates);
+
+            log.info(
+                    "[mapping-job:{}] fuzzy mapping loaded candidate key batch: {}/{} batchCandidates={} totalCandidates={} elapsedMs={}",
+                    jobId,
+                    end,
+                    keys.size(),
+                    batchCandidates.size(),
+                    candidates.size(),
+                    System.currentTimeMillis() - startedAt
+            );
         }
 
         return candidates;
@@ -173,5 +185,71 @@ public class MappingService {
         }
 
         return (keys.size() + FUZZY_CANDIDATE_KEY_BATCH_SIZE - 1L) / FUZZY_CANDIDATE_KEY_BATCH_SIZE;
+    }
+
+    private void logFuzzyDiagnostics(String jobId, List<FuzzyMappingResult> results) {
+        long emptyCandidateCount = results.stream()
+                .filter(result -> result.candidateCount() == 0)
+                .count();
+        long hasCandidateCount = results.size() - emptyCandidateCount;
+
+        long top1Gte90 = countTop1ScoreGte(results, 0.90);
+        long top1Gte80 = countTop1ScoreGte(results, 0.80);
+        long top1Gte70 = countTop1ScoreGte(results, 0.70);
+        long top1Gte60 = countTop1ScoreGte(results, 0.60);
+
+        long singleCandidate = results.stream()
+                .filter(result -> result.candidateCount() == 1)
+                .count();
+        long twoToFiveCandidates = results.stream()
+                .filter(result -> result.candidateCount() >= 2 && result.candidateCount() <= 5)
+                .count();
+        long moreThanFiveCandidates = results.stream()
+                .filter(result -> result.candidateCount() > 5)
+                .count();
+
+        log.info(
+                "[mapping-job:{}] fuzzy diagnostics candidate coverage: empty={}, hasCandidate={}",
+                jobId,
+                emptyCandidateCount,
+                hasCandidateCount
+        );
+        log.info(
+                "[mapping-job:{}] fuzzy diagnostics top1 score buckets: >=0.90={}, >=0.80={}, >=0.70={}, >=0.60={}",
+                jobId,
+                top1Gte90,
+                top1Gte80,
+                top1Gte70,
+                top1Gte60
+        );
+        log.info(
+                "[mapping-job:{}] fuzzy diagnostics candidate count buckets: one={}, twoToFive={}, moreThanFive={}",
+                jobId,
+                singleCandidate,
+                twoToFiveCandidates,
+                moreThanFiveCandidates
+        );
+
+        results.stream()
+                .filter(result -> result.top1Score() != null)
+                .sorted((left, right) -> Double.compare(right.top1Score(), left.top1Score()))
+                .limit(FUZZY_DIAGNOSTIC_SAMPLE_SIZE)
+                .forEach(result -> log.info(
+                        "[mapping-job:{}] fuzzy diagnostics top sample: playerId={}, status={}, candidateCount={}, top1Score={}, top2Score={}, top1FmUid={}",
+                        jobId,
+                        result.playerId(),
+                        result.mappingStatus(),
+                        result.candidateCount(),
+                        result.top1Score(),
+                        result.top2Score(),
+                        result.top1FmUid()
+                ));
+    }
+
+    private long countTop1ScoreGte(List<FuzzyMappingResult> results, double threshold) {
+        return results.stream()
+                .filter(result -> result.top1Score() != null)
+                .filter(result -> result.top1Score() >= threshold)
+                .count();
     }
 }
