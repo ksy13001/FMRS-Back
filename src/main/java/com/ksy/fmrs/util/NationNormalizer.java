@@ -13,7 +13,8 @@ public class NationNormalizer{
             "FYR MACEDONIA", "NORTH MACEDONIA",
             "HONG KONG (CHINA PR)", "HONG KONG, CHINA",
             "KYRGYZSTAN", "KYRGYZ REPUBLIC",
-            "ST. VINCENT / GRENADINES", "ST. VINCENT AND THE GRENADINES"
+            "ST. VINCENT / GRENADINES", "ST. VINCENT AND THE GRENADINES",
+            "SOUTH KOREA", "KOREA REPUBLIC"
     );
 
     public static String normalize(String raw) {

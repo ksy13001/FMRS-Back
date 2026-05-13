@@ -3,6 +3,7 @@ package com.ksy.fmrs.repository.Player;
 import com.ksy.fmrs.config.TestQueryDSLConfig;
 import com.ksy.fmrs.config.TestTimeProviderConfig;
 import com.ksy.fmrs.domain.enums.FmVersion;
+import com.ksy.fmrs.domain.enums.MappingMethod;
 import com.ksy.fmrs.domain.enums.MappingStatus;
 import com.ksy.fmrs.domain.player.FmPlayer;
 import com.ksy.fmrs.domain.player.Player;
@@ -403,7 +404,7 @@ class PlayerRepositoryCustomTest {
                     .potentialAbility(100 + i * 10)
                     .fmVersion(FmVersion.FM24)
                     .build();
-            player.updateFmPlayer(fmPlayer);
+            player.updateFmPlayer(fmPlayer, MappingStatus.MATCHED, MappingMethod.EXACT_4KEY);
             player.updateLatestFmData(fmPlayer.getCurrentAbility(), fmPlayer.getPotentialAbility(), fmPlayer.getFmVersion(), false);
             tem.persist(fmPlayer);
             tem.persist(player);
@@ -424,8 +425,8 @@ class PlayerRepositoryCustomTest {
                 .firstName(firstName).fmUid(fmUid)
                 .fmVersion(FmVersion.FM26).currentAbility(ca26).potentialAbility(ca26)
                 .build();
-        player.updateFmPlayer(fm24);
-        player.updateFmPlayer(fm26);
+        player.updateFmPlayer(fm24, MappingStatus.MATCHED, MappingMethod.EXACT_4KEY);
+        player.updateFmPlayer(fm26, MappingStatus.MATCHED, MappingMethod.EXACT_4KEY);
         player.updateLatestFmData(ca26, ca26, fm26.getFmVersion(), false);
         tem.persist(fm24);
         tem.persist(fm26);

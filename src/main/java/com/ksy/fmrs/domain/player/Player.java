@@ -130,7 +130,7 @@ public class Player {
         this.imageUrl = imageUrl;
     }
 
-    public void updateFmPlayer(FmPlayer fmPlayer) {
+    public void updateFmPlayer(FmPlayer fmPlayer, MappingStatus mappingStatus, MappingMethod mappingMethod) {
         if (fmPlayer == null) {
             return;
         }
@@ -139,6 +139,9 @@ public class Player {
         }
         this.fmPlayer.add(fmPlayer);
         fmPlayer.updatePlayer(this);
+
+        updateMappingStatus(mappingStatus);
+        updateMappingMethod(mappingMethod);
     }
 
     public void updateMappingStatus(MappingStatus status) {
