@@ -37,13 +37,15 @@ public class FuzzyPlayerMatcher {
         ScoredCandidate top1 = scored.get(0);
         double top1Score = top1.score();
         double top2Score = scored.size() < 2 ? 0.0 : scored.get(1).score();
+        int candidateCount = scored.size();
+        Integer top1FmUid = top1.fmplayer().getFmUid();
 
         if(top1Score >= fuzzyMappingProperties.autoMatchThreshold() || top1Score >= fuzzyMappingProperties.relaxedMatchThreshold() && top1Score - top2Score >= fuzzyMappingProperties.minMargin()){
-            return FuzzyMappingResult.matched(player.getId(), top1.fmplayer().getFmUid());
+            return FuzzyMappingResult.matched(player.getId(), top1FmUid, candidateCount, top1Score, top2Score);
         } else if(top1Score >= fuzzyMappingProperties.relaxedMatchThreshold()){
-            return FuzzyMappingResult.duplicate(player.getId());
+            return FuzzyMappingResult.duplicate(player.getId(), candidateCount, top1Score, top2Score, top1FmUid);
         } else{
-            return FuzzyMappingResult.noMatch(player.getId());
+            return FuzzyMappingResult.noMatch(player.getId(), candidateCount, top1Score, top2Score, top1FmUid);
         }
     }
 

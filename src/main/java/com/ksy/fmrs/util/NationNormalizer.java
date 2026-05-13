@@ -1,8 +1,5 @@
 package com.ksy.fmrs.util;
 
-import com.ksy.fmrs.domain.Nation;
-
-import java.util.HashMap;
 import java.util.Map;
 
 public class NationNormalizer{
@@ -14,7 +11,9 @@ public class NationNormalizer{
             "HONG KONG (CHINA PR)", "HONG KONG, CHINA",
             "KYRGYZSTAN", "KYRGYZ REPUBLIC",
             "ST. VINCENT / GRENADINES", "ST. VINCENT AND THE GRENADINES",
-            "SOUTH KOREA", "KOREA REPUBLIC"
+            "SOUTH KOREA", "KOREA REPUBLIC",
+            "REPUBLIC KOR", "KOREA REPUBLIC",
+            "REPBULIC KOR", "KOREA REPUBLIC"
     );
 
     public static String normalize(String raw) {
