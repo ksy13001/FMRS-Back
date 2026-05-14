@@ -57,6 +57,16 @@ public class MappingRepository {
         return jdbcTemplate.update(query);
     }
 
+    public int assignPlayerIdToFirstNameTokenAndFirstLastNameTokenMatchedFmPlayers() {
+        String query = sqlLoader.load(SQL_DIR + "link_first_name_token_and_first_last_name_token_matched_fmplayers_to_players.sql");
+        return jdbcTemplate.update(query);
+    }
+
+    public int markPlayersWithFirstNameTokenAndFirstLastNameTokenLinkedFmPlayersAsMatched() {
+        String query = sqlLoader.load(SQL_DIR + "mark_players_with_first_name_token_and_first_last_name_token_linked_fmplayers_as_matched_and_EXACT_4KEY.sql");
+        return jdbcTemplate.update(query);
+    }
+
     public int refreshPlayersLastFmData(){
         String query = sqlLoader.load(SQL_DIR + "update_players_last_fm_data.sql");
         return jdbcTemplate.update(query);
