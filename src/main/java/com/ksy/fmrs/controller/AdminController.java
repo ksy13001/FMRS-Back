@@ -35,6 +35,11 @@ public class AdminController {
         return mappingService.matchTokenName();
     }
 
+    @PutMapping("/api/admin/mapping/first-name-token-first-last-name-token")
+    public int matchFirstNameTokenAndFirstLastNameTokenPlayers(){
+        return mappingService.matchFirstNameTokenAndFirstLastNameToken();
+    }
+
     @PostMapping("/api/admin/mapping/jobs/fuzzy")
     public ResponseEntity<MappingJobResponseDto> startFuzzyMappingJob() {
         return ResponseEntity
