@@ -190,16 +190,22 @@ public class MappingService {
         log.info("[mapping-job:{}] fuzzy mapping chunk scoring result: matched={}, duplicate={}, noMatch={}",
                 jobId, matchedResults.size(), duplicatedResults.size(), noMatchCandidates);
 
-        long linkedFmPlayerRows = sumUpdatedRows(mappingRepository.linkFuzzyMatchedFmPlayersToPlayers(matchedResults));
+        long linkedFmPlayerRows = dryRun
+                ? 0
+                : sumUpdatedRows(mappingRepository.linkFuzzyMatchedFmPlayersToPlayers(matchedResults));
         log.info("[mapping-job:{}] fuzzy mapping chunk linked fmplayer rows: {}", jobId, linkedFmPlayerRows);
 
-        long matchedPlayersUpdated = sumUpdatedRows(mappingRepository.markPlayersAsFuzzyMatched(matchedResults));
+        long matchedPlayersUpdated = dryRun
+                ? 0
+                : sumUpdatedRows(mappingRepository.markPlayersAsFuzzyMatched(matchedResults));
         log.info("[mapping-job:{}] fuzzy mapping chunk updated matched players: {}", jobId, matchedPlayersUpdated);
 
-        long duplicatePlayersUpdated = sumUpdatedRows(mappingRepository.markPlayersAsDuplicate(duplicatedResults));
+        long duplicatePlayersUpdated = dryRun
+                ? 0
+                : sumUpdatedRows(mappingRepository.markPlayersAsDuplicate(duplicatedResults));
         log.info("[mapping-job:{}] fuzzy mapping chunk updated duplicate players: {}", jobId, duplicatePlayersUpdated);
 
-        long refreshedPlayers = matchedPlayersUpdated > 0
+        long refreshedPlayers = !dryRun && matchedPlayersUpdated > 0
                 ? mappingRepository.refreshPlayersLastFmData()
                 : 0;
         log.info("[mapping-job:{}] fuzzy mapping chunk refreshed players: {}", jobId, refreshedPlayers);
