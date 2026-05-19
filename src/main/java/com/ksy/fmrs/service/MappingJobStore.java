@@ -1,5 +1,6 @@
 package com.ksy.fmrs.service;
 
+import com.ksy.fmrs.domain.enums.FuzzyStrategy;
 import com.ksy.fmrs.dto.FuzzyMappingResponseDto;
 import com.ksy.fmrs.dto.MappingJobResponseDto;
 import org.springframework.stereotype.Component;
@@ -14,21 +15,21 @@ public class MappingJobStore {
 
     private final Map<String, MappingJobResponseDto> jobs = new ConcurrentHashMap<>();
 
-    public MappingJobResponseDto createRunningJob(String type) {
+    public MappingJobResponseDto createRunningJob(String type, String strategy, boolean dryRun) {
         String jobId = UUID.randomUUID().toString();
-        MappingJobResponseDto job = MappingJobResponseDto.running(jobId, type, Instant.now());
+        MappingJobResponseDto job = MappingJobResponseDto.running(jobId, type, strategy, dryRun, Instant.now());
         jobs.put(jobId, job);
         return job;
     }
 
-    public MappingJobResponseDto complete(String jobId, FuzzyMappingResponseDto result) {
-        MappingJobResponseDto job = getJob(jobId).completed(result, Instant.now());
+    public MappingJobResponseDto complete(String jobId, String strategy, boolean dryRun, FuzzyMappingResponseDto result) {
+        MappingJobResponseDto job = getJob(jobId).completed(result, strategy, dryRun,  Instant.now());
         jobs.put(jobId, job);
         return job;
     }
 
-    public MappingJobResponseDto fail(String jobId, String errorMessage) {
-        MappingJobResponseDto job = getJob(jobId).failed(errorMessage, Instant.now());
+    public MappingJobResponseDto fail(String jobId, String strategy, boolean dryRun, String errorMessage) {
+        MappingJobResponseDto job = getJob(jobId).failed(errorMessage, strategy, dryRun, Instant.now());
         jobs.put(jobId, job);
         return job;
     }

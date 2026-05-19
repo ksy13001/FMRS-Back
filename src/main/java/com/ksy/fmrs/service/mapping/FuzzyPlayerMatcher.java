@@ -1,5 +1,6 @@
 package com.ksy.fmrs.service.mapping;
 
+import com.ksy.fmrs.domain.enums.FuzzyStrategy;
 import com.ksy.fmrs.domain.player.FmPlayer;
 import com.ksy.fmrs.domain.player.Player;
 import com.ksy.fmrs.dto.FuzzyMappingProperties;
@@ -23,10 +24,18 @@ public class FuzzyPlayerMatcher {
     private final FuzzyMappingProperties fuzzyMappingProperties;
     private final JaroWinklerSimilarity similarity = new JaroWinklerSimilarity();
 
-    public FuzzyMappingResult match(Player player, List<FmPlayer> candidates){
-        String playerName = buildNormalizedFullName(player.getFirstName(), player.getLastName());
+    public FuzzyMappingResult match(FuzzyStrategy strategy, boolean dryRun, Player player, List<FmPlayer> candidates){
+        return match(strategy, player, candidates);
+    }
 
-        List<ScoredCandidate> scored = scoreBestCandidateByFmUid(playerName, candidates).stream()
+    public FuzzyMappingResult match(FuzzyStrategy strategy, Player player, List<FmPlayer> candidates){
+        String playerName = buildPlayerCompareName(strategy, player);
+
+        if (isBlank(playerName)) {
+            return FuzzyMappingResult.noMatch(player.getId());
+        }
+
+        List<ScoredCandidate> scored = scoreBestCandidateByFmUid(strategy, playerName, candidates).stream()
                 .sorted(Comparator.comparingDouble(ScoredCandidate::score).reversed())
                 .toList();
 
@@ -54,14 +63,38 @@ public class FuzzyPlayerMatcher {
         return StringUtils.normalizeName(fullName);
     }
 
-    private List<ScoredCandidate> scoreBestCandidateByFmUid(String playerName, List<FmPlayer> candidates) {
+    private String buildPlayerCompareName(FuzzyStrategy strategy, Player player) {
+        return switch (strategy) {
+            case STANDARD_FULL_NAME -> buildNormalizedFullName(player.getFirstName(), player.getLastName());
+            case FM_NAME_FIRST_FIRST_TOKEN -> buildNormalizedFullName(
+                    firstToken(player.getFirstName()),
+                    firstToken(player.getLastName())
+            );
+            case FM_NAME_FIRST_LAST_TOKEN -> buildNormalizedFullName(
+                    firstToken(player.getFirstName()),
+                    lastToken(player.getLastName())
+            );
+        };
+    }
+
+    private String buildFmCompareName(FuzzyStrategy strategy, FmPlayer candidate) {
+        return switch (strategy) {
+            case STANDARD_FULL_NAME -> buildNormalizedFullName(candidate.getFirstName(), candidate.getLastName());
+            case FM_NAME_FIRST_FIRST_TOKEN, FM_NAME_FIRST_LAST_TOKEN -> StringUtils.normalizeName(candidate.getName());
+        };
+    }
+
+    private List<ScoredCandidate> scoreBestCandidateByFmUid(FuzzyStrategy strategy, String playerName, List<FmPlayer> candidates) {
         Map<Integer, ScoredCandidate> bestCandidateByFmUid = new HashMap<>();
 
         for (FmPlayer candidate : candidates) {
-            double score = similarity.apply(
-                    playerName,
-                    buildNormalizedFullName(candidate.getFirstName(), candidate.getLastName())
-            );
+            String fmName = buildFmCompareName(strategy, candidate);
+
+            if (isBlank(fmName)) {
+                continue;
+            }
+
+            double score = similarity.apply(playerName, fmName);
             ScoredCandidate current = bestCandidateByFmUid.get(candidate.getFmUid());
 
             if (current == null || score > current.score()) {
@@ -74,5 +107,24 @@ public class FuzzyPlayerMatcher {
 
     private String nullToEmpty(String value) {
         return value == null ? "" : value;
+    }
+
+    private String firstToken(String value) {
+        if (isBlank(value)) {
+            return "";
+        }
+        return value.trim().split("\\s+")[0];
+    }
+
+    private String lastToken(String value) {
+        if (isBlank(value)) {
+            return "";
+        }
+        String[] tokens = value.trim().split("\\s+");
+        return tokens[tokens.length - 1];
+    }
+
+    private boolean isBlank(String value) {
+        return value == null || value.isBlank();
     }
 }

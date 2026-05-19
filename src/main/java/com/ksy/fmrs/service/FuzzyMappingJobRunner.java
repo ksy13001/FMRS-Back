@@ -1,5 +1,6 @@
 package com.ksy.fmrs.service;
 
+import com.ksy.fmrs.domain.enums.FuzzyStrategy;
 import com.ksy.fmrs.dto.FuzzyMappingResponseDto;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -15,15 +16,15 @@ public class FuzzyMappingJobRunner {
     private final MappingJobStore mappingJobStore;
 
     @Async
-    public void runAsync(String jobId) {
+    public void runAsync(String jobId, FuzzyStrategy strategy, boolean dryRun) {
         log.info("[mapping-job:{}] fuzzy mapping started", jobId);
 
         try {
-            FuzzyMappingResponseDto result = mappingService.matchFuzzy(jobId);
-            mappingJobStore.complete(jobId, result);
+            FuzzyMappingResponseDto result = mappingService.matchFuzzy(jobId, strategy, dryRun);
+            mappingJobStore.complete(jobId, strategy.name(), dryRun, result);
             log.info("[mapping-job:{}] fuzzy mapping completed: {}", jobId, result);
         } catch (Throwable e) {
-            mappingJobStore.fail(jobId, e.getMessage());
+            mappingJobStore.fail(jobId, strategy.name(), dryRun, e.getMessage());
             log.error("[mapping-job:{}] fuzzy mapping failed", jobId, e);
 
             if (e instanceof Error error) {
