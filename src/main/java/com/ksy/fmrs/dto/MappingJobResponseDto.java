@@ -8,16 +8,20 @@ public record MappingJobResponseDto(
         String jobId,
         String type,
         MappingJobStatus status,
+        String strategy,
+        boolean dryRun,
         Instant startedAt,
         Instant finishedAt,
         FuzzyMappingResponseDto result,
         String errorMessage
 ) {
-    public static MappingJobResponseDto running(String jobId, String type, Instant startedAt) {
+    public static MappingJobResponseDto running(String jobId, String type, String strategy, boolean dryRun, Instant startedAt) {
         return new MappingJobResponseDto(
                 jobId,
                 type,
                 MappingJobStatus.RUNNING,
+                strategy,
+                dryRun,
                 startedAt,
                 null,
                 null,
@@ -25,11 +29,13 @@ public record MappingJobResponseDto(
         );
     }
 
-    public MappingJobResponseDto completed(FuzzyMappingResponseDto result, Instant finishedAt) {
+    public MappingJobResponseDto completed(FuzzyMappingResponseDto result, String strategy, boolean dryRun, Instant finishedAt) {
         return new MappingJobResponseDto(
                 jobId,
                 type,
                 MappingJobStatus.COMPLETED,
+                strategy,
+                dryRun,
                 startedAt,
                 finishedAt,
                 result,
@@ -37,11 +43,13 @@ public record MappingJobResponseDto(
         );
     }
 
-    public MappingJobResponseDto failed(String errorMessage, Instant finishedAt) {
+    public MappingJobResponseDto failed(String errorMessage, String strategy, boolean dryRun, Instant finishedAt) {
         return new MappingJobResponseDto(
                 jobId,
                 type,
                 MappingJobStatus.FAILED,
+                strategy,
+                dryRun,
                 startedAt,
                 finishedAt,
                 result,

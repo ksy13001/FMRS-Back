@@ -1,5 +1,6 @@
 package com.ksy.fmrs.service;
 
+import com.ksy.fmrs.domain.enums.FuzzyStrategy;
 import com.ksy.fmrs.domain.enums.MappingStatus;
 import com.ksy.fmrs.domain.player.FmPlayer;
 import com.ksy.fmrs.domain.player.Player;
@@ -85,12 +86,7 @@ public class MappingService {
     }
 
     @Transactional
-    public FuzzyMappingResponseDto matchFuzzy(){
-        return matchFuzzy("direct");
-    }
-
-    @Transactional
-    public FuzzyMappingResponseDto matchFuzzy(String jobId){
+    public FuzzyMappingResponseDto matchFuzzy(String jobId, FuzzyStrategy strategy, boolean dryRun) {
         long lastPlayerId = 0L;
         long totalProcessedPlayers = 0;
         long totalCandidateKeyCount = 0;
@@ -117,7 +113,7 @@ public class MappingService {
                 break;
             }
 
-            FuzzyMappingResponseDto chunkResult = matchFuzzyChunk(jobId, noMatchPlayers);
+            FuzzyMappingResponseDto chunkResult = matchFuzzyChunk(jobId, strategy, dryRun, noMatchPlayers);
 
             totalProcessedPlayers += chunkResult.processedPlayers();
             totalCandidateKeyCount += chunkResult.candidateKeyCount();
@@ -161,43 +157,24 @@ public class MappingService {
         );
     }
 
-    private FuzzyMappingResponseDto matchFuzzyChunk(String jobId, List<Player> noMatchPlayers) {
-        long firstPlayerId = noMatchPlayers.get(0).getId();
-        long lastPlayerId = noMatchPlayers.get(noMatchPlayers.size() - 1).getId();
-        log.info(
-                "[mapping-job:{}] fuzzy mapping processing chunk: size={}, firstPlayerId={}, lastPlayerId={}",
-                jobId,
-                noMatchPlayers.size(),
-                firstPlayerId,
-                lastPlayerId
-        );
+    private FuzzyMappingResponseDto matchFuzzyChunk(String jobId, FuzzyStrategy strategy, boolean dryRun, List<Player> noMatchPlayers) {
 
         List<BirthNationKey> candidateKeys = noMatchPlayers.stream()
                 .map(BirthNationKey::from)
                 .filter(BirthNationKey::isComplete)
                 .distinct()
                 .toList();
-        log.info("[mapping-job:{}] fuzzy mapping chunk candidate keys: {}, query batches: {}",
-                jobId, candidateKeys.size(), getCandidateQueryCount(candidateKeys));
 
         List<FmPlayer> candidateFmPlayers = findUnlinkedFmPlayersByBirthNationKeys(jobId, candidateKeys);
-        log.info("[mapping-job:{}] fuzzy mapping chunk loaded candidate fmplayers: {}", jobId, candidateFmPlayers.size());
 
         Map<BirthNationKey, List<FmPlayer>> candidatesByKey = candidateFmPlayers.stream()
                 .collect(Collectors.groupingBy(BirthNationKey::from));
-        log.info("[mapping-job:{}] fuzzy mapping chunk grouped candidate keys: {}", jobId, candidatesByKey.size());
 
         List<FuzzyMappingResult> results = new ArrayList<>(noMatchPlayers.size());
 
-        for (int i = 0; i < noMatchPlayers.size(); i++) {
-            Player player = noMatchPlayers.get(i);
+        for (Player player : noMatchPlayers) {
             List<FmPlayer> fmPlayers = candidatesByKey.getOrDefault(BirthNationKey.from(player), List.of());
-            results.add(fuzzyPlayerMatcher.match(player, fmPlayers));
-
-            int processed = i + 1;
-            if (processed % FUZZY_SCORING_LOG_INTERVAL == 0 || processed == noMatchPlayers.size()) {
-                log.info("[mapping-job:{}] fuzzy mapping chunk scored players: {}/{}", jobId, processed, noMatchPlayers.size());
-            }
+            results.add(fuzzyPlayerMatcher.match(strategy, dryRun, player, fmPlayers));
         }
 
         List<FuzzyMappingResult> matchedResults = results.stream()
