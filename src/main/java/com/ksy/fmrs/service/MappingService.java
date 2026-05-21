@@ -5,6 +5,7 @@ import com.ksy.fmrs.domain.enums.MappingStatus;
 import com.ksy.fmrs.domain.player.FmPlayer;
 import com.ksy.fmrs.domain.player.Player;
 import com.ksy.fmrs.dto.BirthNationKey;
+import com.ksy.fmrs.dto.FuzzyMappingProperties;
 import com.ksy.fmrs.dto.FuzzyMappingResponseDto;
 import com.ksy.fmrs.dto.FuzzyMappingResult;
 import com.ksy.fmrs.repository.MappingRepository;
@@ -36,6 +37,7 @@ public class MappingService {
     private final PlayerRepository playerRepository;
     private final FmPlayerRepository  fmPlayerRepository;
     private final FuzzyPlayerMatcher fuzzyPlayerMatcher;
+    private final FuzzyMappingProperties fuzzyMappingProperties;
     private final EntityManager entityManager;
 
     @Transactional
@@ -100,7 +102,16 @@ public class MappingService {
         long totalDuplicatePlayersUpdated = 0;
         long totalRefreshedPlayers = 0;
 
-        log.info("[mapping-job:{}] fuzzy mapping started with player chunk size: {}", jobId, FUZZY_PLAYER_CHUNK_SIZE);
+        log.info(
+                "[mapping-job:{}] fuzzy mapping started: strategy={}, dryRun={}, playerChunkSize={}, autoMatchThreshold={}, relaxedMatchThreshold={}, minMargin={}",
+                jobId,
+                strategy,
+                dryRun,
+                FUZZY_PLAYER_CHUNK_SIZE,
+                fuzzyMappingProperties.autoMatchThreshold(),
+                fuzzyMappingProperties.relaxedMatchThreshold(),
+                fuzzyMappingProperties.minMargin()
+        );
 
         while (true) {
             List<Player> noMatchPlayers = playerRepository.findPlayersByMappingStatusAfterId(
