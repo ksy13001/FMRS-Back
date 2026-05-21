@@ -7,8 +7,7 @@ import com.ksy.fmrs.exception.DuplicatedMappingJobException;
 import org.springframework.stereotype.Component;
 
 import java.time.Instant;
-import java.util.Map;
-import java.util.UUID;
+import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 
 @Component
@@ -17,14 +16,14 @@ public class MappingJobStore {
     private final Map<String, MappingJobResponseDto> jobs = new ConcurrentHashMap<>();
 
     public synchronized MappingJobResponseDto createRunningJobIfAvailable(String type, String strategy, boolean dryRun) {
-        if(hasAnnyRunningJob()){
+        if(hasAnyRunningJob()){
             throw new DuplicatedMappingJobException();
         }
 
         return createRunningJob(type, strategy, dryRun);
     }
 
-    private Boolean hasAnnyRunningJob() {
+    private boolean hasAnyRunningJob() {
         return jobs.values().stream()
                 .anyMatch(job->job.status() == MappingJobStatus.RUNNING);
     }
@@ -56,5 +55,18 @@ public class MappingJobStore {
         }
 
         return job;
+    }
+
+    public Optional<MappingJobResponseDto> getCurrentJob() {
+        return jobs.values()
+                .stream()
+                .filter(job -> MappingJobStatus.RUNNING.equals(job.status()))
+                .findFirst();
+    }
+
+    public List<MappingJobResponseDto> getAllJobs() {
+        return jobs.values().stream()
+                .sorted(Comparator.comparing(MappingJobResponseDto::startedAt).reversed())
+                .toList();
     }
 }

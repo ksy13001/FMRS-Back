@@ -6,6 +6,9 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
+import java.util.List;
+import java.util.Optional;
+
 @Slf4j
 @RequiredArgsConstructor
 @Service
@@ -28,5 +31,13 @@ public class MappingJobService {
 
     public MappingJobResponseDto getJob(String jobId) {
         return mappingJobStore.getJob(jobId);
+    }
+
+    public Optional<MappingJobResponseDto> getCurrentMappingJob() {
+        return mappingJobStore.getCurrentJob();
+    }
+
+    public List<MappingJobResponseDto> getAllMappingJobs() {
+        return  mappingJobStore.getAllJobs();
     }
 }
