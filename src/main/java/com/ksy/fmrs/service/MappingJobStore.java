@@ -16,7 +16,7 @@ public class MappingJobStore {
 
     private final Map<String, MappingJobResponseDto> jobs = new ConcurrentHashMap<>();
 
-    public MappingJobResponseDto createRunningJobIfAvailable(String type, String strategy, boolean dryRun) {
+    public synchronized MappingJobResponseDto createRunningJobIfAvailable(String type, String strategy, boolean dryRun) {
         if(hasAnnyRunningJob()){
             throw new DuplicatedMappingJobException();
         }
