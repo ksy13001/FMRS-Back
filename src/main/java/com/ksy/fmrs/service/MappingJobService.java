@@ -1,7 +1,6 @@
 package com.ksy.fmrs.service;
 
 import com.ksy.fmrs.domain.enums.FuzzyStrategy;
-import com.ksy.fmrs.dto.FuzzyMappingRequestDto;
 import com.ksy.fmrs.dto.MappingJobResponseDto;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -18,7 +17,8 @@ public class MappingJobService {
     private final FuzzyMappingJobRunner fuzzyMappingJobRunner;
 
     public MappingJobResponseDto startFuzzyMappingJob(FuzzyStrategy strategy, boolean dryRun) {
-        MappingJobResponseDto job = mappingJobStore.createRunningJob(FUZZY_MAPPING_JOB_TYPE, strategy.name(), dryRun);
+
+        MappingJobResponseDto job = mappingJobStore.createRunningJobIfAvailable(FUZZY_MAPPING_JOB_TYPE, strategy.name(), dryRun);
         log.info("[mapping-job:{} fuzzyStrategy:{} dryRun:{} ] fuzzy mapping job submitted",
                 job.jobId(), strategy.name(), dryRun);
 
