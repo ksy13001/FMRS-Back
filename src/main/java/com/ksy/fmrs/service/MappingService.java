@@ -187,6 +187,7 @@ public class MappingService {
 
         long noMatchCandidates = results.size() - matchedResults.size() - duplicatedResults.size();
         logFuzzyDiagnostics(jobId, results);
+        logFuzzyMatchedSamples(jobId, matchedResults);
         log.info("[mapping-job:{}] fuzzy mapping chunk scoring result: matched={}, duplicate={}, noMatch={}",
                 jobId, matchedResults.size(), duplicatedResults.size(), noMatchCandidates);
 
@@ -194,6 +195,7 @@ public class MappingService {
                 ? 0
                 : sumUpdatedRows(mappingRepository.linkFuzzyMatchedFmPlayersToPlayers(matchedResults));
         log.info("[mapping-job:{}] fuzzy mapping chunk linked fmplayer rows: {}", jobId, linkedFmPlayerRows);
+        logFuzzyLinkSkippedWarning(jobId, dryRun, matchedResults, linkedFmPlayerRows);
 
         long matchedPlayersUpdated = dryRun
                 ? 0
@@ -339,5 +341,47 @@ public class MappingService {
                 .filter(result -> result.top1Score() != null)
                 .filter(result -> result.top1Score() >= threshold)
                 .count();
+    }
+
+    private void logFuzzyMatchedSamples(String jobId, List<FuzzyMappingResult> matchedResults) {
+        if (matchedResults.isEmpty()) {
+            return;
+        }
+
+        matchedResults.stream()
+                .limit(FUZZY_DIAGNOSTIC_SAMPLE_SIZE)
+                .forEach(result -> log.info(
+                        "[mapping-job:{}] fuzzy matched candidate sample: playerId={}, fmUid={}, candidateCount={}, top1Score={}, top2Score={}",
+                        jobId,
+                        result.playerId(),
+                        result.matchedFmUid(),
+                        result.candidateCount(),
+                        result.top1Score(),
+                        result.top2Score()
+                ));
+    }
+
+    private void logFuzzyLinkSkippedWarning(
+            String jobId,
+            boolean dryRun,
+            List<FuzzyMappingResult> matchedResults,
+            long linkedFmPlayerRows
+    ) {
+        if (dryRun || matchedResults.isEmpty() || linkedFmPlayerRows > 0) {
+            return;
+        }
+
+        List<Integer> fmUids = matchedResults.stream()
+                .map(FuzzyMappingResult::matchedFmUid)
+                .distinct()
+                .limit(50)
+                .toList();
+
+        log.warn(
+                "[mapping-job:{}] fuzzy matched candidates were not linked: matchedCount={}, distinctFmUidSample={}",
+                jobId,
+                matchedResults.size(),
+                fmUids
+        );
     }
 }
