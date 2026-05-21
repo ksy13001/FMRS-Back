@@ -9,6 +9,8 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.List;
+
 @RequiredArgsConstructor
 @RestController
 public class AdminController {
@@ -46,9 +48,20 @@ public class AdminController {
                 .body(mappingJobService.startFuzzyMappingJob(fuzzyMappingRequestDto.strategy(), fuzzyMappingRequestDto.dryRun()));
     }
 
+    @GetMapping("/api/admin/mapping/jobs/current")
+    public ResponseEntity<MappingJobResponseDto> getCurrentMappingJob() {
+        return mappingJobService.getCurrentMappingJob()
+                .map(ResponseEntity::ok)
+                .orElseGet(()->ResponseEntity.noContent().build());
+    }
+
+    @GetMapping("/api/admin/mapping/jobs/all")
+    public ResponseEntity<List<MappingJobResponseDto>> getAllMappingJobs() {
+        return ResponseEntity.ok(mappingJobService.getAllMappingJobs());
+    }
+
     @GetMapping("/api/admin/mapping/jobs/{jobId}")
     public MappingJobResponseDto getMappingJob(@PathVariable String jobId) {
         return mappingJobService.getJob(jobId);
     }
-
 }
