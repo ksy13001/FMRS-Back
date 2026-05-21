@@ -86,6 +86,11 @@ public class GlobalExceptionHandler {
         return error(HttpStatus.TOO_MANY_REQUESTS, "too many requests", e);
     }
 
+    @ExceptionHandler(DuplicatedMappingJobException.class)
+    public ResponseEntity<ApiResponse<Void>> handleMappingJobAlreadyRunning(DuplicatedMappingJobException e) {
+        return error(HttpStatus.CONFLICT, "mapping job already running", e);
+    }
+
     @ExceptionHandler(Exception.class)
     public ResponseEntity<ApiResponse<Void>> handleUnhandled(Exception e) {
         log.error("Unhandled exception", e);
