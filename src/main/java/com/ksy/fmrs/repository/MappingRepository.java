@@ -1,6 +1,7 @@
 package com.ksy.fmrs.repository;
 
 import com.ksy.fmrs.dto.FuzzyMappingResult;
+import com.ksy.fmrs.dto.ExactMappingResponseDto;
 import com.ksy.fmrs.util.SqlLoader;
 import lombok.RequiredArgsConstructor;
 import org.springframework.jdbc.core.JdbcTemplate;
@@ -45,6 +46,30 @@ public class MappingRepository {
     public int markPlayersWithLinkedFmPlayersAsMatched() {
         String query = sqlLoader.load(SQL_DIR + "mark_players_with_linked_fmplayers_as_matched_and_EXACT_4KEY.sql");
         return jdbcTemplate.update(query);
+    }
+
+    public ExactMappingResponseDto selectExact4KeyMappingDryRunSummary() {
+        String query = sqlLoader.load(SQL_DIR + "select_exact_4key_mapping_dry_run_summary.sql");
+        return jdbcTemplate.queryForObject(
+                query,
+                (rs, rowNum) -> ExactMappingResponseDto.dryRun(
+                        rs.getLong("failed_candidates"),
+                        rs.getLong("duplicate_candidates"),
+                        rs.getLong("exact_matched_candidates"),
+                        rs.getLong("no_match_candidates"),
+                        rs.getLong("linked_fmplayer_rows")
+                )
+        );
+    }
+
+    public ExactMappingResponseDto selectTokenNameExactMappingDryRunSummary() {
+        return selectMatchedOnlyExactMappingDryRunSummary("select_token_name_exact_mapping_dry_run_summary.sql");
+    }
+
+    public ExactMappingResponseDto selectFirstNameTokenAndFirstLastNameTokenExactMappingDryRunSummary() {
+        return selectMatchedOnlyExactMappingDryRunSummary(
+                "select_first_name_token_and_first_last_name_token_exact_mapping_dry_run_summary.sql"
+        );
     }
 
     public int assignPlayerIdToTokenNameMatchedFmPlayers() {
@@ -140,6 +165,17 @@ public class MappingRepository {
                 duplicateResults,
                 BATCH_SIZE,
                 (ps, result) -> ps.setLong(1, result.playerId())
+        );
+    }
+
+    private ExactMappingResponseDto selectMatchedOnlyExactMappingDryRunSummary(String sqlFileName) {
+        String query = sqlLoader.load(SQL_DIR + sqlFileName);
+        return jdbcTemplate.queryForObject(
+                query,
+                (rs, rowNum) -> ExactMappingResponseDto.matchedOnlyDryRun(
+                        rs.getLong("matched_candidates"),
+                        rs.getLong("linked_fmplayer_rows")
+                )
         );
     }
 }

@@ -12,7 +12,7 @@ public record MappingJobResponseDto(
         boolean dryRun,
         Instant startedAt,
         Instant finishedAt,
-        FuzzyMappingResponseDto result,
+        MappingJobResult result,
         String errorMessage
 ) {
     public static MappingJobResponseDto running(String jobId, String type, String strategy, boolean dryRun, Instant startedAt) {
@@ -29,7 +29,7 @@ public record MappingJobResponseDto(
         );
     }
 
-    public MappingJobResponseDto completed(FuzzyMappingResponseDto result, String strategy, boolean dryRun, Instant finishedAt) {
+    public MappingJobResponseDto completed(MappingJobResult result, String strategy, boolean dryRun, Instant finishedAt) {
         return new MappingJobResponseDto(
                 jobId,
                 type,

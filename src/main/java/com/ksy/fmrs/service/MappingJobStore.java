@@ -1,7 +1,7 @@
 package com.ksy.fmrs.service;
 
 import com.ksy.fmrs.domain.enums.MappingJobStatus;
-import com.ksy.fmrs.dto.FuzzyMappingResponseDto;
+import com.ksy.fmrs.dto.MappingJobResult;
 import com.ksy.fmrs.dto.MappingJobResponseDto;
 import com.ksy.fmrs.exception.DuplicatedMappingJobException;
 import org.springframework.stereotype.Component;
@@ -35,7 +35,7 @@ public class MappingJobStore {
         return job;
     }
 
-    public MappingJobResponseDto complete(String jobId, String strategy, boolean dryRun, FuzzyMappingResponseDto result) {
+    public MappingJobResponseDto complete(String jobId, String strategy, boolean dryRun, MappingJobResult result) {
         MappingJobResponseDto job = getJob(jobId).completed(result, strategy, dryRun,  Instant.now());
         jobs.put(jobId, job);
         return job;
