@@ -58,7 +58,7 @@ class PlayerRepositoryTest {
 
         playerList.add(player);
         playerList.add(player2);
-        // when
+        // whenㅂ
         teamRepository.save(team1);
         teamRepository.save(team2);
         playerRepository.saveAll(playerList);

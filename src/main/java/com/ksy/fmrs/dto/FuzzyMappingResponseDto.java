@@ -12,5 +12,5 @@ public record FuzzyMappingResponseDto(
         long matchedPlayersUpdated,
         long duplicatePlayersUpdated,
         long refreshedPlayers
-) {
+) implements MappingJobResult {
 }

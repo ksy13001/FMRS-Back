@@ -1,10 +1,12 @@
 package com.ksy.fmrs.service;
 
 import com.ksy.fmrs.domain.enums.FuzzyStrategy;
+import com.ksy.fmrs.domain.enums.ExactMappingPass;
 import com.ksy.fmrs.domain.enums.MappingStatus;
 import com.ksy.fmrs.domain.player.FmPlayer;
 import com.ksy.fmrs.domain.player.Player;
 import com.ksy.fmrs.dto.BirthNationKey;
+import com.ksy.fmrs.dto.ExactMappingResponseDto;
 import com.ksy.fmrs.dto.FuzzyMappingProperties;
 import com.ksy.fmrs.dto.FuzzyMappingResponseDto;
 import com.ksy.fmrs.dto.FuzzyMappingResult;
@@ -59,8 +61,60 @@ public class MappingService {
     public int matchExact(){
         int linkedRows = mappingRepository.assignPlayerIdToExactMatchedFmPlayers();
         int matchedPlayers = mappingRepository.markPlayersWithLinkedFmPlayersAsMatched();
-        mappingRepository.markRemainingPlayersAsNoMatch();
         return linkedRows + matchedPlayers;
+    }
+
+    @Transactional
+    public int markRemainingPlayersAsNoMatch() {
+        return mappingRepository.markRemainingPlayersAsNoMatch();
+    }
+
+    @Transactional
+    public ExactMappingResponseDto matchExact4Key(String jobId, boolean dryRun) {
+        log.info("[mapping-job:{}] exact 4-key mapping started: dryRun={}", jobId, dryRun);
+
+        if (dryRun) {
+            ExactMappingResponseDto result = mappingRepository.selectExact4KeyMappingDryRunSummary();
+            log.info("[mapping-job:{}] exact 4-key mapping dry-run summary: {}", jobId, result);
+            return result;
+        }
+
+        long failedPlayersUpdated = mappingRepository.markPlayersWithMissingMappingKeysAsFailed();
+        log.info("[mapping-job:{}] exact 4-key mapping updated failed players: {}", jobId, failedPlayersUpdated);
+
+        long duplicatePlayersUpdated = mappingRepository.markPlayersWithDuplicateFmPlayerCandidates();
+        log.info("[mapping-job:{}] exact 4-key mapping updated duplicate players: {}", jobId, duplicatePlayersUpdated);
+
+        long linkedFmPlayerRows = mappingRepository.assignPlayerIdToExactMatchedFmPlayers();
+        log.info("[mapping-job:{}] exact 4-key mapping linked fmplayer rows: {}", jobId, linkedFmPlayerRows);
+
+        long matchedPlayersUpdated = mappingRepository.markPlayersWithLinkedFmPlayersAsMatched();
+        log.info("[mapping-job:{}] exact 4-key mapping updated matched players: {}", jobId, matchedPlayersUpdated);
+
+        long noMatchPlayersUpdated = mappingRepository.markRemainingPlayersAsNoMatch();
+        log.info("[mapping-job:{}] exact 4-key mapping updated no-match players: {}", jobId, noMatchPlayersUpdated);
+
+        long refreshedPlayers = mappingRepository.refreshPlayersLastFmData();
+        log.info("[mapping-job:{}] exact 4-key mapping refreshed players: {}", jobId, refreshedPlayers);
+
+        return ExactMappingResponseDto.updated(
+                failedPlayersUpdated,
+                duplicatePlayersUpdated,
+                matchedPlayersUpdated,
+                noMatchPlayersUpdated,
+                linkedFmPlayerRows,
+                refreshedPlayers
+        );
+    }
+
+    @Transactional
+    public ExactMappingResponseDto matchExact(String jobId, ExactMappingPass pass, boolean dryRun) {
+        return switch (pass) {
+            case FOUR_KEY -> matchExact4Key(jobId, dryRun);
+            case TOKEN_NAME -> matchTokenNameExact(jobId, dryRun);
+            case FIRST_NAME_TOKEN_AND_FIRST_LAST_NAME_TOKEN ->
+                    matchFirstNameTokenAndFirstLastNameTokenExact(jobId, dryRun);
+        };
     }
 
     @Transactional
@@ -85,6 +139,70 @@ public class MappingService {
         }
 
         return linkedRows + matchedPlayers;
+    }
+
+    @Transactional
+    public ExactMappingResponseDto matchTokenNameExact(String jobId, boolean dryRun) {
+        log.info("[mapping-job:{}] token-name exact mapping started: dryRun={}", jobId, dryRun);
+
+        if (dryRun) {
+            ExactMappingResponseDto result = mappingRepository.selectTokenNameExactMappingDryRunSummary();
+            log.info("[mapping-job:{}] token-name exact mapping dry-run summary: {}", jobId, result);
+            return result;
+        }
+
+        long linkedFmPlayerRows = mappingRepository.assignPlayerIdToTokenNameMatchedFmPlayers();
+        log.info("[mapping-job:{}] token-name exact mapping linked fmplayer rows: {}", jobId, linkedFmPlayerRows);
+
+        long matchedPlayersUpdated = mappingRepository.markPlayersWithTokenNameLinkedFmPlayersAsMatched();
+        log.info("[mapping-job:{}] token-name exact mapping updated matched players: {}", jobId, matchedPlayersUpdated);
+
+        long refreshedPlayers = matchedPlayersUpdated > 0
+                ? mappingRepository.refreshPlayersLastFmData()
+                : 0;
+        log.info("[mapping-job:{}] token-name exact mapping refreshed players: {}", jobId, refreshedPlayers);
+
+        return ExactMappingResponseDto.matchedOnlyUpdated(
+                linkedFmPlayerRows,
+                matchedPlayersUpdated,
+                refreshedPlayers
+        );
+    }
+
+    @Transactional
+    public ExactMappingResponseDto matchFirstNameTokenAndFirstLastNameTokenExact(String jobId, boolean dryRun) {
+        log.info("[mapping-job:{}] first-name-token and first-last-name-token exact mapping started: dryRun={}",
+                jobId, dryRun);
+
+        if (dryRun) {
+            ExactMappingResponseDto result =
+                    mappingRepository.selectFirstNameTokenAndFirstLastNameTokenExactMappingDryRunSummary();
+            log.info("[mapping-job:{}] first-name-token and first-last-name-token exact mapping dry-run summary: {}",
+                    jobId, result);
+            return result;
+        }
+
+        long linkedFmPlayerRows =
+                mappingRepository.assignPlayerIdToFirstNameTokenAndFirstLastNameTokenMatchedFmPlayers();
+        log.info("[mapping-job:{}] first-name-token and first-last-name-token exact mapping linked fmplayer rows: {}",
+                jobId, linkedFmPlayerRows);
+
+        long matchedPlayersUpdated =
+                mappingRepository.markPlayersWithFirstNameTokenAndFirstLastNameTokenLinkedFmPlayersAsMatched();
+        log.info("[mapping-job:{}] first-name-token and first-last-name-token exact mapping updated matched players: {}",
+                jobId, matchedPlayersUpdated);
+
+        long refreshedPlayers = matchedPlayersUpdated > 0
+                ? mappingRepository.refreshPlayersLastFmData()
+                : 0;
+        log.info("[mapping-job:{}] first-name-token and first-last-name-token exact mapping refreshed players: {}",
+                jobId, refreshedPlayers);
+
+        return ExactMappingResponseDto.matchedOnlyUpdated(
+                linkedFmPlayerRows,
+                matchedPlayersUpdated,
+                refreshedPlayers
+        );
     }
 
     @Transactional

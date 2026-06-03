@@ -1,7 +1,7 @@
 package com.ksy.fmrs.controller;
 
+import com.ksy.fmrs.dto.ExactMappingRequestDto;
 import com.ksy.fmrs.dto.FuzzyMappingRequestDto;
-import com.ksy.fmrs.dto.FuzzyMappingResponseDto;
 import com.ksy.fmrs.dto.MappingJobResponseDto;
 import com.ksy.fmrs.service.MappingJobService;
 import com.ksy.fmrs.service.MappingService;
@@ -19,14 +19,44 @@ public class AdminController {
     private final MappingJobService mappingJobService;
 
 
-    @PutMapping("/api/admin/mapping/4key")
-    public int markUnmappedPlayers() {
-        mappingService.markPlayersWithMissingMappingKeysAsFailed();
-        mappingService.markDuplicates();
-        int cnt = mappingService.matchExact();
+//    @PutMapping("/api/admin/mapping/4key")
+//    public int markUnmappedPlayers() {
+//        mappingService.markPlayersWithMissingMappingKeysAsFailed();
+//        mappingService.markDuplicates();
+//        int cnt = mappingService.matchExact();
+//
+//        mappingService.markRemainingPlayersAsNoMatch();
+//        mappingService.refreshLatestFmData();
+//        return cnt;
+//    }
 
-        mappingService.refreshLatestFmData();
-        return cnt;
+    @PostMapping("/api/admin/mapping/jobs/4key")
+    public ResponseEntity<MappingJobResponseDto> startExact4KeyMappingJob(
+            @RequestBody ExactMappingRequestDto exactMappingRequestDto
+    ) {
+        return ResponseEntity
+                .accepted()
+                .body(mappingJobService.startExact4KeyMappingJob(exactMappingRequestDto.dryRun()));
+    }
+
+    @PostMapping("/api/admin/mapping/jobs/4key/name-exact")
+    public ResponseEntity<MappingJobResponseDto> startTokenNameExactMappingJob(
+            @RequestBody ExactMappingRequestDto exactMappingRequestDto
+    ) {
+        return ResponseEntity
+                .accepted()
+                .body(mappingJobService.startTokenNameExactMappingJob(exactMappingRequestDto.dryRun()));
+    }
+
+    @PostMapping("/api/admin/mapping/jobs/first-name-token-first-last-name-token")
+    public ResponseEntity<MappingJobResponseDto> startFirstNameTokenAndFirstLastNameTokenExactMappingJob(
+            @RequestBody ExactMappingRequestDto exactMappingRequestDto
+    ) {
+        return ResponseEntity
+                .accepted()
+                .body(mappingJobService.startFirstNameTokenAndFirstLastNameTokenExactMappingJob(
+                        exactMappingRequestDto.dryRun()
+                ));
     }
 
     @PutMapping("/api/admin/mapping/4key/name-exact")
