@@ -63,7 +63,6 @@ public class AdminController {
     public int matchTokenNamePlayers() {
         return mappingService.matchTokenName();
     }
-
     @PutMapping("/api/admin/mapping/first-name-token-first-last-name-token")
     public int matchFirstNameTokenAndFirstLastNameTokenPlayers() {
         return mappingService.matchFirstNameTokenAndFirstLastNameToken();
