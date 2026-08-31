@@ -23,6 +23,7 @@ public class FmPlayerImportService {
     private final FmPlayerBulkRepository fmPlayerBulkRepository;
     private final FmPlayerMapper fmPlayerMapper;
     private final FmPlayerJsonDirectoryReader fmPlayerJsonDirectoryReader;
+    private final MappingService mappingService;
     @Value( "${fm.import.batch_size}")
     private int batchSize;
 
@@ -34,6 +35,17 @@ public class FmPlayerImportService {
         }
         log.info("{} files found", files.length);
         saveFmPlayersInBatches(files, fmVersion);
+        linkNewVersionRowsToAlreadyMappedPlayers(fmVersion);
+    }
+
+    // 이미 MATCHED 된 선수의 fm_uid로 새 버전(fmVersion) row가 들어온 경우,
+    // 매핑 job을 기다리지 않고 바로 player_id를 연결하고 latest_* 를 최신화한다.
+    private void linkNewVersionRowsToAlreadyMappedPlayers(FmVersion fmVersion) {
+        int propagatedFmPlayerRows = mappingService.propagatePlayerIdByFmUid();
+        log.info("fm_uid 기존 매핑 전파: {} rows (fmVersion={})", propagatedFmPlayerRows, fmVersion);
+
+        int refreshedPlayers = mappingService.refreshLatestFmData();
+        log.info("latest_* 갱신된 선수 수: {} (fmVersion={})", refreshedPlayers, fmVersion);
     }
 
     private boolean hasNoFiles(File[] files) {
