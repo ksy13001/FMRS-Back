@@ -79,6 +79,9 @@ public class MappingService {
             return result;
         }
 
+        long propagatedFmPlayerRows = mappingRepository.propagatePlayerIdByFmUid();
+        log.info("[mapping-job:{}] exact 4-key mapping propagated existing fm_uid links: {}", jobId, propagatedFmPlayerRows);
+
         long failedPlayersUpdated = mappingRepository.markPlayersWithMissingMappingKeysAsFailed();
         log.info("[mapping-job:{}] exact 4-key mapping updated failed players: {}", jobId, failedPlayersUpdated);
 
