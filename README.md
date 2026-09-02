@@ -15,11 +15,11 @@ FMRS는 공통 식별자가 없는 두 선수 데이터셋을 자동으로 연�
 | 분류 | 사용 기술 |
 |------|----------|
 | Language | Java 21 |
-| Framework | Spring Boot 3.4, Spring Security |
-| 데이터 | MySQL 8, Spring Data JPA, QueryDSL, JdbcTemplate, Flyway |
-| 외부 연동 | RestClient, Resilience4j RateLimiter |
-| 테스트 · 성능 | JUnit 5, Mockito, H2, k6 |
-| 인프라 | AWS EC2, RDS, GitHub Actions |
+| Backend | Spring Boot 3.4, Spring Data JPA, QueryDSL, JdbcTemplate|
+| Database | MySQL 8, Flyway |
+| External API | RestClient, Resilience4j RateLimiter |
+| Test / Performance | JUnit 5, Mockito, H2, k6 |
+| Infra | AWS EC2, AWS RDS, GitHub Actions |
 
 ## 3. 성과
 
