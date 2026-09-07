@@ -60,6 +60,23 @@ public class Player {
     @Column(name="mapping_method")
     private MappingMethod mappingMethod;
 
+    // 매핑관련 필드는 차후에 테이블 분리 고렼
+    @Enumerated(EnumType.STRING)
+    @Column(name = "fuzzy_strategy")
+    private FuzzyStrategy fuzzyStrategy;
+
+    @Column(name = "fuzzy_top1_score")
+    private Double fuzzyTop1Score;
+
+    @Column(name = "fuzzy_top2_score")
+    private Double fuzzyTop2Score;
+
+    @Column(name = "fuzzy_candidate_count")
+    private Integer fuzzyCandidateCount;
+
+    @Column(name = "fuzzy_top1_fm_uid")
+    private Integer fuzzyTop1FmUid;
+
     @Column(name = "latest_current_ability")
     private Integer latestCurrentAbility;
 
