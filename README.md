@@ -9,7 +9,7 @@ FMRS는 공통 식별자가 없는 두 선수 데이터셋을 자동으로 연�
 
 사용자는 이름, 소속팀, 국적, FM 능력치 등의 조건으로 선수를 검색하고, 상세 조회를 통해 해당 선수의 실제 경기 스탯과 매핑된 FM 능력치를 함께 확인할 수 있습니다.  
 
-<img width="650" height="375" alt="Image" src="https://github.com/user-attachments/assets/2c6f5e80-8e9d-4384-a3f9-8e7f3e63c24f" />
+<img width="650" height="375" alt="Image" src="https://github.com/user-attachments/assets/2c6f5e80-8e9d-4384-a3f9-8e7f3e63c24f" />  
 
 ## 2. 기술 스택
 | 분류 | 사용 기술 |
@@ -35,3 +35,6 @@ FMRS는 공통 식별자가 없는 두 선수 데이터셋을 자동으로 연�
 >단위 테스트는 전부 통과했지만, 실제 실행 결과가 기대치에 크게 미달했습니다.  
 >DB와 애플리케이션의 문자열 비교 기준이 달라 후보가 유실되고 있었고,
 >후보 키 정규화와 회귀 테스트로 해결했습니다.
+
+## 4. ERD
+<img width="2096" height="1083" alt="Image" src="https://github.com/user-attachments/assets/52fc9425-eca8-4af2-8812-f0373fe58fb9" />
